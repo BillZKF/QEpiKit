@@ -1,0 +1,6 @@
+C:\Users\tuc64817\documents\visual studio 2013\Projects\QKit\QKit\bin\QKit.dll.config
+C:\Users\tuc64817\documents\visual studio 2013\Projects\QKit\QKit\bin\QKit.dll
+C:\Users\tuc64817\documents\visual studio 2013\Projects\QKit\QKit\bin\QKit.pdb
+C:\Users\tuc64817\documents\visual studio 2013\Projects\QKit\QKit\obj\Debug\QKit.dll
+C:\Users\tuc64817\documents\visual studio 2013\Projects\QKit\QKit\obj\Debug\QKit.pdb
+C:\Users\tuc64817\documents\visual studio 2013\Projects\QKit\QKit\obj\Debug\QKit.csprojResolveAssemblyReference.cache
