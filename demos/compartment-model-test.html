@@ -1,0 +1,111 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>QKit- Compartment Model Examples</title>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+    <script src="../src/epi.js"></script>
+    <script src="../src/compartment.js"></script>
+</head>
+<body>
+    <h1>QKit - Compartment Model Examples</h1>
+    <h2>SIR Model</h2>
+    <div id="results">
+        Time : <div id="time"></div>
+        Suceptible : <div id="succeptible"></div>
+        Infectious : <div id="infectious"></div>
+        Removed : <div id="removed"></div>
+        BRN : <div id="BRN"></div>
+        <p id="graph"></p>
+    </div>
+    <script>
+        var t = 0;
+        var succeptible = new QKit.Compartment("succeptible", 500);
+        var infectious = new QKit.Compartment("infectious", 3);
+        var removed = new QKit.Compartment("removed", 0);
+        var measPath = {transmissionRate: 1.46, recoveryRate: 0.141};
+        var measles = new QKit.CompartmentModel("measles", 0.002, 
+            [succeptible, infectious, removed], measPath);
+
+        var svg = d3.select("p").append("svg").attr("height", 360).attr("width", 640).append("g");
+
+        var x = d3.scale.linear()
+            .domain([0, 10])
+            .range([60, 640])
+
+        var y = d3.scale.linear()
+            .domain([measles.totalPop, 0])
+            .range([60, 300])
+
+        var xAxis = d3.svg.axis()
+                            .scale(x)
+                            .orient("bottom");
+
+        var yAxis = d3.svg.axis()
+            .scale(y)
+            .orient("left");
+
+        var infect = svg.append("circle")
+                .attr("cx", 0)
+                .attr("cy", 0)
+                .attr('r', 7)
+                .style({
+                    'opacity': 1,
+                    'stroke': '#fa0',
+                    'fill': '#fcf',
+                    'stroke-width': 1
+                });
+
+        var succept = svg.append("circle")
+                .attr("cx", 0)
+                .attr("cy", 0)
+                .attr('r', 7)
+                .style({
+                    'opacity': 1,
+                    'stroke': '#0af',
+                    'fill': '#cfc',
+                    'stroke-width': 1
+                });
+
+        var remove = svg.append("circle")
+               .attr("cx", 0)
+               .attr("cy", 0)
+               .attr('r', 7)
+               .style({
+                   'opacity': 1,
+                   'stroke': '#a0f',
+                   'fill': '#ccf',
+                   'stroke-width': 1
+               });
+
+        svg.append("g")
+			    .attr("class", "axis")
+			    .attr("transform", "translate(0,300)")
+			    .call(xAxis);
+
+        svg.append("g")
+            .attr("class", "axis")
+            .attr("transform", "translate(60,0)")
+            .call(yAxis);
+        succeptible.operation = function () { return -measles.transmissionRate * measles.compartments[0].pop * measles.compartments[1].pop * measles.step; };
+        removed.operation = function () {return measles.recoveryRate * measles.compartments[1].pop * measles.step;};
+        infectious.operation = function () { return (measles.transmissionRate * measles.compartments[0].pop * measles.compartments[1].pop * measles.step) - (measles.recoveryRate * measles.compartments[1].pop * measles.step);};
+        
+        function main() {
+            measles.run();
+            document.getElementById("time").innerHTML = measles.step * t;
+            document.getElementById("succeptible").innerHTML = Math.round(measles.compartments[0].pop);
+            document.getElementById("infectious").innerHTML = Math.round(measles.compartments[1].pop);
+            document.getElementById("removed").innerHTML = Math.round(measles.compartments[2].pop);
+            document.getElementById("BRN").innerHTML = Math.round(measles.basicReproductiveNumber);
+
+            infect.attr('transform', 'translate(' + x(measles.step * t) + ',' + y(measles.compartments[1].pop) + ')');
+            succept.attr('transform', 'translate(' + x(measles.step * t) + ',' + y(measles.compartments[0].pop) + ')');
+            remove.attr('transform', 'translate(' + x(measles.step * t) + ',' + y(measles.compartments[2].pop) + ')');
+            requestAnimationFrame(main);
+            t++;
+        }
+        
+        main();
+    </script>
+</body>
+</html>

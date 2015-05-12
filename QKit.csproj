@@ -18,16 +18,29 @@
     <IISExpressUseClassicPipelineMode />
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="app.css" />
-    <Content Include="index.html" />
+    <Content Include="demos\behavior-tree-test.html" />
+    <Content Include="demos\index.html" />
+    <Content Include="src\behaviorTree.js" />
+    <Content Include="demos\compartment-model-test.html" />
+    <Content Include="src\compartment.js" />
+    <Content Include="demos\libs\index.html" />
+    <Content Include="demos\libs\jquery_wyard.js" />
+    <Content Include="demos\libs\script.js" />
+    <Content Include="demos\libs\style.css" />
+    <Content Include="demos\libs\wyard-style.css" />
+    <Content Include="demos\script.js" />
+    <Content Include="src\epi.js" />
+    <Content Include="demos\style.css" />
     <Content Include="web.config" />
   </ItemGroup>
   <ItemGroup>
-    <TypeScriptCompile Include="app.ts" />
-    <TypeScriptCompile Include="epi.ts" />
-    <TypeScriptCompile Include="sir.ts" />
+    <TypeScriptCompile Include="src\behaviorTree.ts" />
+    <TypeScriptCompile Include="src\compartment.ts" />
+    <TypeScriptCompile Include="src\epi.ts" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="src\compartment.js.map" />
+    <Content Include="src\epi.js.map" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>

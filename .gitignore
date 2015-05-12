@@ -1,0 +1,6 @@
+/bin
+/obj
+*.csproj
+*.csproj.user
+tsconfig.json
+*.config
