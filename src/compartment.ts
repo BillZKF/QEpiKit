@@ -51,14 +51,20 @@
             this.delta = this.operation();
         }
     }
-    
+
     export interface Vital {
         birthRate: number;
-        mortRate: number;
+        mortalityRate: number;
     }
 
     export interface Pathogen {
         transmissionRate: number;
         recoveryRate: number;
-    }   
-} 
+        latentInfectiousRate: number;
+    }
+
+    export interface Patch {
+      pop : number;
+      location : number[];
+    }
+}

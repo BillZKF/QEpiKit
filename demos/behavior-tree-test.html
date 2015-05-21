@@ -48,7 +48,7 @@
 		<script data-require="jquery@*" data-semver="2.1.1" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 		<script data-require="d3@*" data-semver="3.4.6" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.4.6/d3.min.js"></script>
 		<script data-require="jquery-ui@*" data-semver="1.10.4" src="https://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
-		<script src="../src/behaviorTree.js"></script>
+		<script src="../dist/behaviorTree.js"></script>
 		<script src="libs/jquery_wyard.js"></script>
 		<script>
 			var mouseDown = false;
@@ -56,7 +56,7 @@
 				{age:30, bmi: 25, doctorFq: 1 / 365, doctor: 0, exercise: 1},
 				{age:70, bmi: 31, doctorFq: 3/ 365, doctor: 0, exercise: 1},
 			];
-			
+
 			var loseWeight = function(person){ person.bmi = person.bmi - (0.1 * person.exercise);};
 			var gainWeight = function(person){ person.bmi = person.bmi + 0.001;};
 			var makeTime = function(person){ if(person.exercise < 7){seeDoctor(person); person.exercise += 2;  person.doctorFq *= 2;};};
@@ -64,8 +64,8 @@
 			var makeOld = function(person){ person.age += 1 / 365; person.doctor += person.doctorFq;};
 			var makeSed = function(person){if(person.exercise > 0.1){ person.exercise = person.exercise - 0.01;} else {person.exercise = 0; gainWeight(person);}};
 			var seeDoctor = function(person){person.doctor = 0;};
-			
-			
+
+
 			var HeartAttack = new QKit.BTAction("are-they-at-great-risk-of-a-heart-attack", {key: "bmi", value :45, check : QKit.BehaviorTree.gtEq, data : popData}, makeDead);
 			var HealthScare = new QKit.BTAction("health-scare", {key: "doctor", value :0.5, check : QKit.BehaviorTree.gtEq, data : popData}, makeTime);
 			var NoContact = new QKit.BTAction("no-doctor-contact", {key: "exercise", value :3, check : QKit.BehaviorTree.ltEq, data : popData}, gainWeight);
@@ -81,8 +81,8 @@
 			var Status = new QKit.BTSelector("select-status", [Dead, SequenceAge, SelectObese]);
 			var Root = new QKit.BTRoot("root", [Status] );
 			var BHTree =  new QKit.BehaviorTree(Root, popData);
-		
-			var t = 0;	
+
+			var t = 0;
 			var main = function(){
 				$("#diagram").on("mousedown", function(){mouseDown = true;});
 				$("#diagram").on("mouseup", function(){mouseDown = false;});
@@ -105,7 +105,7 @@
 				mouseDown = true;
 				animate();
 			};
-			
+
 			var row = 0;
 			var col = 0;
 			var getChildren = function(node, element){
@@ -117,18 +117,18 @@
 				e.outputs = node.children === undefined ? undefined : true;
 				el = $(element).wyard('addEntity', e);
 				el[0].style.top = row * 100 +"px";
-				el[0].style.left = col * 250 +"px";	
-				
+				el[0].style.left = col * 250 +"px";
+
 				if(node.children !== null){
 					row++;
 					for (var c in node.children){
 						col = c;
 						getChildren(node.children[c], element);
-					}	
+					}
 				}
-				
+
 			};
-			
+
 			var addRelations = function(node, element){
 				if(node.children !== null){
 					row++;
@@ -138,13 +138,13 @@
 					}
 				}
 			};
-			
+
 			var drawTreeByDepth = function(tree, element){
 				$(element).wyard();
 				getChildren(tree.root, element);
 				addRelations(tree.root, element);
 			};
-			
+
 			function animate() {
 			   if(mouseDown){
 				   $('#diagram').wyard('drawRelations', {connectType : "vert"});

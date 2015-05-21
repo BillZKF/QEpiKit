@@ -1,6 +1,6 @@
-/bin
-/obj
+bin/
+obj/
+node_modules/
 *.csproj
 *.csproj.user
-tsconfig.json
 *.config

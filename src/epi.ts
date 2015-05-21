@@ -27,4 +27,4 @@
         c : number; //expNOutY
         d : number; //expNOutN
     }
-} 
+}

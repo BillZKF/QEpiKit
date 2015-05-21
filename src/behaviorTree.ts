@@ -3,12 +3,12 @@ module QKit{
 		public data : any[];
 		public root : BTNode;
 		public runningMem : any[];
-		
+
 		constructor(root:BTNode, data: any[]){
 			this.root = root;
 			this.data = data;
 		}
-		
+
 		start(agentID){
 			this.data[agentID].active = true;
 			var state;
@@ -17,13 +17,13 @@ module QKit{
 				this.data[agentID].active = false;
 			}
 		}
-		
+
 		update(){
 			for (var d in this.data){
 				this.start(d);
-			}	
+			}
 		}
-		
+
 		public static fromJSON = function(json: JSON){
 			var n;
 			for (var node in json){
@@ -48,7 +48,7 @@ module QKit{
 						break;
 					default:
 						try {
-		
+
 						} catch (error) {
 							throw error;
 						}
@@ -56,8 +56,8 @@ module QKit{
 				}
 			}
 		}
-		
-		
+
+
 		public static tick = function(node:BTNode, agentID:number){
 			var state = node.operate(agentID);
 			if(state === 3){
@@ -65,7 +65,7 @@ module QKit{
 			}
 			return state;
 		}
-		
+
 		public static equalTo = function(a, b){
 			if(a === b){
 				return 1;
@@ -73,7 +73,7 @@ module QKit{
 				return 2;
 			}
 		}
-		
+
 		public static notEqualTo = function(a, b){
 			if(a !== b){
 				return 1;
@@ -81,7 +81,7 @@ module QKit{
 				return 2;
 			}
 		}
-		
+
 		public static gt = function(a, b){
 			if(a > b){
 				return 1;
@@ -89,7 +89,7 @@ module QKit{
 				return 2;
 			}
 		}
-		
+
 		public static gtEq = function(a, b){
 			if(a >= b){
 				return 1;
@@ -97,7 +97,7 @@ module QKit{
 				return 2;
 			}
 		}
-		
+
 		public static lt = function(a, b){
 			if(a < b){
 				return 1;
@@ -105,7 +105,7 @@ module QKit{
 				return 2;
 			}
 		}
-		
+
 		public static ltEq = function(a, b){
 			if(a <= b){
 				return 1;
@@ -114,7 +114,7 @@ module QKit{
 			}
 		}
 	}
-	
+
 	export class BTNode{
 		public id: string;
 		public state: number;
@@ -123,25 +123,25 @@ module QKit{
 			this.id = id;
 		}
 	}
-	
+
 	export class  BTControlNode extends BTNode{
 		public children : BTNode[];
 		constructor(id: string, children: BTNode[]){
 			super(id);
-			this.children = children;	
+			this.children = children;
 		}
 	}
-	
+
 	export class BTRoot extends BTControlNode{
 		constructor(id:string, children:BTNode[]){
 			super(id, children);
 			this.operate = function(agentID){
 				var state = BehaviorTree.tick(this.children[0], agentID);
 				return state;
-			}	
+			}
 		}
 	}
-	
+
 	export class BTSelector extends BTControlNode{
 		constructor(id:string, children:BTNode[]){
 			super(id, children);
@@ -152,15 +152,15 @@ module QKit{
 					if(childState === 3){
 						return 3;
 					}
-					if(childState === 1){			
+					if(childState === 1){
 						return 1;
 					}
 				}
 				return 2;
-			}	
+			}
 		}
 	}
-	
+
 	export class BTSequence extends BTControlNode{
 		constructor(id:string, children:BTNode[]){
 			super(id, children);
@@ -179,7 +179,7 @@ module QKit{
 			}
 		}
 	}
-	
+
 	export class BTParallel extends BTControlNode{
 		constructor(id:string, children:BTNode[]){
 			super(id, children);
@@ -205,7 +205,7 @@ module QKit{
 			}
 		}
 	}
-	
+
 	export class BTCondition extends BTNode{
 		public condition: Condition;
 		constructor(id:string, condition){
@@ -218,7 +218,7 @@ module QKit{
 			}
 		}
 	}
-	
+
 	export class BTAction extends BTNode{
 		public condition: Condition;
 		public action : Function;
@@ -236,12 +236,12 @@ module QKit{
 			}
 		}
 	}
-	
+
 	export interface Condition{
 		key : string;
 		value : any;
 		check : Function;
 		data : any[];
 	}
-	
+
 }

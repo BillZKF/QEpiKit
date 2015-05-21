@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "target": "es5",
+        "module": "commonjs",
+        "outDir": "dist/",
+        "sourceMap": true
+    },
+    "filesGlob": [
+        "src/*.ts"
+    ],
+    "files": [
+        "src/behaviorTree.ts",
+        "src/compartment.ts",
+        "src/epi.ts"
+    ]
+}
