@@ -1,2 +1,2 @@
-# QKit
+# QEpiKit
 Epi Typescript / Javascript library
