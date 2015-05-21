@@ -19,11 +19,13 @@ var QKit;
                 this.data[agentID].active = false;
             }
         };
+
         BehaviorTree.prototype.update = function () {
             for (var d in this.data) {
                 this.start(d);
             }
         };
+
         BehaviorTree.fromJSON = function (json) {
             var n;
             for (var node in json) {
@@ -41,21 +43,23 @@ var QKit;
                         n = new BTParallel(json[node].id, json[node].children);
                         break;
                     case "condition":
-                        n = new BTSelector(json[node].id, json[node].condition);
+                        console.log(json[node]);
+                        n = new BTCondition(json[node].id, json[node].condition);
                         break;
                     case "action":
                         n = new BTAction(json[node].id, json[node].condition, json[node].action);
                         break;
                     default:
-                        try {
-                        }
-                        catch (error) {
+                        try  {
+                        } catch (error) {
                             throw error;
                         }
                         break;
                 }
+                return n;
             }
         };
+
         BehaviorTree.tick = function (node, agentID) {
             var state = node.operate(agentID);
             if (state === 3) {
@@ -63,57 +67,58 @@ var QKit;
             }
             return state;
         };
+
         BehaviorTree.equalTo = function (a, b) {
             if (a === b) {
                 return 1;
-            }
-            else {
+            } else {
                 return 2;
             }
         };
+
         BehaviorTree.notEqualTo = function (a, b) {
             if (a !== b) {
                 return 1;
-            }
-            else {
+            } else {
                 return 2;
             }
         };
+
         BehaviorTree.gt = function (a, b) {
             if (a > b) {
                 return 1;
-            }
-            else {
+            } else {
                 return 2;
             }
         };
+
         BehaviorTree.gtEq = function (a, b) {
             if (a >= b) {
                 return 1;
-            }
-            else {
+            } else {
                 return 2;
             }
         };
+
         BehaviorTree.lt = function (a, b) {
             if (a < b) {
                 return 1;
-            }
-            else {
+            } else {
                 return 2;
             }
         };
+
         BehaviorTree.ltEq = function (a, b) {
             if (a <= b) {
                 return 1;
-            }
-            else {
+            } else {
                 return 2;
             }
         };
         return BehaviorTree;
     })();
     QKit.BehaviorTree = BehaviorTree;
+
     var BTNode = (function () {
         function BTNode(id) {
             this.id = id;
@@ -121,6 +126,7 @@ var QKit;
         return BTNode;
     })();
     QKit.BTNode = BTNode;
+
     var BTControlNode = (function (_super) {
         __extends(BTControlNode, _super);
         function BTControlNode(id, children) {
@@ -130,10 +136,12 @@ var QKit;
         return BTControlNode;
     })(BTNode);
     QKit.BTControlNode = BTControlNode;
+
     var BTRoot = (function (_super) {
         __extends(BTRoot, _super);
         function BTRoot(id, children) {
             _super.call(this, id, children);
+            this.type = "root";
             this.operate = function (agentID) {
                 var state = BehaviorTree.tick(this.children[0], agentID);
                 return state;
@@ -142,10 +150,12 @@ var QKit;
         return BTRoot;
     })(BTControlNode);
     QKit.BTRoot = BTRoot;
+
     var BTSelector = (function (_super) {
         __extends(BTSelector, _super);
         function BTSelector(id, children) {
             _super.call(this, id, children);
+            this.type = "selector";
             this.operate = function (agentID) {
                 var childState;
                 for (var child in this.children) {
@@ -163,10 +173,12 @@ var QKit;
         return BTSelector;
     })(BTControlNode);
     QKit.BTSelector = BTSelector;
+
     var BTSequence = (function (_super) {
         __extends(BTSequence, _super);
         function BTSequence(id, children) {
             _super.call(this, id, children);
+            this.type = "sequence";
             this.operate = function (agentID) {
                 var childState;
                 for (var child in this.children) {
@@ -184,10 +196,12 @@ var QKit;
         return BTSequence;
     })(BTControlNode);
     QKit.BTSequence = BTSequence;
+
     var BTParallel = (function (_super) {
         __extends(BTParallel, _super);
         function BTParallel(id, children) {
             _super.call(this, id, children);
+            this.type = "parallel";
             this.operate = function (agentID) {
                 var successes = [], failures = [], childState, majority;
                 for (var child in this.children) {
@@ -202,11 +216,9 @@ var QKit;
                 majority = this.children.length / 2;
                 if (successes.length >= majority) {
                     return 1;
-                }
-                else if (failures.length >= majority) {
+                } else if (failures.length >= majority) {
                     return 2;
-                }
-                else {
+                } else {
                     return 3;
                 }
             };
@@ -214,10 +226,12 @@ var QKit;
         return BTParallel;
     })(BTControlNode);
     QKit.BTParallel = BTParallel;
+
     var BTCondition = (function (_super) {
         __extends(BTCondition, _super);
         function BTCondition(id, condition) {
             _super.call(this, id);
+            this.type = "condition";
             this.condition = condition;
             this.operate = function (agentID) {
                 var state;
@@ -228,10 +242,12 @@ var QKit;
         return BTCondition;
     })(BTNode);
     QKit.BTCondition = BTCondition;
+
     var BTAction = (function (_super) {
         __extends(BTAction, _super);
         function BTAction(id, condition, action) {
             _super.call(this, id);
+            this.type = "action";
             this.condition = condition;
             this.action = action;
             this.operate = function (agentID) {
@@ -247,4 +263,3 @@ var QKit;
     })(BTNode);
     QKit.BTAction = BTAction;
 })(QKit || (QKit = {}));
-//# sourceMappingURL=behaviorTree.js.map

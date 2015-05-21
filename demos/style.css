@@ -30,3 +30,8 @@
 .bh-ctrl label{
 	color : #eee;
 }
+
+.bh-tree-type{
+	font-size : 0.9em;
+	background-color : #c9c;
+}
