@@ -1,20 +1,20 @@
 ﻿<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <title>QKit- Compartment Model Examples</title>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+    <title>QEpiKit- Compartment Model Examples</title>
+    <script src="../bower_components/d3/d3.min.js"></script>
     <script src="../dist/epi.js"></script>
     <script src="../dist/compartment.js"></script>
 </head>
 <body>
-    <h1>QKit - Compartment Model Examples</h1>
+    <h1>QEpiKit - Compartment Model Examples</h1>
     <h2>SIR Model</h2>
     <div id="results">
         Time : <div id="time"></div>
         Suceptible : <div id="succeptible"></div>
         Infectious : <div id="infectious"></div>
         Removed : <div id="removed"></div>
-        BRN : <div id="BRN"></div>
+        Basic Reproductive Number : <div id="BRN"></div>
         <p id="graph"></p>
     </div>
     <script>
@@ -22,7 +22,7 @@
         var succeptible = new QKit.Compartment("succeptible", 500);
         var infectious = new QKit.Compartment("infectious", 3);
         var removed = new QKit.Compartment("removed", 0);
-        var measPath = {transmissionRate: 1.46, recoveryRate: 0.141};
+        var measPath = {transmissionRate: 1.5, recoveryRate: 1/7};
         var measles = new QKit.CompartmentModel("measles", 0.002,
             [succeptible, infectious, removed], measPath);
 
