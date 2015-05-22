@@ -1,0 +1,22 @@
+{
+  "name": "QEpiKit",
+  "version": "0.2.0",
+  "homepage": "https://github.com/BillZKF/QKit",
+  "authors": [
+    "wzkflynn-A8 <wzkflynn@gmail.com>"
+  ],
+  "description": "Typescript / Javascript Epidemiology Library",
+  "main": "dist/qepikit.js",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "d3": "~3.5.5",
+    "chance": "~0.7.5"
+  }
+}

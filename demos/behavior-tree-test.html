@@ -6,102 +6,89 @@
 	<body>
 		<div class="bh-ctrl" id="control-panel">
 			<h1>Behavior Tree Tests</h1>
+			<form name="newNode" id="add-node">
 			<div class="form-group">
 				<label for="node-id">Node ID</label>
-				<input id="node-id" class="form-control"></input>
+				<input id="node-id" name="id" class="form-control"></input>
 			</div>
 			<div class="form-group">
 				<label for="node-type">Node Type</label>
-				<select id="node-type" class="form-control">
-					<option>Root</option>
-					<option>Selector</option>
-					<option>Sequence</option>
-					<option>Parallel</option>
-					<option>Condition</option>
-					<option>Action</option>
+				<select id="node-type" name="type" class="form-control">
+					<option>root</option>
+					<option>selector</option>
+					<option>sequence</option>
+					<option>parallel</option>
+					<option>condition</option>
+					<option>action</option>
 				</select>
 			</div>
 			<div class="form-group">
-				<label for="children">Children</label>
-				<select id="children" class="form-control" multiple=true></select>
+				<label for="node-children">Children</label>
+				<select id="node-children" name="children" class="form-control" multiple=true>
+					<option value="null">none</option>
+				</select>
 			</div>
 			<div class="form-group">
 				<label for="node-cond">Condition</label>
-				<select id="node-cond-prop" class="form-control">
+				<select id="node-cond-prop" name="condition[key]" class="form-control">
 				</select>
-				<select id="node-cond-op" class="form-control">
-					<option>Equals</option>
-					<option>Does not Equal</option>
-					<option>Less Than</option>
-					<option>Less Than or Equal</option>
-					<option>Greater Than</option>
-					<option>Greater Than or Equal</option>
+				<select id="node-cond-op" name="condition[check]" class="form-control">
+					<option value="equalTo">Equals</option>
+					<option value="notEqualTo">Does not Equal</option>
+					<option value="gt">Less Than</option>
+					<option value="gtEq">Less Than or Equal</option>
+					<option value="lt">Greater Than</option>
+					<option value="ltEq">Greater Than or Equal</option>
 				</select>
-				<input id="node-cond-value" class="form-control"></input>
+				<input id="node-cond-value" name="condition[value]" class="form-control"></input>
 			</div>
-			<div class="btn btn-primary">Add Node</div>
+			<div class="btn btn-primary" onclick="addNode(newNode)">Add Node</div>
+			</form>
 		</div>
 		<div class="bh-tree" id="diagram"></div>
 		<div id="p1"></div>
-		<link data-require="bootstrap-css@*" data-semver="3.2.0" rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css"
-		/>
+		<link data-require="bootstrap-css@*" data-semver="3.2.0" rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css"/>
 		<script data-require="jquery@*" data-semver="2.1.1" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-		<script data-require="d3@*" data-semver="3.4.6" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.4.6/d3.min.js"></script>
 		<script data-require="jquery-ui@*" data-semver="1.10.4" src="https://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+		<script src="../bower_components/d3/d3.min.js"></script>
+		<script src="../bower_components/chance/chance.js"></script>
 		<script src="../dist/behaviorTree.js"></script>
 		<script src="libs/jquery_wyard.js"></script>
+		<script src="bh-measles-ex.js"></script>
 		<script>
 			var mouseDown = false;
-			var popData = [
-				{age:30, bmi: 25, doctorFq: 1 / 365, doctor: 0, exercise: 1},
-				{age:70, bmi: 31, doctorFq: 3/ 365, doctor: 0, exercise: 1},
-			];
-
-			var loseWeight = function(person){ person.bmi = person.bmi - (0.1 * person.exercise);};
-			var gainWeight = function(person){ person.bmi = person.bmi + 0.001;};
-			var makeTime = function(person){ if(person.exercise < 7){seeDoctor(person); person.exercise += 2;  person.doctorFq *= 2;};};
-			var makeDead = function(person){ person.dead = true;};
-			var makeOld = function(person){ person.age += 1 / 365; person.doctor += person.doctorFq;};
-			var makeSed = function(person){if(person.exercise > 0.1){ person.exercise = person.exercise - 0.01;} else {person.exercise = 0; gainWeight(person);}};
-			var seeDoctor = function(person){person.doctor = 0;};
-
-
-			var HeartAttack = new QKit.BTAction("are-they-at-great-risk-of-a-heart-attack", {key: "bmi", value :45, check : QKit.BehaviorTree.gtEq, data : popData}, makeDead);
-			var HealthScare = new QKit.BTAction("health-scare", {key: "doctor", value :0.5, check : QKit.BehaviorTree.gtEq, data : popData}, makeTime);
-			var NoContact = new QKit.BTAction("no-doctor-contact", {key: "exercise", value :3, check : QKit.BehaviorTree.ltEq, data : popData}, gainWeight);
-			var SelectSedObese = new QKit.BTSelector("are-they-sedentary", [HeartAttack, HealthScare, NoContact]);
-			var ActiveObese = new QKit.BTAction("are-they-active", {key: "exercise", value : 3, check : QKit.BehaviorTree.gtEq, data : popData}, loseWeight);
-			var CondObese = new QKit.BTCondition("is-the-person-obese", {key: "bmi", value : 28, check : QKit.BehaviorTree.ltEq, data : popData});
-			var SelectObese = new QKit.BTSelector("select-obese", [CondObese, ActiveObese, SelectSedObese]);
-			var Age = new QKit.BTAction("is-person-an-adult", {key:"age", value : 21, check : QKit.BehaviorTree.gtEq, data : popData}, makeOld);
-			var Sed = new QKit.BTAction("is-this-person-sedentary", {key:"age", value : 28, check : QKit.BehaviorTree.gtEq, data : popData}, makeSed);
-			var Doctor = new QKit.BTAction("is-this-person-seeing-a-doctor", {key:"doctor", value : 1, check : QKit.BehaviorTree.gtEq, data : popData}, seeDoctor);
-			var SequenceAge = new QKit.BTSequence("sequence-age", [Age, Sed, Doctor]);
-			var Dead = new QKit.BTCondition("is-person-dead", {key:"dead", value : true, check : QKit.BehaviorTree.equalTo, data : popData});
-			var Status = new QKit.BTSelector("select-status", [Dead, SequenceAge, SelectObese]);
-			var Root = new QKit.BTRoot("root", [Status] );
-			var BHTree =  new QKit.BehaviorTree(Root, popData);
-
 			var t = 0;
-			var main = function(){
+			var init = function(){
 				$("#diagram").on("mousedown", function(){mouseDown = true;});
 				$("#diagram").on("mouseup", function(){mouseDown = false;});
+				genPopulation(100);
 				var html = "";
-				while (t < 10 * 360){
-					var printFQ = t % 365;
+				while (t < 30){
+					var printFQ = t % 1;
 					if(printFQ == 0){
-						html += "<h3>Y = " + t / 365 + "</h3>";
-						for(var p in popData){
-							html += "<div>";
-							html += "<span>" + JSON.stringify(popData[p]) + ",</span>";
-							html += "</div>";
+						html += "<h3>D = " + t + "</h3><table><tr>";
+						for (var prop in popProps){
+							html += "<th>" + popProps[prop] + "</th>"
 						}
+						html += "</tr>";
+						for(var p in popData){
+							html += "<tr>";
+							html += "<td>" + t + "</td>"
+							for (var prop in popData[p]){
+								html += "<td>" + popData[p][prop] + "</td>";
+							}
+							html += "</tr>";
+						}
+						html += "</table>";
 					}
 					document.getElementById("p1").innerHTML = html;
 					BHTree.update();
 					t++;
 				}
 				drawTreeByDepth(BHTree, "#diagram");
+				getProperties(popData);
+				visit(BHTree.root, listIDs);
+				setChildrenOptions(ids);
 				mouseDown = true;
 				animate();
 			};
@@ -111,12 +98,12 @@
 			var getChildren = function(node, element){
 				var e = {
 					type : "vertConnects",
-					header : node.id,
+					header : "<div>" + node.id + "</div><div class='bh-tree-type'>" + node.type + "</div>",
 					entityId : node.id
 				}, el;
 				e.outputs = node.children === undefined ? undefined : true;
 				el = $(element).wyard('addEntity', e);
-				el[0].style.top = row * 100 +"px";
+				el[0].style.top = row * 72 +"px";
 				el[0].style.left = col * 250 +"px";
 
 				if(node.children !== null){
@@ -151,9 +138,70 @@
 			   }
 			   requestAnimationFrame(animate);
 			}
-			main();
+
+
+			var addNode = function (node) {
+				node = $(node).serializeArray();
+
+				var nodeJSON = {
+					"id" : node[0].value,
+					"type" : node[1].value,
+					"children" : node[2].value || null,
+					"condition" : { "key": node[3].value || null, "check" : node[4].value || null, "value" : node[5].value},
+					"action" : node[6].value || null
+				}
+
+				node = QKit.BehaviorTree.fromJSON([nodeJSON]);
+				var el = {
+					type : "vertConnects",
+					header : "<div>" + node.id + "</div><div class='bh-tree-type'>" + node.type + "</div>",
+					entityId : node.id
+				};
+				el.outputs = node.children === undefined ? undefined : true;
+				$("#diagram").wyard('addEntity', el);
+			};
+
+			var ids = [];
+			var visit = function(node, cb){
+				cb(node);
+				if (node.children !== null) {
+					for (var c in node.children) {
+						visit(node.children[c], cb);
+					}
+				}
+			};
+
+			var listIDs = function(node){
+				ids.push(node.id);
+			};
+
+			var byID = function(node){
+				if(node.id === id){
+					return node;
+				}
+			}
+
+			var getProperties = function(data){
+				var props = [];
+				for (var prop in data[0]){
+					props.push(prop);
+					$("#node-cond-prop").append(
+						"<option>" + prop +  "</option>"
+					);
+				}
+
+			}
+
+			var setChildrenOptions = function(data){
+				for(var i = 0; i < data.length; i++){
+					$("#node-children").append(
+						"<option>" + data[i] +  "</option>"
+					);
+				}
+			};
+
+			init();
 		</script>
-		<script src="script.js"></script></script>
 	</body>
 
 </html>

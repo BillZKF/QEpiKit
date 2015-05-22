@@ -5,3 +5,4 @@ bower_components/
 *.csproj
 *.csproj.user
 *.config
+.settings/

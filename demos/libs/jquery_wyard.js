@@ -163,10 +163,11 @@
           src_height = $("#" + wyard.rels[i][0]).height();
           link = d3con.append("svg:line")
             .attr("x1", src_pos.left + (src_width / 2))
-            .attr("y1", src_pos.top - (2 * src_height))
+            .attr("y1", src_pos.top + ( 1.5 * src_height))
             .attr("x2", dest_pos.left + (dest_width / 2))
-            .attr("y2", dest_pos.top - src_height)
-            .style("stroke", "rgb(6,120,155)");   
+            .attr("y2", dest_pos.top)
+            .style("stroke", "rgb(6,120,155)") 
+            .style("stroke-width", 5); 
         } else {
           leftmost = Math.min(src_pos.left, dest_pos.left);
 

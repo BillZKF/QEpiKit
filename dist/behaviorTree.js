@@ -41,7 +41,8 @@ var QKit;
                         n = new BTParallel(json[node].id, json[node].children);
                         break;
                     case "condition":
-                        n = new BTSelector(json[node].id, json[node].condition);
+                        console.log(json[node]);
+                        n = new BTCondition(json[node].id, json[node].condition);
                         break;
                     case "action":
                         n = new BTAction(json[node].id, json[node].condition, json[node].action);
@@ -54,6 +55,7 @@ var QKit;
                         }
                         break;
                 }
+                return n;
             }
         };
         BehaviorTree.tick = function (node, agentID) {
@@ -134,6 +136,7 @@ var QKit;
         __extends(BTRoot, _super);
         function BTRoot(id, children) {
             _super.call(this, id, children);
+            this.type = "root";
             this.operate = function (agentID) {
                 var state = BehaviorTree.tick(this.children[0], agentID);
                 return state;
@@ -146,6 +149,7 @@ var QKit;
         __extends(BTSelector, _super);
         function BTSelector(id, children) {
             _super.call(this, id, children);
+            this.type = "selector";
             this.operate = function (agentID) {
                 var childState;
                 for (var child in this.children) {
@@ -167,6 +171,7 @@ var QKit;
         __extends(BTSequence, _super);
         function BTSequence(id, children) {
             _super.call(this, id, children);
+            this.type = "sequence";
             this.operate = function (agentID) {
                 var childState;
                 for (var child in this.children) {
@@ -188,6 +193,7 @@ var QKit;
         __extends(BTParallel, _super);
         function BTParallel(id, children) {
             _super.call(this, id, children);
+            this.type = "parallel";
             this.operate = function (agentID) {
                 var successes = [], failures = [], childState, majority;
                 for (var child in this.children) {
@@ -218,6 +224,7 @@ var QKit;
         __extends(BTCondition, _super);
         function BTCondition(id, condition) {
             _super.call(this, id);
+            this.type = "condition";
             this.condition = condition;
             this.operate = function (agentID) {
                 var state;
@@ -232,6 +239,7 @@ var QKit;
         __extends(BTAction, _super);
         function BTAction(id, condition, action) {
             _super.call(this, id);
+            this.type = "action";
             this.condition = condition;
             this.action = action;
             this.operate = function (agentID) {

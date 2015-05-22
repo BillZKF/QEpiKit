@@ -36,12 +36,13 @@ module QKit{
 						break;
 					case "sequence":
 						n = new BTSequence(json[node].id, json[node].children);
-                        break;
-                    case "parallel":
-                        n = new BTParallel(json[node].id, json[node].children);
-                        break;
+              break;
+          case "parallel":
+              n = new BTParallel(json[node].id, json[node].children);
+              break;
 					case "condition":
-						n = new BTSelector(json[node].id, json[node].condition);
+						console.log(json[node]);
+						n = new BTCondition(json[node].id, json[node].condition);
 						break;
 					case "action":
 						n = new BTAction(json[node].id, json[node].condition, json[node].action);
@@ -54,6 +55,7 @@ module QKit{
 						}
 						break;
 				}
+				return n;
 			}
 		}
 
@@ -118,6 +120,7 @@ module QKit{
 	export class BTNode{
 		public id: string;
 		public state: number;
+		public type : string;
 		public operate: Function;
 		constructor(id:string){
 			this.id = id;
@@ -135,6 +138,7 @@ module QKit{
 	export class BTRoot extends BTControlNode{
 		constructor(id:string, children:BTNode[]){
 			super(id, children);
+			this.type = "root";
 			this.operate = function(agentID){
 				var state = BehaviorTree.tick(this.children[0], agentID);
 				return state;
@@ -145,6 +149,7 @@ module QKit{
 	export class BTSelector extends BTControlNode{
 		constructor(id:string, children:BTNode[]){
 			super(id, children);
+			this.type = "selector";
 			this.operate = function(agentID){
 				var childState;
 				for(var child in this.children){
@@ -164,6 +169,7 @@ module QKit{
 	export class BTSequence extends BTControlNode{
 		constructor(id:string, children:BTNode[]){
 			super(id, children);
+			this.type = "sequence";
 			this.operate = function(agentID){
 				var childState;
 				for(var child in this.children){
@@ -183,6 +189,7 @@ module QKit{
 	export class BTParallel extends BTControlNode{
 		constructor(id:string, children:BTNode[]){
 			super(id, children);
+			this.type = "parallel";
 			this.operate = function(agentID){
 				var successes = [], failures =[], childState, majority;
 				for(var child in this.children){
@@ -210,6 +217,7 @@ module QKit{
 		public condition: Condition;
 		constructor(id:string, condition){
 			super(id);
+			this.type = "condition";
 			this.condition = condition;
 			this.operate = function(agentID){
 				var state;
@@ -224,6 +232,7 @@ module QKit{
 		public action : Function;
 		constructor(id:string, condition, action: Function){
 			super(id);
+			this.type = "action";
 			this.condition = condition;
 			this.action = action;
 			this.operate = function(agentID){
