@@ -36,10 +36,10 @@ module QKit{
 						break;
 					case "sequence":
 						n = new BTSequence(json[node].id, json[node].children);
-                        break;
-                    case "parallel":
-                        n = new BTParallel(json[node].id, json[node].children);
-                        break;
+              break;
+          case "parallel":
+              n = new BTParallel(json[node].id, json[node].children);
+              break;
 					case "condition":
 						console.log(json[node]);
 						n = new BTCondition(json[node].id, json[node].condition);
