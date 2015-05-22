@@ -45,7 +45,7 @@
 			<div class="btn btn-primary" onclick="addNode(newNode)">Add Node</div>
 			</form>
 		</div>
-		<div class="bh-tree" id="diagram"></div>
+		<div id="diagram"></div>
 		<div id="p1"></div>
 		<link data-require="bootstrap-css@*" data-semver="3.2.0" rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css"/>
 		<script data-require="jquery@*" data-semver="2.1.1" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
@@ -61,16 +61,16 @@
 			var init = function(){
 				$("#diagram").on("mousedown", function(){mouseDown = true;});
 				$("#diagram").on("mouseup", function(){mouseDown = false;});
-				genPopulation(1000);
+				genPopulation(100);
 				var html = "";
 				var head = "<table>";
-				while (t < 5 * 365){
-					var printFQ = t % 365;
+				while (t < 30){
+					var printFQ = t % 1;
 					html += "<tr>";
 					if(printFQ == 0){
 						for(var p in popData){
 							html += "<tr>";
-							html += "<td>" + t / 365 + "</td>"
+							html += "<td>" + t + "</td>"
 							for (var prop in popData[p]){
 								html += "<td>" + popData[p][prop] + "</td>";
 							}
@@ -86,36 +86,17 @@
 				head += "</tr>";
 				html += "</table>";
 				document.getElementById("p1").innerHTML = head + html;
-				drawTreeByDepth(BHTree, "#diagram");
+				//drawTreeByDepth(BHTree, "#diagram");
 				getProperties(popData);
-				visit(BHTree.root, listIDs);
-				setChildrenOptions(ids);
+				//visit(BHTree.root, listIDs);
+				//setChildrenOptions(ids);
 				mouseDown = true;
 				animate();
 			};
 
 			var row = 0;
 			var col = 0;
-			var getChildren = function(node, element){
-				var e = {
-					type : "vertConnects",
-					header : "<div>" + node.id + "</div><div class='bh-tree-type'>" + node.type + "</div>",
-					entityId : node.id
-				}, el;
-				e.outputs = node.children === undefined ? undefined : true;
-				el = $(element).wyard('addEntity', e);
-				el[0].style.top = row * 72 +"px";
-				el[0].style.left = col * 250 +"px";
 
-				if(node.children !== null){
-					row++;
-					for (var c in node.children){
-						col = c;
-						getChildren(node.children[c], element);
-					}
-				}
-
-			};
 
 			var addRelations = function(node, element){
 				if(node.children !== null){
@@ -128,18 +109,16 @@
 			};
 
 			var drawTreeByDepth = function(tree, element){
-				$(element).wyard();
-				getChildren(tree.root, element);
-				addRelations(tree.root, element);
+				//visit(tree.root, addEl);
+				//addRelations(tree.root, element);
 			};
 
 			function animate() {
 			   if(mouseDown){
-				   $('#diagram').wyard('drawRelations', {connectType : "vert"});
+				   //$('#diagram').wyard('drawRelations', {connectType : "vert"});
 			   }
 			   requestAnimationFrame(animate);
 			}
-
 
 			var addNode = function (node) {
 				node = $(node).serializeArray();
@@ -201,7 +180,64 @@
 				}
 			};
 
-			init();
+var margin = {top: 20, right: 120, bottom: 20, left: 120},
+width = 960 - margin.right - margin.left,
+height = 500 - margin.top - margin.bottom;
+
+var i = 0;
+
+var tree = d3.layout.tree()
+	.size([height, width]);
+
+var diagonal = d3.svg.diagonal()
+	.projection(function(d) { return [d.y, d.x]; });
+
+var svg = d3.select("#diagram").append("svg")
+	.attr("width", width + margin.right + margin.left)
+	.attr("height", height + margin.top + margin.bottom)
+  .append("g")
+	.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+	var nodes = tree.nodes(BHTree.root)
+	links = tree.links(nodes);
+
+	// Normalize for fixed-depth.
+nodes.forEach(function(d) { d.y = d.depth * 180; });
+
+// Declare the nodes…
+var node = svg.selectAll("g.node")
+	.data(nodes, function(d) { return d.id || (d.id = ++i); });
+
+// Enter the nodes.
+var nodeEnter = node.enter().append("g")
+	.attr("class", function(d){ return d.type})
+	.attr("transform", function(d) {
+		return "translate(" + d.y + "," + d.x + ")"; });
+
+nodeEnter.append("circle")
+	.attr("r", 10)
+
+
+nodeEnter.append("text")
+	.attr("x", function(d) {
+		return d.children || d._children ? -13 : 13; })
+	.attr("dy", ".35em")
+	.attr("text-anchor", function(d) {
+		return d.children || d._children ? "end" : "start"; })
+	.text(function(d) { return d.type + " : " +d.id; })
+	.style("fill-opacity", 1);
+
+// Declare the links…
+var link = svg.selectAll("path.link")
+	.data(links, function(d) { return d.target.id; });
+
+// Enter the links.
+link.enter().insert("path", "g")
+	.attr("class", "link")
+	.attr("d", diagonal);
+
+
+	init();
 		</script>
 	</body>
 

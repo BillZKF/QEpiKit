@@ -1,6 +1,48 @@
-table td th{
+table td, th{
 	padding : 11px;
+	text-align: center;
+	min-width: 72px;
 }
+
+
+
+	.node text { font: 12px sans-serif; }
+
+	.link {
+	  fill: none;
+	  stroke: #ccc;
+	  stroke-width: 2px;
+	}
+
+	.root circle{
+		fill: #fff;
+		stroke: #f44;
+	  stroke-width: 3px;
+	}
+
+	.action circle {
+	  fill: #fff;
+	  stroke: steelblue;
+	  stroke-width: 3px;
+	}
+
+	.condition circle {
+	  fill: #fff;
+	  stroke: lightblue;
+	  stroke-width: 3px;
+	}
+
+	.selector circle{
+		fill: #fff;
+	  stroke: orange;
+	  stroke-width: 3px;
+	}
+
+	.sequence circle{
+		fill: #fff;
+	  stroke: lightgreen;
+	  stroke-width: 3px;
+	}
 
 .bh-tree{
 	width : 100%;

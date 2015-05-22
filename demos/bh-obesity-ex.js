@@ -3,6 +3,7 @@ var popProps = [];
 var genPopulation = function(number){
 	var p = {};
 	for (var i = 0; i < number; i++){
+		p.id = i;
 		p.age = chance.integer({min: 21, max : 70});
 		p.bmi = chance.integer({min: 24, max : 32});
 		p.doctorFq = chance.floating({min: 0, max : 6/365});
@@ -13,6 +14,7 @@ var genPopulation = function(number){
 	}
 	popProps = Object.keys(popData[0]);
 	popProps.push('dead');
+	popProps.unshift('day');
 }
 
 //conditions
