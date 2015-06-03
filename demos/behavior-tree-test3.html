@@ -58,44 +58,37 @@
 		<script>
 			var mouseDown = false;
 			var t = 0;
+			var summary;
 			var init = function(){
 				$("#diagram").on("mousedown", function(){mouseDown = true;});
 				$("#diagram").on("mouseup", function(){mouseDown = false;});
 				genPopulation(100);
-				var html = "";
-				var head = "<table>";
-				while (t < 30){
-					var printFQ = t % 1;
-					html += "<tr>";
-					if(printFQ == 0){
-						for(var p in popData){
-							html += "<tr>";
-							html += "<td>" + t + "</td>"
-							for (var prop in popData[p]){
-								html += "<td>" + popData[p][prop] + "</td>";
-							}
-							html += "</tr>";
-						}
-					}
-					BHTree.update();
-					t++;
-				}
-				for (var prop in popProps){
-					head += "<th>" + popProps[prop] + "</th>"
-				}
-				head += "</tr>";
-				html += "</table>";
-				document.getElementById("p1").innerHTML = head + html;
-				//drawTreeByDepth(BHTree, "#diagram");
+				BHTree.history = [];
+				BHTree.time = 0
+				generateTimeData(BHTree, 1, 365 * 8, 365);
+
 				getProperties(popData);
-				//visit(BHTree.root, listIDs);
-				//setChildrenOptions(ids);
+				summary = summarizeTimeData(BHTree.history, ['dead']);
 				mouseDown = true;
 				animate();
 			};
 
 			var row = 0;
 			var col = 0;
+
+			var generateTimeData = function(tree, step, limit, saveInterval){
+				while(tree.time <= limit){
+					var rem = tree.time % saveInterval;
+					if(rem == 0){
+						tree.data.map(function(d){ return d.time = tree.time});
+						tree.history.push(jQuery.extend(true, {}, tree.data));
+					}
+					tree.update();
+					tree.time += step;
+				}
+				return tree.history;
+			}
+
 
 
 			var addRelations = function(node, element){
@@ -179,6 +172,22 @@
 					);
 				}
 			};
+
+			var summarizeTimeData = function(data, keys){
+				var results = [];
+				for(var step = 0; step < data.length; step++){
+					results[step] = {};
+					for(var d in data[step]){
+						for(var key = 0; key < keys.length; key++){
+							if (data[step][d][keys[key]] == true){
+								results[step][keys[key]] = results[step][keys[key]] + 1 || 0;
+							}
+						}
+					}
+				}
+				console.log(results);
+				return results;
+			}
 
 var margin = {top: 20, right: 120, bottom: 20, left: 120},
 width = 960 - margin.right - margin.left,
