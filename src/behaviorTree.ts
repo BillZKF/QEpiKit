@@ -1,4 +1,5 @@
 module QKit{
+
 	export class BehaviorTree{
 		public data : any[];
 		public root : BTNode;
@@ -9,7 +10,7 @@ module QKit{
 			this.data = data;
 		}
 
-		start(agentID){
+		start(agentID:number){
 			this.data[agentID].active = true;
 			var state;
 			while (this.data[agentID].active === true){
@@ -36,10 +37,10 @@ module QKit{
 						break;
 					case "sequence":
 						n = new BTSequence(json[node].id, json[node].children);
-              break;
-          case "parallel":
-              n = new BTParallel(json[node].id, json[node].children);
-              break;
+							break;
+					case "parallel":
+							n = new BTParallel(json[node].id, json[node].children);
+							break;
 					case "condition":
 						console.log(json[node]);
 						n = new BTCondition(json[node].id, json[node].condition);
