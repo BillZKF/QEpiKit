@@ -12,6 +12,7 @@
     "files": [
         "src/behaviorTree.ts",
         "src/compartment.ts",
-        "src/epi.ts"
+        "src/epi.ts",
+        "src/utils.ts"
     ]
 }

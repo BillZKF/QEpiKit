@@ -49,14 +49,14 @@
 	</div>
 	<div id="diagram"></div>
 	<div id="p1"></div>
-	<link data-require="bootstrap-css@*" data-semver="3.2.0" rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" />
-	<script data-require="jquery@*" data-semver="2.1.1" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-	<script data-require="jquery-ui@*" data-semver="1.10.4" src="https://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+	<link data-require="bootstrap-css@*" data-semver="3.2.0" rel="stylesheet" href="../bower_components/bootstrap/dist/css/bootstrap.min.css" />
+	<script data-require="jquery@*" data-semver="2.1.1" src="../bower_components/jquery/dist/jquery.min.js"></script>
 	<script src="../bower_components/d3/d3.min.js"></script>
 	<script src="../bower_components/chance/chance.js"></script>
 	<script src="libs/jquery_wyard.js"></script>
 	<script src="../dist/behaviorTree.js"></script>
-	<script src="bh-measles-ex.js"></script>
+	<script src="../dist/utils.js"></script>
+	<script src="bh-obesity-ex.js"></script>
 	<script>
 		var mouseDown = false;
 		var t = 0;
@@ -76,6 +76,14 @@
 			generateTimeData(BHTree, 1, 365 * 8, 365);
 
 			getProperties(popData);
+			var data = generateCSV(BHTree.history);
+
+			var encodedUri = QKit.Utils.createCSVURI(data);
+			var link = document.createElement("a");
+			link.setAttribute("href", encodedUri);
+			link.setAttribute("download", "my_data.csv");
+			link.innerHTML = "csv file";
+			$("#control-panel").append(link);
 			summary = summarizeTimeData(BHTree.history, ['dead']);
 			mouseDown = true;
 
@@ -84,7 +92,21 @@
 
 		var row = 0;
 		var col = 0;
+		var generateCSV = function(data) {
 
+			var results = [];
+			for (var i = 0; i < data.length; i++) {
+				for (var d in data[i]) {
+					//console.log(i)
+					var index = i * d;
+					results[index] = [];
+					for (var prop in data[i][d]) {
+						results[index].push(data[i][d][prop]);
+					}
+				}
+			}
+			return results;
+		}
 		var generateTimeData = function(tree, step, limit, saveInterval) {
 			while (tree.time <= limit) {
 				var rem = tree.time % saveInterval;
