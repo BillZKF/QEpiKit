@@ -56,7 +56,7 @@
 	<script src="libs/jquery_wyard.js"></script>
 	<script src="../dist/behaviorTree.js"></script>
 	<script src="../dist/utils.js"></script>
-	<script src="bh-obesity-ex.js"></script>
+	<script src="bh-weight-gain-ex.js"></script>
 	<script>
 		var mouseDown = false;
 		var t = 0;
@@ -73,7 +73,7 @@
 			genPopulation(100);
 			BHTree.history = [];
 			BHTree.time = 0
-			generateTimeData(BHTree, 1, 365 * 8, 365);
+			generateTimeData(BHTree, 1, 365 * 4, 365);
 
 			getProperties(popData);
 			var data = generateCSV(BHTree.history);
