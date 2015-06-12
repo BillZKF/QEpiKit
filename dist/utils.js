@@ -5,12 +5,16 @@ var QKit;
         }
         Utils.createCSVURI = function (data) {
             var dataString;
+            var URI;
             var csvContent = "data:text/csv;charset=utf-8,";
-            data.forEach(function (infoArray, index) {
-                dataString = data.join(",");
-                csvContent += index < data.length ? dataString + "\n" : dataString;
+            var csvContentArray = [];
+            data.forEach(function (infoArray) {
+                dataString = infoArray.join(",");
+                csvContentArray.push(dataString);
             });
-            return encodeURI(csvContent);
+            csvContent += csvContentArray.join("\n");
+            URI = encodeURI(csvContent);
+            return URI;
         };
         return Utils;
     })();

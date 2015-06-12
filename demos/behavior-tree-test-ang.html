@@ -25,16 +25,16 @@
 				</select>
 			</div>
 			<div class="form-group">
-				<label for="node-children">Children</label>
-				<select id="node-children" name="children" class="form-control" multiple=true>
+				<label for="node-parent">Child Of</label>
+				<select id="node-parent" name="parent" class="form-control" multiple=true>
 					<option value="null">none</option>
 				</select>
 			</div>
-			<label for="node-cond">Conditions</label>
+			<label for="conds">Condition</label>
 			<div id="conds"></div>
-			<label for="node-action">Actions</label>
+			<label for="acts">Action</label>
 			<div id="acts"></div>
-			<div class="btn btn-primary" onclick="addNode(newNode)">Add Node</div>
+			<div class="btn btn-primary" onclick="addNode()">Add Node</div>
 			<div class="form-group">
 				<label for="node-cond">New Condition</label>
 				<input id="node-cond-name" name="condition[name]" class="form-control"></input>
@@ -49,15 +49,15 @@
 					<option value="ltEq">Greater Than or Equal</option>
 				</select>
 				<input id="node-cond-value" name="condition[value]" class="form-control"></input>
-				<div class="btn btn-primary" onclick="addCondition(newNode)">Add Condition</div>
+				<div id="new-cond" class="btn btn-primary">Add Condition</div>
 			</div>
 			<div class="form-group">
 				<label for="node-cond">New Action</label>
-				<input id="node-act-name" name="act[name]" class="form-control"></input>
-				<select id="node-act-prop" name="act[key]" class="form-control">
+				<input id="node-act-name" placeholder="action name"name="act[name]" class="form-control"></input>
+				<select id="act-key" name="act[key]" class="form-control">
 				</select>
 				<input id="node-cond-value" name="act[func]" class="form-control" placeholder="use math.js"></input>
-				<div class="btn btn-primary" onclick="addCondition(newNode)">Add Condition</div>
+				<div class="btn btn-primary">Add Action</div>
 			</div>
 
 
@@ -78,6 +78,10 @@
 		var t = 0;
 		var summary;
 		var init = function() {
+			var playBtn = document.createElement("div");
+			playBtn.setAttribute("class", "btn btn-default");
+			playBtn.setAttribute("onclick", "runBHTree()");
+			playBtn.innerHTML = "Run Tree";
 			render("diagram");
 
 			$("#diagram").on("mousedown", function() {
@@ -86,31 +90,40 @@
 			$("#diagram").on("mouseup", function() {
 				mouseDown = false;
 			});
-			genPopulation(100);
+			$("#new-cond").on('click', function() {
+				addCondition(conditions)
+			});
+			visit(BHTree.root, listIDs, {});
+			setChildrenOptions(ids);
+			genPopulation(1000);
+			getProperties(popData, "#node-cond-prop");
+			getProperties(popData, "#act-key");
+
+			$("#control-panel").append(playBtn);
+			$("#conds").html(listConditions(BHTree.conditions));
+			$("#cond-available").addClass('form-control');
+			$("#acts").append(listActions(actions));
+			$("#act-available").addClass('form-control');
+
+			mouseDown = true;
+		};
+
+		var runBHTree = function() {
+			var csv, encodedUri, link;
 			BHTree.history = [];
 			BHTree.time = 0
-			generateTimeData(BHTree, 1, 365 * 4, 365);
-
-			getProperties(popData);
-			var data = generateCSV(BHTree.history);
-
-			var encodedUri = QKit.Utils.createCSVURI(data);
-			var link = document.createElement("a");
+			generateTimeData(BHTree, 1, 14, 1);
+			csv = generateCSV(BHTree.history);
+			summary = summarizeTimeData(BHTree.history, ['dead']);
+			encodedUri = QKit.Utils.createCSVURI(csv);
+			link = document.createElement("a");
 			link.setAttribute("href", encodedUri);
 			link.setAttribute("download", "bt_data.csv");
 			link.setAttribute("target", "_blank");
 			link.setAttribute("class", "btn btn-default")
 			link.innerHTML = "Get CSV file";
 			$("#control-panel").append(link);
-			$("#conds").append(listConditions(conditions));
-			$("#cond-available").addClass('form-control');
-			$("#acts").append(listActions(actions));
-			$("#act-available").addClass('form-control');
-			summary = summarizeTimeData(BHTree.history, ['dead']);
-			mouseDown = true;
-
-			//animate();
-		};
+		}
 
 		var row = 0;
 		var col = 0;
@@ -143,48 +156,101 @@
 			return tree.history;
 		}
 
-		var drawTreeByDepth = function(tree, element) {
-			//visit(tree.root, addEl);
-			//addRelations(tree.root, element);
-		};
-
 		function animate() {
-			if (mouseDown) {
-				//$('#diagram').wyard('drawRelations', {connectType : "vert"});
-			}
 			requestAnimationFrame(animate);
 		}
 
-		var addNode = function(node) {
-			node = $(node).serializeArray();
-
-			var nodeJSON = {
-				"id": node[0].value,
-				"type": node[1].value,
-				"children": node[2].value || null,
-				"condition": {
-					"key": node[3].value || null,
-					"check": node[4].value || null,
-					"value": node[5].value
-				},
-				"action": node[6].value || null
+		function addCondition(conds) {
+			var name = $("#node-cond-name").val(),
+				ch = $("#node-cond-op").val();
+			switch (ch) {
+				case "equalTo":
+					ch = QKit.BehaviorTree.equalTo;
+					break;
+				case "notEqualTo":
+					ch = QKit.BehaviorTree.notEqualTo;
+					break;
+				case "gt":
+					ch = QKit.BehaviorTree.gt;
+					break;
+				case "gtEq":
+					ch = QKit.BehaviorTree.gtEq;
+					break;
+				case "lt":
+					ch = QKit.BehaviorTree.lt;
+					break;
+				case "ltEq":
+					ch = QKit.BehaviorTree.ltEq;
+					break;
+				default:
+					throw "Not a valid condition checker"
+					break;
 			}
-			node = QKit.BehaviorTree.fromJSON([nodeJSON]);
+			conds[name] = {
+				key: $("#node-cond-prop").val(),
+				value: $("#node-cond-value").val(),
+				check: ch,
+				data: "default"
+			}
+			$("#conds").html(listConditions(conditions));
+			$("#cond-available").addClass('form-control');
+		}
+
+		var addNode = function() {
+			var nodeJSON, parent, node = {
+				id: $("#node-id").val(),
+				type: $("#node-type").val()
+			};
+			if (node.type === "condition" || node.type === "action") {
+				node.condition = conditions[$("#cond-available option:selected").val()]
+				if (node.type === "action") {
+					//TODO
+					node.action = actions[$("#act-available option:selected").val()]
+				}
+			} else {
+				node.children = [];
+			}
+			nodeJSON = JSON.stringify(node);
+			node = QKit.BehaviorTree.fromJSON(nodeJSON);
+			var options = {};
+			options.id = $("#node-parent option:selected").val();
+			options = visit(BHTree.root, findByID, options);
+			//options.parent gets assigned
+
+			if (options.nodeFound.type === "condition" || options.nodeFound.type === "action") {
+				throw "Cannot create children for leaf type nodes";
+			} else {
+				options.nodeFound.children = options.nodeFound.children || [];
+				options.nodeFound.children.push(node);
+			}
+			ids = [];
+			visit(BHTree.root, listIDs, {});
+			setChildrenOptions(ids);
+			render("diagram");
 		};
 
 		var ids = [];
-		var visit = function(node, cb) {
-			cb(node);
+		var visit = function(node, cb, options) {
+			cb(node, options);
 			if (node.children !== null) {
 				for (var c in node.children) {
-					visit(node.children[c], cb);
+					visit(node.children[c], cb, options);
 				}
 			}
+			return options;
 		};
 
 		var listIDs = function(node) {
 			ids.push(node.id);
+			return false;
 		};
+
+		var findByID = function(node, options) {
+			if (node.id === options.id) {
+				console.log(node)
+				options.nodeFound = node;
+			}
+		}
 
 		var listConditions = function(conds) {
 			var select = document.createElement("select"),
@@ -199,11 +265,11 @@
 			return select;
 		}
 
-		var listActions = function(conds) {
+		var listActions = function(acts) {
 			var select = document.createElement("select"),
 				option;
 			select.id = "act-available";
-			for (c in conds) {
+			for (c in acts) {
 				option = document.createElement("option");
 				option.id = "act-" + c;
 				option.innerHTML = c;
@@ -213,17 +279,13 @@
 			return select;
 		}
 
-		var byID = function(node) {
-			if (node.id === id) {
-				return node;
-			}
-		}
 
-		var getProperties = function(data) {
+
+		var getProperties = function(data, container) {
 			var props = [];
 			for (var prop in data[0]) {
 				props.push(prop);
-				$("#node-cond-prop").append(
+				$(container).append(
 					"<option>" + prop + "</option>"
 				);
 			}
@@ -231,8 +293,9 @@
 		}
 
 		var setChildrenOptions = function(data) {
+			$("#node-parent").html("");
 			for (var i = 0; i < data.length; i++) {
-				$("#node-children").append(
+				$("#node-parent").append(
 					"<option>" + data[i] + "</option>"
 				);
 			}
@@ -260,6 +323,8 @@
 		var zoomListener = d3.behavior.zoom().scaleExtent([0.1, 3]).on("zoom", zoom);
 
 		var render = function(container) {
+			d3.select("svg")
+				.remove();
 			var diagram;
 			var margin = {
 					top: 20,

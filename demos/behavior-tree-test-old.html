@@ -152,7 +152,7 @@
 					"action" : node[6].value || null
 				}
 
-				node = QKit.BehaviorTree.fromJSON([nodeJSON]);
+				node = QKit.BehaviorTree.fromJSON(nodeJSON);
 				var el = {
 					type : "vertConnects",
 					header : "<div>" + node.id + "</div><div class='bh-tree-type'>" + node.type + "</div>",

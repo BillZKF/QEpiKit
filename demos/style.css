@@ -40,6 +40,11 @@ table td, th {
 	stroke: lightgreen;
 	stroke-width: 3px;
 }
+.parallel circle {
+	fill: #fff;
+	stroke: #9370DB;
+	stroke-width: 3px;
+}
 .bh-tree {
 	width: 100%;
 	height: 100%;

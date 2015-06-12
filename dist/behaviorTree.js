@@ -7,9 +7,12 @@ var __extends = (this && this.__extends) || function (d, b) {
 var QKit;
 (function (QKit) {
     var BehaviorTree = (function () {
-        function BehaviorTree(root, data) {
+        function BehaviorTree(root, data, conditions, actions) {
             this.root = root;
             this.data = data;
+            this.conditions = conditions;
+            this.actions = actions;
+            this.time = 0;
         }
         BehaviorTree.prototype.start = function (agentID) {
             this.data[agentID].active = true;
@@ -24,39 +27,54 @@ var QKit;
                 this.start(d);
             }
         };
-        BehaviorTree.fromJSON = function (json) {
-            var n;
-            for (var node in json) {
-                switch (json[node].type) {
-                    case "root":
-                        n = new BTRoot(json[node].id, json[node].children);
-                        break;
-                    case "selector":
-                        n = new BTSelector(json[node].id, json[node].children);
-                        break;
-                    case "sequence":
-                        n = new BTSequence(json[node].id, json[node].children);
-                        break;
-                    case "parallel":
-                        n = new BTParallel(json[node].id, json[node].children);
-                        break;
-                    case "condition":
-                        console.log(json[node]);
-                        n = new BTCondition(json[node].id, json[node].condition);
-                        break;
-                    case "action":
-                        n = new BTAction(json[node].id, json[node].condition, json[node].action);
-                        break;
-                    default:
-                        try {
-                        }
-                        catch (error) {
-                            throw error;
-                        }
-                        break;
+        BehaviorTree.prototype.generateTimeData = function (step, limit, saveInterval) {
+            var t = 0, rem;
+            while (t <= limit) {
+                rem = t % saveInterval;
+                if (rem == 0) {
+                    this.data.map(function (d) {
+                        return d.time = t;
+                    });
                 }
-                return n;
+                this.time = t;
+                this.update();
+                t += step;
             }
+        };
+        BehaviorTree.dataSnapshot = function (object) {
+            var objectCopy = {};
+            for (var key in object) {
+                if (object.hasOwnProperty(key)) {
+                    objectCopy[key] = object[key];
+                }
+            }
+            return objectCopy;
+        };
+        BehaviorTree.fromJSON = function (json) {
+            json = JSON.parse(json);
+            var n;
+            switch (json.type) {
+                case "root":
+                    n = new BTRoot(json.id, json.children);
+                    break;
+                case "selector":
+                    n = new BTSelector(json.id, json.children);
+                    break;
+                case "sequence":
+                    n = new BTSequence(json.id, json.children);
+                    break;
+                case "parallel":
+                    n = new BTParallel(json.id, json.children);
+                    break;
+                case "condition":
+                    n = new BTCondition(json.id, json.condition);
+                    break;
+                case "action":
+                    n = new BTAction(json.id, json.condition, json.action);
+                    break;
+                default: ;
+            }
+            return n;
         };
         BehaviorTree.tick = function (node, agentID) {
             var state = node.operate(agentID);

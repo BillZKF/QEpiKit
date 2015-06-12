@@ -3,92 +3,58 @@ var popProps = [];
 var genPopulation = function(number) {
   var p = {};
   for (var i = 0; i < number; i++) {
-    p.id = i;
+    p.ID = i;
     p.dead = false;
-		p.age = chance.integer({
+    p.age = chance.integer({
       min: 18,
       max: 70
     });
     p.height = chance.floating({
-      min: 58 *( 2.54 / 100),
-      max: 76 *(2.54 / 100)
+      min: 1.5,
+      max: 2
     });
     p.mass = chance.floating({
       min: 110 * 0.453592,
       max: 250 * 0.453592
     });
-    doBMI(p);
-    p.calIntake = chance.integer({
+    p.calRawIntake = chance.integer({
       min: 1200,
       max: 4000
     });
+    p.calAbsorb = chance.floating({
+      min: .60,
+      max: .90
+    })
     p.exerciseAmount = chance.integer({
-      min: 0,
-      max: 90
+      min: 15,
+      max: 50
     });
     p.exerciseMETS = chance.integer({
-      min: 4,
-      max: 10
+      min: 2,
+      max: 4
     })
-    p.calDifference = 0;
-    p.diet = false;
+
+    p.exercise = chance.bool({
+      likelihood: 20
+    })
+
+    p.diet = chance.bool({
+      likelihood: 20
+    })
+    p.active = false;
+    doBMI(p);
+    mifflinStJeor(p);
+    caloriesIn(p);
+    caloriesBurn(p);
+    calorieBalance(p);
+    p.time = 0;
     popData.push(p);
     p = {};
   }
   popProps = Object.keys(popData[0]);
-  //popProps.push('dead');
-  popProps.unshift('day');
 }
 
 //conditions
-var adult = {
-  key: "age",
-  value: 21,
-  check: QKit.BehaviorTree.gtEq,
-  data: popData
-};
-var tiredAdult = {
-  key: "age",
-  value: 28,
-  check: QKit.BehaviorTree.gtEq,
-  data: popData
-};
-var obese = {
-  key: "bmi",
-  value: 28,
-  check: QKit.BehaviorTree.ltEq,
-  data: popData
-};
-var morbidlyObese = {
-  key: "bmi",
-  value: 35,
-  check: QKit.BehaviorTree.gtEq,
-  data: popData
-};
-var healthScare = {
-  key: "doctor",
-  value: 1.1,
-  check: QKit.BehaviorTree.gtEq,
-  data: popData
-}; // basically increase chance of seeing doctor
-var someExercise = {
-  key: "exercise",
-  value: 3,
-  check: QKit.BehaviorTree.gtEq,
-  data: popData
-};
-var minimalExercise = {
-  key: "exercise",
-  value: 3,
-  check: QKit.BehaviorTree.ltEq,
-  data: popData
-};
-var timeForDoctor = {
-  key: "doctor",
-  value: 1,
-  check: QKit.BehaviorTree.gtEq,
-  data: popData
-};
 var dead = {
   key: "dead",
   value: true,
@@ -113,6 +79,18 @@ var alive = {
   check: QKit.BehaviorTree.equalTo,
   data: popData
 };
+var exer = {
+  key: "exercise",
+  value: true,
+  check: QKit.BehaviorTree.equalTo,
+  data: popData
+};
+var sed ={
+  key : "exercise",
+  value: false,
+  check: QKit.BehaviorTree.equalTo,
+  data: popData
+}
 //actions
 var mifflinStJeor = function(person) {
   person.BMR = (10 * person.mass) + (6.25 * person.height) + (5.0 * person.age) + 5;
@@ -121,9 +99,14 @@ var doBMI = function(person) {
   person.BMI = person.mass / (person.height * person.height);
 }
 var calorieBalance = function(person) {
-	person.exCalUse = (person.exerciseAmount / 60) * person.exerciseMETS * person.mass;
-  person.calDifference = person.calIntake - (person.exCalUse + person.BMR);
+  person.calDifference = person.calIn - (person.calExUse + person.BMR);
 };
+var caloriesBurn = function(person) {
+  person.calExUse = (person.exerciseAmount / 60) * person.exerciseMETS * person.mass;
+}
+var caloriesIn = function(person) {
+  person.calIn = person.calRawIntake * person.calAbsorb;
+}
 var changeMass = function(person) {
   person.mass = person.mass + (0.13 * person.calDifference / 1000);
   doBMI(person);
@@ -134,18 +117,34 @@ var makeDead = function(person) {
 var makeOld = function(person) {
   person.age += 1 / 365;
 };
+var doExercise = function(person) {
+  person.exerciseMETS = 6 + (2 * Math.sin(person.time));
+  person.exerciseAmount = 60 + (30 * Math.sin(person.time))
+};
+var doDiet = function(person) {
+  person.calRawIntake = 1800 + (200 * Math.sin(person.time));
+}
+
+
 
 
 
 //nodes
-//var NoIntervention = new QKit.BTCondition("no-intervention");
-//var SelectIntervention = new QKit.BTSelector("select-intervention-group", NoIntervention, Diet, Exercise, DietExercise);
+var LowCalDiet = new QKit.BTAction("low-cal-diet", specialDiet, doDiet);
+var NormalDiet = new QKit.BTCondition("normal-diet", normalDiet);
+var Exercise = new QKit.BTAction("regular-moderate-exercise", exer, doExercise);
+var Sed = new QKit.BTCondition("mostly-sedentary", sed);
+var ExerciseSelect = new QKit.BTSelector("select-exercise", [Sed, Exercise])
+var DietSelect = new QKit.BTSelector("select-diet", [NormalDiet, LowCalDiet])
+var SequenceIntervention = new QKit.BTSequence("intervention-sequence", [DietSelect, ExerciseSelect]);
 var BaseMetabolicRate = new QKit.BTAction("base-metabolic-rate", alive, mifflinStJeor);
+var CaloriesBurn = new QKit.BTAction("calorie-burning-activities", alive, caloriesBurn);
+var CaloriesIn = new QKit.BTAction("cals-in-and-absorbed", alive, caloriesIn);
 var CalorieBalance = new QKit.BTAction("cals-in-vs-cals-burned", alive, calorieBalance);
 var ChangeWeight = new QKit.BTAction("mass-change", alive, changeMass);
-var Age = new QKit.BTAction("add-to-age", adult, makeOld);
-var SequenceDaily = new QKit.BTSequence("daily-sequence", [Age, BaseMetabolicRate, CalorieBalance, ChangeWeight]);
+var Age = new QKit.BTAction("add-to-age", alive, makeOld);
+var SequenceDaily = new QKit.BTSequence("daily-sequence", [BaseMetabolicRate, CaloriesIn, CaloriesBurn, CalorieBalance, ChangeWeight, Age]);
 var Dead = new QKit.BTCondition("is-person-dead", dead);
-var Status = new QKit.BTSelector("select-status", [Dead, SequenceDaily]);
+var Status = new QKit.BTSequence("select-status", [SequenceIntervention, SequenceDaily]);
 var Root = new QKit.BTRoot("root", [Status]);
 var BHTree = new QKit.BehaviorTree(Root, popData);
