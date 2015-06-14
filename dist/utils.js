@@ -3,6 +3,54 @@ var QKit;
     var Utils = (function () {
         function Utils() {
         }
+        Utils.equalTo = function (a, b) {
+            if (a === b) {
+                return true;
+            }
+            else {
+                return false;
+            }
+        };
+        Utils.prototype.staticnotEqualTo = function (a, b) {
+            if (a !== b) {
+                return true;
+            }
+            else {
+                return false;
+            }
+        };
+        Utils.gt = function (a, b) {
+            if (a > b) {
+                return true;
+            }
+            else {
+                return false;
+            }
+        };
+        Utils.gtEq = function (a, b) {
+            if (a >= b) {
+                return true;
+            }
+            else {
+                return false;
+            }
+        };
+        Utils.lt = function (a, b) {
+            if (a < b) {
+                return true;
+            }
+            else {
+                return false;
+            }
+        };
+        Utils.ltEq = function (a, b) {
+            if (a <= b) {
+                return true;
+            }
+            else {
+                return false;
+            }
+        };
         Utils.createCSVURI = function (data) {
             var dataString;
             var csvContent = "data:text/csv;charset=utf-8,";
