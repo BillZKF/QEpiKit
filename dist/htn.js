@@ -38,13 +38,16 @@ var QEpiKit;
                     for (var i = 0; i < this.effects.length; i++) {
                         this.effects[i](agent);
                     }
-                    if (task.evaluateGoal(agent)) {
-                        agent.successList.push(this.name);
+                    if (task.evaluateGoal(agent.blackboard)) {
+                        agent.successList.unshift(this.name);
+                        return HTN.SUCCESS;
                     }
-                    return true;
+                    else {
+                        return HTN.RUNNING;
+                    }
                 }
                 else {
-                    return false;
+                    return HTN.FAILED;
                 }
             };
         }
@@ -59,14 +62,16 @@ var QEpiKit;
             this.preconditions = preconditions;
             this.subtasks = subtasks;
             this.visit = function (agent, task) {
+                agent.blackboard = JSON.parse(JSON.stringify(agent));
                 if (this.evaluatePreConds(agent)) {
                     for (var i = 0; i < this.subtasks.length; i++) {
                         var state = HTN.tick(this.subtasks[i], task, agent);
+                        if (state === HTN.SUCCESS) {
+                            agent.successList.unshift(this.name);
+                            return HTN.SUCCESS;
+                        }
                     }
-                    return true;
-                }
-                else {
-                    return false;
+                    return HTN.FAILED;
                 }
             };
         }
@@ -106,10 +111,21 @@ var QEpiKit;
             return state;
         };
         HTN.start = function (node, task, agents) {
+            var results = [];
             for (var i = 0; i < agents.length; i++) {
                 HTN.tick(node, task, agents[i]);
+                if (agents[i].successList.length > 0) {
+                    results[i] = agents[i].successList;
+                }
+                else {
+                    results[i] = false;
+                }
             }
+            return results;
         };
+        HTN.SUCCESS = 1;
+        HTN.FAILED = 2;
+        HTN.RUNNING = 3;
         return HTN;
     })();
     QEpiKit.HTN = HTN;

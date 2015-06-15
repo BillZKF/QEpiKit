@@ -58,5 +58,13 @@ module QKit {
         return false;
       }
     }
+
+  }
+
+  export interface Action {
+    agent : any;
+    blackboard : any;
+    result: any;
+    operate():void;
   }
 }
