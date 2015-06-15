@@ -13,6 +13,7 @@
         "src/behaviorTree.ts",
         "src/compartment.ts",
         "src/epi.ts",
+        "src/htn.ts",
         "src/utils.ts"
     ]
 }
