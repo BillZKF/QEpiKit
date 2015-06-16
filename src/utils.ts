@@ -71,4 +71,11 @@ module QKit {
     result: any;
     operate(): void;
   }
+
+  export interface Condition {
+    key: string;
+    value: any;
+    check: Function;
+    data: any[];
+  }
 }

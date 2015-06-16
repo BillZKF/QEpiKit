@@ -30,15 +30,14 @@ var QEpiKit;
         __extends(HTNOperator, _super);
         function HTNOperator(name, preconditions, effects) {
             _super.call(this, name, preconditions);
-            this.name = name;
-            this.preconditions = preconditions;
+            this.type = "operator";
             this.effects = effects;
             this.visit = function (agent, task) {
                 if (this.evaluatePreConds(agent)) {
                     for (var i = 0; i < this.effects.length; i++) {
-                        this.effects[i](agent);
+                        this.effects[i](agent.blackboard[0]);
                     }
-                    if (task.evaluateGoal(agent.blackboard)) {
+                    if (task.evaluateGoal(agent.blackboard[0])) {
                         agent.successList.unshift(this.name);
                         return HTN.SUCCESS;
                     }
@@ -47,6 +46,7 @@ var QEpiKit;
                     }
                 }
                 else {
+                    agent.barrierList.unshift([this.name, this.preconditions]);
                     return HTN.FAILED;
                 }
             };
@@ -56,23 +56,27 @@ var QEpiKit;
     QEpiKit.HTNOperator = HTNOperator;
     var HTNMethod = (function (_super) {
         __extends(HTNMethod, _super);
-        function HTNMethod(name, preconditions, subtasks) {
+        function HTNMethod(name, preconditions, children) {
             _super.call(this, name, preconditions);
-            this.name = name;
-            this.preconditions = preconditions;
-            this.subtasks = subtasks;
+            this.type = "method";
+            this.children = children;
             this.visit = function (agent, task) {
-                agent.blackboard = JSON.parse(JSON.stringify(agent));
+                var copy = JSON.parse(JSON.stringify(agent));
+                delete copy.blackboard;
+                agent.blackboard.unshift(copy);
                 if (this.evaluatePreConds(agent)) {
-                    for (var i = 0; i < this.subtasks.length; i++) {
-                        var state = HTN.tick(this.subtasks[i], task, agent);
+                    for (var i = 0; i < this.children.length; i++) {
+                        var state = HTN.tick(this.children[i], task, agent);
                         if (state === HTN.SUCCESS) {
                             agent.successList.unshift(this.name);
                             return HTN.SUCCESS;
                         }
                     }
-                    return HTN.FAILED;
                 }
+                else {
+                    agent.barrierList.unshift([this.name, this.preconditions]);
+                }
+                return HTN.FAILED;
             };
         }
         return HTNMethod;
@@ -106,6 +110,8 @@ var QEpiKit;
             else {
                 agent.runningList = [node.name];
                 agent.successList = [];
+                agent.barrierList = [];
+                agent.blackboard = [];
             }
             var state = node.visit(agent, task);
             return state;

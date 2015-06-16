@@ -17,6 +17,8 @@ var genPopulation = function(number) {
       min: 150 * 0.453592,
       max: 220 * 0.453592
     });
+
+    p.setting = chance.pick(["rural", "urban"]);
     effects.doBMI(p);
 
     p.money = chance.integer({
@@ -39,36 +41,34 @@ var genPopulation = function(number) {
 //effects / actions
 var effects = {
   dieted: function(person){
-    var result = person.hasOwnProperty("blackboard") ? person.blackboard : person;
-    result.calorieBurn = 400 * 200;
-    result.mass = person.mass - (0.13 * result.calorieBurn / 1000)
+    person.calorieBurn = 400 * 200;
+    person.mass = person.mass - (0.13 * person.calorieBurn / 1000)
   },
   cycled: function(person){
-    var result = person.hasOwnProperty("blackboard") ? person.blackboard : person;
-    result.calorieBurn = 600 * 205;
-    result.mass = person.mass - (0.13 * result.calorieBurn / 1000)
+    person.calorieBurn = 600 * 205;
+    person.mass = person.mass - (0.13 * person.calorieBurn / 1000)
+  },
+  cardio: function(person){
+    person.calorieBurn = 700 * 205;
+    person.mass = person.mass - (0.13 * person.calorieBurn / 1000)
   },
 
   ran: function(person){
-    var result = person.hasOwnProperty("blackboard") ? person.blackboard : person;
-    result.calorieBurn = 800 * 210;
-    result.mass = result.mass - (0.13 * result.calorieBurn / 1000)
+    person.calorieBurn = 800 * 210;
+    person.mass = person.mass - (0.13 * person.calorieBurn / 1000)
   },
 
   joinedGym: function(person){
-    var result = person.hasOwnProperty("blackboard") ? person.blackboard : person;
-    result.gymMember = true;
-    result.money -= 45;
+    person.gymMember = true;
+    person.money -= 45;
   },
 
   mifflinStJeor : function(person) {
-    var result = person.hasOwnProperty("blackboard") ? person.blackboard : person;
-    result.BMR = (10 * result.mass) + (6.25 * result.height) + (5.0 * result.age) + 5;
+    person.BMR = (10 * person.mass) + (6.25 * person.height) + (5.0 * person.age) + 5;
   },
   doBMI : function(person) {
-    var result = person.hasOwnProperty("blackboard") ? person.blackboard : person;
-    result.height = person.height;
-    result.BMI = result.mass / (result.height * result.height);
+    person.height = person.height;
+    person.BMI = person.mass / (person.height * person.height);
   }
 }
 
@@ -105,6 +105,16 @@ var conditions = {
     key: "BMI",
     value: 24,
     check: QKit.Utils.gtEq
+  },
+  "rural":{
+    key: "location",
+    value: "rural",
+    check: QKit.Utils.equalTo
+  },
+  "urban":{
+    key: "location",
+    value: "urban",
+    check: QKit.Utils.equalTo
   }
 
 
@@ -114,12 +124,16 @@ var conditions = {
 
 
 //methods are graphs of methods and operators.
-var Cycling = new QEpiKit.HTNOperator("exercise-by-cycling", [conditions.goodKnee], [effects.cycled, effects.doBMI])
-var Running = new QEpiKit.HTNOperator("exercise-by-running", [conditions.goodKnee], [effects.ran, effects.doBMI])
-var Exercise = new QEpiKit.HTNMethod("exercise", [conditions.freeTime],[Cycling, Running])
-var JoinGym = new QEpiKit.HTNOperator("joinGym", [conditions.hasMoney],[effects.joinedGym])
+var Cycling = new QEpiKit.HTNOperator("go-cycling", null, [effects.cycled, effects.doBMI])
+var Running = new QEpiKit.HTNOperator("go-running", [conditions.goodKnee], [effects.ran, effects.doBMI])
+
+var CardioEq = new QEpiKit.HTNOperator("use-cardio-eq", null, [effects.cardio, effects.doBMI])
+var JoinGym = new QEpiKit.HTNOperator("join-gym", [conditions.hasMoney], [effects.joinedGym])
+var Gym = new QEpiKit.HTNMethod("at-gym", [conditions.urban], [JoinGym, CardioEq])
+var Outdoors = new QEpiKit.HTNMethod("outdoors", [conditions.rural], [Cycling, Running])
+var Exercise = new QEpiKit.HTNMethod("exercise", [conditions.freeTime],[Gym, Outdoors])
 var Diet = new QEpiKit.HTNOperator("diet", null, [effects.dieted, effects.doBMI]);
-var Start = new QEpiKit.HTNMethod("start", [conditions.overweight], [Diet, JoinGym, Exercise]);
+var Start = new QEpiKit.HTNMethod("start", [conditions.overweight], [Diet, Exercise]);
 var LoseWeight = new QEpiKit.HTNRootTask("lose-weight",[conditions.healthyBMI]);
 
 genPopulation(30);

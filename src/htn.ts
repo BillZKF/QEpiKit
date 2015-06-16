@@ -2,6 +2,7 @@ module QEpiKit {
   //hierarchal task network
   export class HTNNode {
     public name: string;
+    public type: string;
     public preconditions: any[];
     public visit: Function;
     constructor(name: string, preconditions: any[]) {
@@ -27,21 +28,21 @@ module QEpiKit {
     public effects: any[];
     constructor(name: string, preconditions: any[], effects: void[]) {
       super(name, preconditions);
-      this.name = name;
-      this.preconditions = preconditions;
+      this.type ="operator";
       this.effects = effects;
       this.visit = function(agent, task: HTNRootTask) {
         if (this.evaluatePreConds(agent)) {
           for (var i = 0; i < this.effects.length; i++) {
-            this.effects[i](agent);
+            this.effects[i](agent.blackboard[0]);
           }
-          if (task.evaluateGoal(agent.blackboard)) {
+          if (task.evaluateGoal(agent.blackboard[0])) {
             agent.successList.unshift(this.name);
             return HTN.SUCCESS;
           } else {
             return HTN.RUNNING;
           }
         } else {
+          agent.barrierList.unshift([this.name, this.preconditions]);
           return HTN.FAILED;
         }
       }
@@ -49,25 +50,28 @@ module QEpiKit {
   }
 
   export class HTNMethod extends HTNNode {
-    public subtasks: HTNNode[];
+    public children: HTNNode[];
 
-    constructor(name: string, preconditions: any[], subtasks: HTNNode[]) {
+    constructor(name: string, preconditions: any[], children: HTNNode[]) {
       super(name, preconditions);
-      this.name = name;
-      this.preconditions = preconditions;
-      this.subtasks = subtasks;
+      this.type ="method";
+      this.children = children;
       this.visit = function(agent, task) {
-        agent.blackboard = JSON.parse(JSON.stringify(agent));
+        var copy = JSON.parse(JSON.stringify(agent));
+        delete copy.blackboard;
+        agent.blackboard.unshift(copy);
         if (this.evaluatePreConds(agent)) {
-          for (var i = 0; i < this.subtasks.length; i++) {
-            var state = HTN.tick(this.subtasks[i], task, agent);
+          for (var i = 0; i < this.children.length; i++) {
+            var state = HTN.tick(this.children[i], task, agent);
             if (state === HTN.SUCCESS) {
               agent.successList.unshift(this.name);
               return HTN.SUCCESS;
             }
           }
-          return HTN.FAILED;
+        } else {
+          agent.barrierList.unshift([this.name, this.preconditions]);
         }
+        return HTN.FAILED;
       }
     }
   }
@@ -79,7 +83,6 @@ module QEpiKit {
     constructor(name: string, goals: any[]) {
       this.name = name;
       this.goals = goals;
-
     }
 
     evaluateGoal(agent) {
@@ -105,6 +108,8 @@ module QEpiKit {
       } else {
         agent.runningList = [node.name];
         agent.successList = [];
+        agent.barrierList = [];
+        agent.blackboard = [];
       }
       var state = node.visit(agent, task)
       return state;

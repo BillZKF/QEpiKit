@@ -35,43 +35,43 @@ conditions = {
   'incubating': {
     key: "exposedTime",
     value: 3 / 365,
-    check: QKit.BehaviorTree.ltEq,
+    check: QKit.Utils.ltEq,
     data: popData
   },
   'exposed': {
     key: "exposed",
     value: true,
-    check: QKit.BehaviorTree.equalTo,
+    check: QKit.Utils.equalTo,
     data: popData
   },
   'succeptible': {
     key: "succept",
     value: true,
-    check: QKit.BehaviorTree.equalTo,
+    check: QKit.Utils.equalTo,
     data: popData
   },
   'alive': {
     key: "alive",
     value: true,
-    check: QKit.BehaviorTree.equalTo,
+    check: QKit.Utils.equalTo,
     data: popData
   },
   'recovering': {
     key: "recoveryTime",
     value: 4 / 365,
-    check: QKit.BehaviorTree.ltEq,
+    check: QKit.Utils.ltEq,
     data: popData
   },
   'recovered': {
     key: "recoveryTime",
     value: 4 / 365,
-    check: QKit.BehaviorTree.gtEq,
+    check: QKit.Utils.gtEq,
     data: popData
   },
   'immune': {
     key: "removed",
     value: 4 / 365,
-    check: QKit.BehaviorTree.ltEq,
+    check: QKit.Utils.ltEq,
     data: popData
   }
 }

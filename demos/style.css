@@ -45,6 +45,16 @@ table td, th {
 	stroke: #9370DB;
 	stroke-width: 3px;
 }
+.operator circle {
+	fill: #666;
+	stroke: lightblue;
+	stroke-width: 3px;
+}
+.method circle {
+	fill: #666;
+	stroke: #BF5FFF;
+	stroke-width: 3px;
+}
 .bh-tree {
 	width: 100%;
 	height: 100%;

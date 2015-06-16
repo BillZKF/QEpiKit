@@ -35,21 +35,16 @@ var QKit;
                     this.data.map(function (d) {
                         return d.time = t;
                     });
+                    this.history.push(JSON.parse(JSON.stringify(this.data)));
                 }
                 this.time = t;
                 this.update();
                 t += step;
             }
         };
-        BehaviorTree.dataSnapshot = function (object) {
-            var objectCopy = {};
-            for (var key in object) {
-                if (object.hasOwnProperty(key)) {
-                    objectCopy[key] = object[key];
-                }
-            }
-            return objectCopy;
-        };
+        BehaviorTree.SUCCESS = 1;
+        BehaviorTree.FAILED = 2;
+        BehaviorTree.RUNNING = 3;
         BehaviorTree.fromJSON = function (json) {
             json = JSON.parse(json);
             var n;
@@ -64,7 +59,7 @@ var QKit;
                     n = new BTSequence(json.id, json.children);
                     break;
                 case "parallel":
-                    n = new BTParallel(json.id, json.children);
+                    n = new BTParallel(json.id, json.children, json.number);
                     break;
                 case "condition":
                     n = new BTCondition(json.id, json.condition);
@@ -82,54 +77,6 @@ var QKit;
                 this.runningMem.push(node);
             }
             return state;
-        };
-        BehaviorTree.equalTo = function (a, b) {
-            if (a === b) {
-                return 1;
-            }
-            else {
-                return 2;
-            }
-        };
-        BehaviorTree.notEqualTo = function (a, b) {
-            if (a !== b) {
-                return 1;
-            }
-            else {
-                return 2;
-            }
-        };
-        BehaviorTree.gt = function (a, b) {
-            if (a > b) {
-                return 1;
-            }
-            else {
-                return 2;
-            }
-        };
-        BehaviorTree.gtEq = function (a, b) {
-            if (a >= b) {
-                return 1;
-            }
-            else {
-                return 2;
-            }
-        };
-        BehaviorTree.lt = function (a, b) {
-            if (a < b) {
-                return 1;
-            }
-            else {
-                return 2;
-            }
-        };
-        BehaviorTree.ltEq = function (a, b) {
-            if (a <= b) {
-                return 1;
-            }
-            else {
-                return 2;
-            }
         };
         return BehaviorTree;
     })();
@@ -209,9 +156,10 @@ var QKit;
     QKit.BTSequence = BTSequence;
     var BTParallel = (function (_super) {
         __extends(BTParallel, _super);
-        function BTParallel(id, children) {
+        function BTParallel(id, children, successes) {
             _super.call(this, id, children);
             this.type = "parallel";
+            this.successess = successes < children.length ? successes : children.length;
             this.operate = function (agentID) {
                 var successes = [], failures = [], childState, majority;
                 for (var child in this.children) {

@@ -1,6 +1,10 @@
 module QKit {
 
   export class BehaviorTree {
+    public static SUCCESS : number = 1;
+    public static FAILED : number = 2;
+    public static RUNNING : number = 3;
+
     public time: number;
     public data: any[];
     public root: BTNode;
@@ -40,8 +44,7 @@ module QKit {
           this.data.map(function(d) {
             return d.time = t;
           });
-					//TODO need to fix
-          //this.history.push(BehaviorTree.dataSnapshot(this.data));
+          this.history.push(JSON.parse(JSON.stringify(this.data)));
         }
         this.time = t;
         this.update();
@@ -63,7 +66,7 @@ module QKit {
           n = new BTSequence(json.id, json.children);
           break;
         case "parallel":
-          n = new BTParallel(json.id, json.children);
+          n = new BTParallel(json.id, json.children, json.number);
           break;
         case "condition":
           n = new BTCondition(json.id, json.condition);
@@ -76,72 +79,12 @@ module QKit {
       return n;
     }
 
-    public static dataSnapshot<T>(object: T): T {
-      var objectCopy = <T>{};
-
-      for (var key in object) {
-        if (object.hasOwnProperty(key)) {
-          objectCopy[key] = object[key];
-        }
-      }
-
-      return objectCopy;
-    }
-
     public static tick = function(node: BTNode, agentID: number) {
       var state = node.operate(agentID);
       if (state === 3) {
         this.runningMem.push(node);
       }
       return state;
-    }
-
-    public static equalTo = function(a, b) {
-      if (a === b) {
-        return 1;
-      } else {
-        return 2;
-      }
-    }
-
-    public static notEqualTo = function(a, b) {
-      if (a !== b) {
-        return 1;
-      } else {
-        return 2;
-      }
-    }
-
-    public static gt = function(a, b) {
-      if (a > b) {
-        return 1;
-      } else {
-        return 2;
-      }
-    }
-
-    public static gtEq = function(a, b) {
-      if (a >= b) {
-        return 1;
-      } else {
-        return 2;
-      }
-    }
-
-    public static lt = function(a, b) {
-      if (a < b) {
-        return 1;
-      } else {
-        return 2;
-      }
-    }
-
-    public static ltEq = function(a, b) {
-      if (a <= b) {
-        return 1;
-      } else {
-        return 2;
-      }
     }
   }
 
@@ -215,9 +158,11 @@ module QKit {
   }
 
   export class BTParallel extends BTControlNode {
-    constructor(id: string, children: BTNode[]) {
+    public successess: number;
+    constructor(id: string, children: BTNode[], successes: number) {
       super(id, children);
       this.type = "parallel";
+      this.successess = successes < children.length ? successes : children.length; //FIXME maybe this should just throw an error.
       this.operate = function(agentID) {
         var successes = [], failures = [], childState, majority;
         for (var child in this.children) {
@@ -272,13 +217,6 @@ module QKit {
         return state;
       }
     }
-  }
-
-  export interface Condition {
-    key: string;
-    value: any;
-    check: Function;
-    data: any[];
   }
 
 }
