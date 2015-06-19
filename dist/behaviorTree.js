@@ -141,14 +141,14 @@ var QKit;
                 var childState;
                 for (var child in this.children) {
                     childState = BehaviorTree.tick(this.children[child], agentID);
-                    if (childState === 3) {
-                        return 3;
+                    if (childState === BehaviorTree.RUNNING) {
+                        return BehaviorTree.RUNNING;
                     }
-                    if (childState === 2) {
-                        return 2;
+                    if (childState === BehaviorTree.FAILED) {
+                        return BehaviorTree.FAILED;
                     }
                 }
-                return 1;
+                return BehaviorTree.SUCCESS;
             };
         }
         return BTSequence;
@@ -194,6 +194,7 @@ var QKit;
             this.condition = condition;
             this.operate = function (agentID) {
                 var state;
+                console.log(condition);
                 state = condition.check(condition.data[agentID][condition.key], condition.value);
                 return state;
             };

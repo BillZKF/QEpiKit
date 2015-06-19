@@ -1,14 +1,35 @@
 ﻿<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <title></title>
+    <title>QEpiKit Examples Page</title>
+    <link href="style.css" rel="stylesheet"></link>
 </head>
 <body>
+  <div ng-app="qepikit">
     <h1>QEpiKit - Javascript / Typescript Epidemiology Library</h1>
+
+    <h2>What is it?</h2>
+    <div>This library provides broad access to tools for compartmental / differential equation (DE) and agent based (AB) modeling of communicable (and noncommunicable!) disease. Although developed with the
+      public health / epidemiology / biomedical domains in mind, the tools themselves are domain neutral, and may be useful in other areas.
+    </div>
+    <h2>Why?</h2>
+    <div>
+      When I started development (while trying to learn more about epidemiological modeling), I could not find a free, open javascript library covering multiple approaches to epidemiological modeling.
+      I chose Typescript / Javascript as the main language because they: 1) enable browser based examples on most devices 2) can be deployed to a server 3) will allow migration to ES6.
+      For the AB portion of the library, I included methods from other fields including robotics and system dynamics.
+    </div>
+
+    <h2>Examples</h2>
     <ul>
-        <li><h2><a href="compartment-model-test.html">Descriptives</a></h2></li>
-        <li><h2><a href="compartment-model-test.html">Compartment Models</a></h2></li>
-        <li><h2><a href="behavior-tree-test.html">Behavior Trees</a></h2></li>
+        <li><h3><a href="descriptives-test.html">Descriptives</a></h3></li>
+        <li><h3><a href="compartment-model-test.html">Compartment Models</a></h3></li>
+        <li><h3><a href="behavior-tree-test.html">Behavior Trees</a></h3></li>
+        <li><h3><a href="htn-tests.html">Hierarchal Task Networks</a></h3></li>
+        <li><h3><a href="combinations-test.html">Combinations</a></h3></li>
+        <li><h3>Soon!</h3></li>
+        <li><h3><a href="">Belief Desire Intention Model</a></h3></li>
+        <li><h3><a href="">Simple Reinforcement Learning</a></h3></li>
     </ul>
+  </div>
 </body>
 </html>

@@ -15,11 +15,12 @@
             this.step = step;
             this.compartments = compartments;
             this.transmissionRate = pathogen.transmissionRate * this.step;
-            this.recoveryRate = pathogen.recoveryRate;
+            this.recoveryRate = pathogen.recoveryRate * this.step;
             this.basicReproductiveNumber = pathogen.transmissionRate / pathogen.recoveryRate;
             this.totalPop = 0;
             for (var c in this.compartments) {
                 this.totalPop += this.compartments[c].pop;
+                this.compartments[c].initialPop = this.compartments[c].pop;
             }
         }
 
@@ -29,8 +30,7 @@
             }
 
             for (var c in this.compartments) {
-                this.compartments[c].pop += this.compartments[c].delta;
-
+                this.compartments[c].pop += this.compartments[c].dpop * this.step;
             }
         }
     }
@@ -38,17 +38,19 @@
     export class Compartment {
         public name: string;
         public pop: number;
+        public initialPop: number;
         public operation: Function;
-        public delta: number;
+        public dpop: number;
 
         constructor(name: string, pop: number, operation: Function) {
             this.name = name;
             this.pop = pop;
             this.operation = operation || null;
+            this.dpop = 0;
         }
 
         public update() {
-            this.delta = this.operation();
+            this.dpop = this.operation();
         }
     }
 

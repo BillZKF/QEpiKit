@@ -6,6 +6,41 @@ var __extends = (this && this.__extends) || function (d, b) {
 };
 var QEpiKit;
 (function (QEpiKit) {
+    var HTNPlanner = (function () {
+        function HTNPlanner() {
+        }
+        HTNPlanner.tick = function (node, task, agent) {
+            if (agent.runningList) {
+                agent.runningList.push(node.name);
+            }
+            else {
+                agent.runningList = [node.name];
+                agent.successList = [];
+                agent.barrierList = [];
+                agent.blackboard = [];
+            }
+            var state = node.visit(agent, task);
+            return state;
+        };
+        HTNPlanner.start = function (startNode, task, agents) {
+            var results = [];
+            for (var i = 0; i < agents.length; i++) {
+                HTNPlanner.tick(startNode, task, agents[i]);
+                if (agents[i].successList.length > 0) {
+                    results[i] = agents[i].successList;
+                }
+                else {
+                    results[i] = false;
+                }
+            }
+            return results;
+        };
+        HTNPlanner.SUCCESS = 1;
+        HTNPlanner.FAILED = 2;
+        HTNPlanner.RUNNING = 3;
+        return HTNPlanner;
+    })();
+    QEpiKit.HTNPlanner = HTNPlanner;
     var HTNNode = (function () {
         function HTNNode(name, preconditions) {
             this.name = name;
@@ -39,15 +74,15 @@ var QEpiKit;
                     }
                     if (task.evaluateGoal(agent.blackboard[0])) {
                         agent.successList.unshift(this.name);
-                        return HTN.SUCCESS;
+                        return HTNPlanner.SUCCESS;
                     }
                     else {
-                        return HTN.RUNNING;
+                        return HTNPlanner.RUNNING;
                     }
                 }
                 else {
                     agent.barrierList.unshift([this.name, this.preconditions]);
-                    return HTN.FAILED;
+                    return HTNPlanner.FAILED;
                 }
             };
         }
@@ -66,17 +101,17 @@ var QEpiKit;
                 agent.blackboard.unshift(copy);
                 if (this.evaluatePreConds(agent)) {
                     for (var i = 0; i < this.children.length; i++) {
-                        var state = HTN.tick(this.children[i], task, agent);
-                        if (state === HTN.SUCCESS) {
+                        var state = HTNPlanner.tick(this.children[i], task, agent);
+                        if (state === HTNPlanner.SUCCESS) {
                             agent.successList.unshift(this.name);
-                            return HTN.SUCCESS;
+                            return HTNPlanner.SUCCESS;
                         }
                     }
                 }
                 else {
                     agent.barrierList.unshift([this.name, this.preconditions]);
                 }
-                return HTN.FAILED;
+                return HTNPlanner.FAILED;
             };
         }
         return HTNMethod;
@@ -100,40 +135,5 @@ var QEpiKit;
         return HTNRootTask;
     })();
     QEpiKit.HTNRootTask = HTNRootTask;
-    var HTN = (function () {
-        function HTN() {
-        }
-        HTN.tick = function (node, task, agent) {
-            if (agent.runningList) {
-                agent.runningList.push(node.name);
-            }
-            else {
-                agent.runningList = [node.name];
-                agent.successList = [];
-                agent.barrierList = [];
-                agent.blackboard = [];
-            }
-            var state = node.visit(agent, task);
-            return state;
-        };
-        HTN.start = function (node, task, agents) {
-            var results = [];
-            for (var i = 0; i < agents.length; i++) {
-                HTN.tick(node, task, agents[i]);
-                if (agents[i].successList.length > 0) {
-                    results[i] = agents[i].successList;
-                }
-                else {
-                    results[i] = false;
-                }
-            }
-            return results;
-        };
-        HTN.SUCCESS = 1;
-        HTN.FAILED = 2;
-        HTN.RUNNING = 3;
-        return HTN;
-    })();
-    QEpiKit.HTN = HTN;
 })(QEpiKit || (QEpiKit = {}));
 //# sourceMappingURL=htn.js.map

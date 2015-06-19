@@ -1,0 +1,79 @@
+<html>
+
+<head>
+	<link href="style.css" rel="stylesheet"></link>
+</head>
+	<div id="main">
+	<h1>
+	QEpiKit Behavior Tree Examples
+	</h1>
+	<div>
+		These behavior trees are based on the behavior tree node definitions described in <a href="http://ieeexplore.ieee.org/xpls/icp.jsp?arnumber=6907656"> Marzinotto, et al (2014)</a>. The * variations of the Selector and Sequence nodes were not included because they were not necessary in any of the modeling experiments so far. They may be added at a later time.
+	</div>
+	<h2>
+	Measles Example
+	</h2>
+	<div id="p1">
+		<button onclick="runBHTree(MBHTree,mpopProps)">Run Tree</button>
+	</div>
+	<div id="measles-diagram" class="diagram"></div>
+	<h2>
+	Weight Change Example
+	</h2>
+	<div id="p2">
+		<button onclick="runBHTree(WBHTree,WpopProps)">Run Tree</button>
+	</div>
+	<div id="weight-diagram" class="diagram"></div>
+	</div>
+	<script src="../bower_components/d3/d3.min.js"></script>
+	<script src="../bower_components/chance/chance.js"></script>
+	<script src="../dist/behaviorTree.js"></script>
+	<script src="../dist/utils.js"></script>
+	<script src="bh-measles-ex.js"></script>
+	<script src="bh-weight-gain-ex.js"></script>
+	<script src="tree_render.js"></script>
+	<script>
+
+		var init = function() {
+			render(MBHTree.root, "measles-diagram", "id");
+			render(WBHTree.root, "weight-diagram", "id");
+			d3.select("#measles-diagram").call(zoomListener);
+			d3.select("#weight-diagram").call(zoomListener);
+		};
+
+		var runBHTree = function(tree, popProps) {
+			var csv, encodedUri, link;
+			tree.history = [];
+			tree.time = 0
+			tree.generateTimeData(tree, 1, 14, 1);
+			csv = formatCSV(tree.history, popProps);
+			encodedUri = QKit.Utils.createCSVURI(csv);
+			link = document.createElement("a");
+			link.setAttribute("href", encodedUri);
+			link.setAttribute("download", "bt_data.csv");
+			link.setAttribute("target", "_blank");
+			link.setAttribute("class", "btn btn-default")
+			link.innerHTML = "Get CSV file";
+			document.getElementById("p1").appendChild(link);
+		}
+
+		var formatCSV = function(data, popProps) {
+			var results = [];
+			for (var i = 0; i < data.length; i++) {
+				for (var d in data[i]) {
+					results.push([]);
+					var index = results.length - 1;
+					for (var prop in data[i][d]) {
+						results[index].push(data[i][d][prop]);
+					}
+				}
+			}
+			results.unshift(popProps);
+			return results;
+		}
+
+		init();
+	</script>
+</body>
+
+</html>

@@ -1,10 +1,10 @@
 //population
-var popData = [];
-var popProps = [];
-var totalPop = 0;
+var mpopData = [];
+var mpopProps = [];
+var mtotalPop = 0;
 var genPopulation = function(number) {
-  var p = {};
   for (var i = 0; i < number; i++) {
+    var p = {};
     p.time = 0;
 		p.active = false;
 		p.id = i;
@@ -14,7 +14,7 @@ var genPopulation = function(number) {
     });
     p.exposed = chance.bool({
       likelihood: 5
-    });;
+    });
     p.succept = p.exposed === true ? false : chance.bool({
       likelihood: 95
     });
@@ -22,12 +22,11 @@ var genPopulation = function(number) {
     p.exposedTime = 0;
     p.recoveryTime = 0;
     p.alive = true;
-    popData.push(p);
-    p = {};
+    mpopData.push(p);
   }
-  totalPop = popData.length;
-  popProps = Object.keys(popData[0]);
-}
+  totalPop = mpopData.length;
+  mpopProps = Object.keys(mpopData[0]);
+};
 
 
 //conditions
@@ -36,46 +35,45 @@ conditions = {
     key: "exposedTime",
     value: 3 / 365,
     check: QKit.Utils.ltEq,
-    data: popData
+    data: mpopData
   },
   'exposed': {
     key: "exposed",
     value: true,
     check: QKit.Utils.equalTo,
-    data: popData
+    data: mpopData
   },
   'succeptible': {
     key: "succept",
     value: true,
     check: QKit.Utils.equalTo,
-    data: popData
+    data: mpopData
   },
   'alive': {
     key: "alive",
     value: true,
     check: QKit.Utils.equalTo,
-    data: popData
+    data: mpopData
   },
   'recovering': {
     key: "recoveryTime",
     value: 4 / 365,
     check: QKit.Utils.ltEq,
-    data: popData
+    data: mpopData
   },
   'recovered': {
     key: "recoveryTime",
     value: 4 / 365,
     check: QKit.Utils.gtEq,
-    data: popData
+    data: mpopData
   },
   'immune': {
     key: "removed",
     value: 4 / 365,
     check: QKit.Utils.ltEq,
-    data: popData
+    data: mpopData
   }
-}
-
+};
 
 //actions
 actions = {
@@ -93,7 +91,7 @@ actions = {
       min: 0,
       max: totalPop - 1
     });
-    person.exposed = popData[random].exposed;
+    person.exposed = mpopData[random].exposed;
   },
   'unsucceptible': function(person) {
     person.succept = false;
@@ -101,7 +99,7 @@ actions = {
   'remove': function(person) {
     person.removed = true;
   }
-}
+};
 
 //nodes
 var Remove = new QKit.BTAction("Remove", conditions.recovered, actions.remove);
@@ -114,5 +112,6 @@ var EncounterResult = new QKit.BTAction("Encounter-Result", conditions.exposed, 
 var Succeptible = new QKit.BTAction("Succeptible-Encounter", conditions.succeptible, actions.encounter);
 var SeqSucceptible = new QKit.BTSequence("Succeptible", [Succeptible, EncounterResult]);
 var Status = new QKit.BTSelector("Branch", [SeqSucceptible, SeqExposed]);
-var Root = new QKit.BTRoot("Entry", [Status]);
-var BHTree = new QKit.BehaviorTree(Root, popData, conditions, actions);
+var MRoot = new QKit.BTRoot("Entry", [Status]);
+var MBHTree = new QKit.BehaviorTree(MRoot, mpopData, conditions, actions);
+genPopulation(1000);

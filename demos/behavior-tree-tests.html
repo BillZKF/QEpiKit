@@ -53,7 +53,7 @@
 			</div>
 			<div class="form-group">
 				<label for="node-cond">New Action</label>
-				<input id="node-act-name" placeholder="action name"name="act[name]" class="form-control"></input>
+				<input id="node-act-name" placeholder="action name" name="act[name]" class="form-control"></input>
 				<select id="act-key" name="act[key]" class="form-control">
 				</select>
 				<input id="node-cond-value" name="act[func]" class="form-control" placeholder="use math.js"></input>
@@ -247,7 +247,6 @@
 
 		var findByID = function(node, options) {
 			if (node.id === options.id) {
-				console.log(node)
 				options.nodeFound = node;
 			}
 		}
@@ -301,13 +300,24 @@
 		};
 
 		var summarizeTimeData = function(data, keys) {
-			var results = [];
+			var results = [],
+				totalPop = data[0].length;
 			for (var step = 0; step < data.length; step++) {
 				results[step] = {};
 				for (var d in data[step]) {
 					for (var key = 0; key < keys.length; key++) {
-						if (data[step][d][keys[key]] == true) {
-							results[step][keys[key]] = results[step][keys[key]] + 1 || 0;
+						var prop = data[step][d][keys[key]];
+						var propType = typeof(prop);
+						switch (propType) {
+							case "boolean":
+								if (prop) {
+								results[step][keys[key]] = results[step][keys[key]] + 1 || 0;
+								}
+								break;
+								case "number": results[step][keys[key]] += 1 || 0;
+								break;
+								default:
+								break;
 						}
 					}
 				}

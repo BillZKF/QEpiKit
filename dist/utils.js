@@ -11,7 +11,7 @@ var QKit;
                 return false;
             }
         };
-        Utils.prototype.staticnotEqualTo = function (a, b) {
+        Utils.notEqualTo = function (a, b) {
             if (a !== b) {
                 return true;
             }

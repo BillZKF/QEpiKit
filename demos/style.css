@@ -1,11 +1,36 @@
+body{
+	display : flex;
+	font-family: sans-serif;
+}
+path{
+	stroke:steelblue;
+	fill:none;
+}
+
+circle{
+	stroke:steelblue;
+	fill:none;
+}
+
+.succeptible{
+	stroke:green;
+}
+
+.infectious{
+	stroke:red;
+}
+
+.removed{
+	stroke:blue;
+}
+
 table td, th {
 	padding: 11px;
 	text-align: center;
 	min-width: 72px;
 }
-#diagram {
-	width : 100%;
-	height : 100%;
+.diagram {
+	background : #ddd;
 }
 .node text {
 	font: 12px sans-serif;

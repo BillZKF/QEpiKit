@@ -1,5 +1,5 @@
-var popData = [];
-var popProps = [];
+var WpopData = [];
+var WpopProps = [];
 var genPopulation = function(number) {
   var p = {};
   for (var i = 0; i < number; i++) {
@@ -22,9 +22,9 @@ var genPopulation = function(number) {
       max: 4000
     });
     p.calAbsorb = chance.floating({
-      min: .60,
-      max: .90
-    })
+      min: 0.60,
+      max: 0.90
+    });
     p.exerciseAmount = chance.integer({
       min: 15,
       max: 50
@@ -32,15 +32,15 @@ var genPopulation = function(number) {
     p.exerciseMETS = chance.integer({
       min: 2,
       max: 4
-    })
+    });
 
     p.exercise = chance.bool({
       likelihood: 20
-    })
+    });
 
     p.diet = chance.bool({
       likelihood: 20
-    })
+    });
     p.active = false;
     actions.doBMI(p);
     actions.mifflinStJeor(p);
@@ -48,51 +48,51 @@ var genPopulation = function(number) {
     actions.caloriesBurn(p);
     actions.calorieBalance(p);
     p.time = 0;
-    popData.push(p);
+    WpopData.push(p);
     p = {};
   }
-  popProps = Object.keys(popData[0]);
-}
+  WpopProps = Object.keys(WpopData[0]);
+};
 
 //conditions
 conditions = {
    dead : {
     key: "dead",
     value: true,
-    check: QKit.BehaviorTree.equalTo,
-    data: popData
+    check: QKit.Utils.equalTo,
+    data: WpopData
   },
    normalDiet : {
     key: "diet",
     value: false,
-    check: QKit.BehaviorTree.equalTo,
-    data: popData
+    check: QKit.Utils.equalTo,
+    data: WpopData
   },
    specialDiet : {
     key: "diet",
     value: true,
-    check: QKit.BehaviorTree.equalTo,
-    data: popData
+    check: QKit.Utils.equalTo,
+    data: WpopData
   },
    alive : {
     key: "dead",
     value: false,
-    check: QKit.BehaviorTree.equalTo,
-    data: popData
+    check: QKit.Utils.equalTo,
+    data: WpopData
   },
    exer : {
     key: "exercise",
     value: true,
-    check: QKit.BehaviorTree.equalTo,
-    data: popData
+    check: QKit.Utils.equalTo,
+    data: WpopData
   },
    sed : {
     key : "exercise",
     value: false,
-    check: QKit.BehaviorTree.equalTo,
-    data: popData
+    check: QKit.Utils.equalTo,
+    data: WpopData
   }
-}
+};
 
 actions = {
    mifflinStJeor : function(person) {
@@ -122,20 +122,20 @@ actions = {
   },
    doExercise : function(person) {
     person.exerciseMETS = 6 + (2 * Math.sin(person.time));
-    person.exerciseAmount = 60 + (30 * Math.sin(person.time))
+    person.exerciseAmount = 60 + (30 * Math.sin(person.time));
   },
    doDiet : function(person) {
     person.calRawIntake = 1800 + (200 * Math.sin(person.time));
   }
-}
+};
 
 //nodes
 var LowCalDiet = new QKit.BTAction("low-cal-diet", conditions.specialDiet, actions.doDiet);
 var NormalDiet = new QKit.BTCondition("normal-diet", conditions.normalDiet);
 var Exercise = new QKit.BTAction("regular-moderate-exercise", conditions.exer, actions.doExercise);
 var Sed = new QKit.BTCondition("mostly-sedentary", conditions.sed);
-var ExerciseSelect = new QKit.BTSelector("select-exercise", [Sed, Exercise])
-var DietSelect = new QKit.BTSelector("select-diet", [NormalDiet, LowCalDiet])
+var ExerciseSelect = new QKit.BTSelector("select-exercise", [Sed, Exercise]);
+var DietSelect = new QKit.BTSelector("select-diet", [NormalDiet, LowCalDiet]);
 var SequenceIntervention = new QKit.BTSequence("intervention-sequence", [DietSelect, ExerciseSelect]);
 var BaseMetabolicRate = new QKit.BTAction("base-metabolic-rate", conditions.alive, actions.mifflinStJeor);
 var CaloriesBurn = new QKit.BTAction("calorie-burning-activities", conditions.alive, actions.caloriesBurn);
@@ -146,5 +146,6 @@ var Age = new QKit.BTAction("add-to-age", conditions.alive, actions.makeOld);
 var SequenceDaily = new QKit.BTSequence("daily-sequence", [BaseMetabolicRate, CaloriesIn, CaloriesBurn, CalorieBalance, ChangeWeight, Age]);
 var Dead = new QKit.BTCondition("is-person-dead", conditions.dead);
 var Status = new QKit.BTSequence("select-status", [SequenceIntervention, SequenceDaily]);
-var Root = new QKit.BTRoot("root", [Status]);
-var BHTree = new QKit.BehaviorTree(Root, popData);
+var WRoot = new QKit.BTRoot("root", [Status]);
+var WBHTree = new QKit.BehaviorTree(WRoot, WpopData);
+genPopulation(1000);

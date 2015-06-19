@@ -24,7 +24,7 @@ module QKit {
       }
     }
 
-    public staticnotEqualTo(a, b) {
+    public static notEqualTo(a, b) {
       if (a !== b) {
         return true;
       } else {

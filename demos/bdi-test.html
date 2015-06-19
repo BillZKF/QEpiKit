@@ -18,9 +18,15 @@ var genPopulation = function(number) {
 
 var eventQueue = {
   "rain" : {
-    time : [45],
-    effects : waterTableRise
+    time : [45,46],
+    effects : function(environment){
+      environment.waterTable += 1;
+    }
   }
+}
+
+var environment = {
+  waterTable : 54
 }
 
 //actions

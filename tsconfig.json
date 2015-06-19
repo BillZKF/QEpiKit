@@ -10,6 +10,7 @@
         "src/*.ts"
     ],
     "files": [
+        "src/QLeaner.ts",
         "src/behaviorTree.ts",
         "src/compartment.ts",
         "src/epi.ts",

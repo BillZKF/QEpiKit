@@ -6,11 +6,12 @@ var QKit;
             this.step = step;
             this.compartments = compartments;
             this.transmissionRate = pathogen.transmissionRate * this.step;
-            this.recoveryRate = pathogen.recoveryRate;
+            this.recoveryRate = pathogen.recoveryRate * this.step;
             this.basicReproductiveNumber = pathogen.transmissionRate / pathogen.recoveryRate;
             this.totalPop = 0;
             for (var c in this.compartments) {
                 this.totalPop += this.compartments[c].pop;
+                this.compartments[c].initialPop = this.compartments[c].pop;
             }
         }
         CompartmentModel.prototype.run = function () {
@@ -18,7 +19,7 @@ var QKit;
                 this.compartments[c].update();
             }
             for (var c in this.compartments) {
-                this.compartments[c].pop += this.compartments[c].delta;
+                this.compartments[c].pop += this.compartments[c].dpop * this.step;
             }
         };
         return CompartmentModel;
@@ -29,9 +30,10 @@ var QKit;
             this.name = name;
             this.pop = pop;
             this.operation = operation || null;
+            this.dpop = 0;
         }
         Compartment.prototype.update = function () {
-            this.delta = this.operation();
+            this.dpop = this.operation();
         };
         return Compartment;
     })();

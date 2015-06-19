@@ -1,5 +1,38 @@
 module QEpiKit {
   //hierarchal task network
+  export class HTNPlanner {
+    public static SUCCESS : number = 1;
+    public static FAILED : number = 2;
+    public static RUNNING : number = 3;
+
+    public static tick(node: HTNNode, task: HTNRootTask, agent) {
+      if (agent.runningList) {
+        agent.runningList.push(node.name)
+      } else {
+        agent.runningList = [node.name];
+        agent.successList = [];
+        agent.barrierList = [];
+        agent.blackboard = [];
+      }
+      var state = node.visit(agent, task)
+      return state;
+    }
+
+    public static start(startNode: HTNNode, task: HTNRootTask, agents) {
+      //iterate each agent through the task network
+      var results = []
+      for (var i = 0; i < agents.length; i++) {
+        HTNPlanner.tick(startNode, task, agents[i]);
+        if(agents[i].successList.length > 0){
+          results[i] = agents[i].successList;
+        } else {
+          results[i] = false;
+        }
+      }
+      return results;
+    }
+  }
+
   export class HTNNode {
     public name: string;
     public type: string;
@@ -37,13 +70,13 @@ module QEpiKit {
           }
           if (task.evaluateGoal(agent.blackboard[0])) {
             agent.successList.unshift(this.name);
-            return HTN.SUCCESS;
+            return HTNPlanner.SUCCESS;
           } else {
-            return HTN.RUNNING;
+            return HTNPlanner.RUNNING;
           }
         } else {
           agent.barrierList.unshift([this.name, this.preconditions]);
-          return HTN.FAILED;
+          return HTNPlanner.FAILED;
         }
       }
     }
@@ -62,16 +95,16 @@ module QEpiKit {
         agent.blackboard.unshift(copy);
         if (this.evaluatePreConds(agent)) {
           for (var i = 0; i < this.children.length; i++) {
-            var state = HTN.tick(this.children[i], task, agent);
-            if (state === HTN.SUCCESS) {
+            var state = HTNPlanner.tick(this.children[i], task, agent);
+            if (state === HTNPlanner.SUCCESS) {
               agent.successList.unshift(this.name);
-              return HTN.SUCCESS;
+              return HTNPlanner.SUCCESS;
             }
           }
         } else {
           agent.barrierList.unshift([this.name, this.preconditions]);
         }
-        return HTN.FAILED;
+        return HTNPlanner.FAILED;
       }
     }
   }
@@ -94,38 +127,6 @@ module QEpiKit {
         }
       }
       return true
-    }
-  }
-
-
-  export class HTN {
-    public static SUCCESS : number = 1;
-    public static FAILED : number = 2;
-    public static RUNNING : number = 3;
-    public static tick(node: HTNNode, task: HTNRootTask, agent) {
-      if (agent.runningList) {
-        agent.runningList.push(node.name)
-      } else {
-        agent.runningList = [node.name];
-        agent.successList = [];
-        agent.barrierList = [];
-        agent.blackboard = [];
-      }
-      var state = node.visit(agent, task)
-      return state;
-    }
-
-    public static start(node: HTNNode, task: HTNRootTask, agents) {
-      var results = []
-      for (var i = 0; i < agents.length; i++) {
-        HTN.tick(node, task, agents[i]);
-        if(agents[i].successList.length > 0){
-          results[i] = agents[i].successList;
-        } else {
-          results[i] = false;
-        }
-      }
-      return results;
     }
   }
 }
