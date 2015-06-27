@@ -1,0 +1,16 @@
+<div id="results"></div>
+<script>
+if(typeof(Worker) !== "undefined") {
+    var end, time, start = new Date().getTime();
+    var w = new Worker("pop-gen-tests.js");
+
+    w.onmessage = function(e){
+      console.log(e.data);
+      end = new Date().getTime();
+      time = end - start;
+      console.log(time);
+    }
+} else {
+    // Sorry! No Web Worker support..
+}
+</script>
