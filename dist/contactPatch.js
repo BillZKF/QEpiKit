@@ -1,5 +1,5 @@
-var QKit;
-(function (QKit) {
+var QEpiKit;
+(function (QEpiKit) {
     var ContactPatch = (function () {
         function ContactPatch(name, capacity) {
             this.id = ContactPatch.createID();
@@ -29,7 +29,7 @@ var QKit;
         ContactPatch.prototype.assign = function (agent, contactValueFunc) {
             var contactValue;
             contactValueFunc = contactValueFunc || ContactPatch.defaultFreqF;
-            if (this.pop <= this.capacity) {
+            if (this.pop < this.capacity) {
                 this.members[agent.id] = agent;
                 for (var other in this.members) {
                     other = Number(other);
@@ -46,13 +46,13 @@ var QKit;
                 return null;
             }
         };
-        ContactPatch.prototype.checkContacts = function (agent, precondition, contactFunc, resultKey) {
+        ContactPatch.prototype.encounters = function (agent, precondition, contactFunc, resultKey) {
             contactFunc = contactFunc || ContactPatch.defaultContactF;
             for (var contact in this.members) {
                 if (precondition.check(this.members[contact][precondition.key], precondition.value)) {
                     agent[resultKey] = contactFunc(this.members[agent.id][contact], agent.time);
                     ContactPatch.WIWArray.push({
-                        patch: this.id,
+                        patchID: this.id,
                         name: this.name,
                         infected: contact,
                         by: agent.id,
@@ -61,9 +61,10 @@ var QKit;
                 }
             }
         };
-        ContactPatch.CID = 0;
+        ContactPatch.CID = 1;
+        ContactPatch.WIWArray = [];
         return ContactPatch;
     })();
-    QKit.ContactPatch = ContactPatch;
-})(QKit || (QKit = {}));
+    QEpiKit.ContactPatch = ContactPatch;
+})(QEpiKit || (QEpiKit = {}));
 //# sourceMappingURL=contactPatch.js.map

@@ -1,4 +1,4 @@
-describe("A Belief Desire Intent Agent", function() {
+/*describe("A Belief Desire Intent Agent", function() {
   var Decider, environment = [{
       vaccineCache: 3500000,
       vaccineUsed: 0,
@@ -16,12 +16,12 @@ describe("A Belief Desire Intent Agent", function() {
   goals = [{
       key: "vaccineCache",
       value: 15000000,
-      check: QKit.Utils.gt,
+      check: QEpiKit.Utils.gt,
       data: environment
     }, {
       key: "schoolsOpen",
       value: true,
-      check: QKit.Utils.equalTo,
+      check: QEpiKit.Utils.equalTo,
       data: environment
     }],
     plans = {
@@ -45,4 +45,4 @@ describe("A Belief Desire Intent Agent", function() {
   it("should take the current state of the data, create a new belief", function() {
     Decider = new QEpiKit.BDIAGent(goals, plans, environment);
   });
-});
+});*/

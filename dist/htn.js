@@ -41,6 +41,24 @@ var QEpiKit;
         return HTNPlanner;
     })();
     QEpiKit.HTNPlanner = HTNPlanner;
+    var HTNRootTask = (function () {
+        function HTNRootTask(name, goals) {
+            this.name = name;
+            this.goals = goals;
+        }
+        HTNRootTask.prototype.evaluateGoal = function (agent) {
+            var result;
+            for (var p = 0; p < this.goals.length; p++) {
+                result = this.goals[p].check(agent[this.goals[p].key], this.goals[p].value);
+                if (!result) {
+                    return false;
+                }
+            }
+            return true;
+        };
+        return HTNRootTask;
+    })();
+    QEpiKit.HTNRootTask = HTNRootTask;
     var HTNNode = (function () {
         function HTNNode(name, preconditions) {
             this.name = name;
@@ -117,23 +135,5 @@ var QEpiKit;
         return HTNMethod;
     })(HTNNode);
     QEpiKit.HTNMethod = HTNMethod;
-    var HTNRootTask = (function () {
-        function HTNRootTask(name, goals) {
-            this.name = name;
-            this.goals = goals;
-        }
-        HTNRootTask.prototype.evaluateGoal = function (agent) {
-            var result;
-            for (var p = 0; p < this.goals.length; p++) {
-                result = this.goals[p].check(agent[this.goals[p].key], this.goals[p].value);
-                if (!result) {
-                    return false;
-                }
-            }
-            return true;
-        };
-        return HTNRootTask;
-    })();
-    QEpiKit.HTNRootTask = HTNRootTask;
 })(QEpiKit || (QEpiKit = {}));
 //# sourceMappingURL=htn.js.map

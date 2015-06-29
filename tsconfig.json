@@ -13,6 +13,7 @@
         "src/QLeaner.ts",
         "src/behaviorTree.ts",
         "src/compartment.ts",
+        "src/contactPatch.ts",
         "src/epi.ts",
         "src/htn.ts",
         "src/utils.ts"

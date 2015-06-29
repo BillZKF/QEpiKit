@@ -1,4 +1,4 @@
-module QKit {
+module QEpiKit {
   export class ContactPatch {
     public static CID: number = 1;
     public static WIWArray: any[] = [];

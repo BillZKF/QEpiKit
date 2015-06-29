@@ -1,9 +1,13 @@
 module QEpiKit {
-  //hierarchal task network
+  //Hierarchal Task Network
   export class HTNPlanner {
-    public static SUCCESS : number = 1;
-    public static FAILED : number = 2;
-    public static RUNNING : number = 3;
+    public static SUCCESS: number = 1;
+    public static FAILED: number = 2;
+    public static RUNNING: number = 3;
+
+    public id: number;
+    public name: string;
+    public time: number;
 
     public static tick(node: HTNNode, task: HTNRootTask, agent) {
       if (agent.runningList) {
@@ -23,13 +27,34 @@ module QEpiKit {
       var results = []
       for (var i = 0; i < agents.length; i++) {
         HTNPlanner.tick(startNode, task, agents[i]);
-        if(agents[i].successList.length > 0){
+        if (agents[i].successList.length > 0) {
           results[i] = agents[i].successList;
         } else {
           results[i] = false;
         }
       }
       return results;
+    }
+  }
+
+  export class HTNRootTask {
+    public name: string;
+    public goals: any[];
+
+    constructor(name: string, goals: any[]) {
+      this.name = name;
+      this.goals = goals;
+    }
+
+    evaluateGoal(agent) {
+      var result;
+      for (var p = 0; p < this.goals.length; p++) {
+        result = this.goals[p].check(agent[this.goals[p].key], this.goals[p].value);
+        if (!result) {
+          return false;
+        }
+      }
+      return true
     }
   }
 
@@ -61,7 +86,7 @@ module QEpiKit {
     public effects: any[];
     constructor(name: string, preconditions: any[], effects: void[]) {
       super(name, preconditions);
-      this.type ="operator";
+      this.type = "operator";
       this.effects = effects;
       this.visit = function(agent, task: HTNRootTask) {
         if (this.evaluatePreConds(agent)) {
@@ -87,7 +112,7 @@ module QEpiKit {
 
     constructor(name: string, preconditions: any[], children: HTNNode[]) {
       super(name, preconditions);
-      this.type ="method";
+      this.type = "method";
       this.children = children;
       this.visit = function(agent, task) {
         var copy = JSON.parse(JSON.stringify(agent));
@@ -106,27 +131,6 @@ module QEpiKit {
         }
         return HTNPlanner.FAILED;
       }
-    }
-  }
-
-  export class HTNRootTask {
-    public name: string;
-    public goals: any[];
-
-    constructor(name: string, goals: any[]) {
-      this.name = name;
-      this.goals = goals;
-    }
-
-    evaluateGoal(agent) {
-      var result;
-      for (var p = 0; p < this.goals.length; p++) {
-        result = this.goals[p].check(agent[this.goals[p].key], this.goals[p].value);
-        if (!result) {
-          return false;
-        }
-      }
-      return true
     }
   }
 }
