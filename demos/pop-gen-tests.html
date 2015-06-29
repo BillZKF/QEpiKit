@@ -1,16 +1,107 @@
+<script src="../bower_components/d3/d3.min.js"></script>
+<style>
+  .point {
+    fill: green;
+    fill-opacity: 0.2;
+    stroke-opacity: 0.4;
+  }
+
+  .childByParent {
+    stroke: steelblue;
+  }
+
+  .parentByChild {
+    stroke: darkblue
+  }
+
+  .workplace {
+    stroke: orange;
+  }
+
+  .community {
+    stroke: purple;
+  }
+
+  .school {
+    stroke: gold;
+  }
+</style>
 <div id="results"></div>
 <script>
-if(typeof(Worker) !== "undefined") {
-    var end, time, start = new Date().getTime();
+  var margin = 50,
+    dH = 800 - margin - margin,
+    dW = 800 - margin - margin;
+  var svg = d3.select("#results").append("svg")
+    .attr("width", dH + margin + margin)
+    .attr("height", dH + margin + margin)
+    .append("g")
+    .attr("transform", "translate(" + margin + ", " + margin + ")");
+
+  if (typeof(Worker) !== "undefined") {
+    var end, time, start = new Date().getTime(),
+      heatData;
     var w = new Worker("pop-gen-tests.js");
 
-    w.onmessage = function(e){
+
+    w.onmessage = function(e) {
       console.log(e.data);
       end = new Date().getTime();
       time = end - start;
-      console.log(time);
+      console.log(time)
+      if (e.data[0].hasOwnProperty("byAge")) {
+        heatData = e.data;
+        xExt = d3.extent(heatData, function(d) {
+            return d.byAge;
+          }),
+          yExt = d3.extent(heatData, function(d) {
+            return d.infectedAge;
+          });
+
+        x = d3.scale.linear().domain(xExt).range([0, dW]);
+        y = d3.scale.linear().domain(yExt).range([dH, 0]);
+
+        xAxis = d3.svg.axis()
+          .scale(x)
+          .orient("bottom");
+
+        yAxis = d3.svg.axis()
+          .scale(y)
+          .orient("left");
+
+        svg.append("g")
+          .attr("class", "axis")
+          .attr("transform", "translate(0," + dH + ")")
+          .call(xAxis);
+
+        svg.append("g")
+          .attr("class", "axis")
+          .call(yAxis);
+
+        byCount = {};
+        var maxBy = heatData.map(function(d) {
+          if (byCount.hasOwnProperty(d.by)) {
+              byCount[d.by] += 1;
+            } else {
+              byCount[d.by] = 1
+            }
+        });
+        console.log(byCount);
+        svg.selectAll("circle").data(heatData).enter()
+          .append("circle")
+          .attr("cx", function(d) {
+            return x(d.byAge)
+          })
+          .attr("cy", function(d) {
+            return y(d.infectedAge)
+          })
+          .attr("r", 5)
+          .attr("class", function(d) {
+            return "point " + d.type
+          });
+      }
     }
-} else {
+
+  } else {
     // Sorry! No Web Worker support..
-}
+  }
 </script>

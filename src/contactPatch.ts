@@ -1,7 +1,7 @@
 module QKit {
   export class ContactPatch {
-    public static CID: number = 0;
-    public static WIWArray: any[];
+    public static CID: number = 1;
+    public static WIWArray: any[] = [];
     public id: number;
     public name: string;
     public capacity: number;
@@ -39,7 +39,7 @@ module QKit {
     assign(agent: any, contactValueFunc: Function) {
       var contactValue;
       contactValueFunc = contactValueFunc || ContactPatch.defaultFreqF;
-      if (this.pop <= this.capacity) {
+      if (this.pop < this.capacity) {
         this.members[agent.id] = agent;
         for (var other in this.members) {
           other = Number(other);
@@ -56,13 +56,13 @@ module QKit {
       }
     }
 
-    checkContacts(agent: any, precondition: Condition, contactFunc: Function, resultKey: string) {
+    encounters(agent: any, precondition: Condition, contactFunc: Function, resultKey: string) {
       contactFunc = contactFunc || ContactPatch.defaultContactF;
       for (var contact in this.members) {
         if (precondition.check(this.members[contact][precondition.key], precondition.value)) {
           agent[resultKey] = contactFunc(this.members[agent.id][contact], agent.time);
           ContactPatch.WIWArray.push({
-            patch: this.id,
+            patchID: this.id,
             name: this.name,
             infected: contact,
             by: agent.id,

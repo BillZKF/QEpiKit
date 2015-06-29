@@ -32,7 +32,7 @@ function emptyPatch(number, starter, capacity) {
   return emptyData;
 }
 
-var popData = empty(10000);
+var popData = empty(2500);
 var regions = emptyPatch(25, "residents", 600);
 var schools = emptyPatch(15, "students", 500);
 var workplaces = emptyPatch(15, "workers", 700);
@@ -234,7 +234,7 @@ var actions = {
         };
         for (var other in residents) {
           if (Number(other) !== person.id && !isNaN(Number(other))) {
-            contactFreq = regions[i].capacity / (100 - (residents[other].age / person.age)) / regions[i].capacity;
+            contactFreq = (44 - Math.abs(person.age - 44)) / 44;
             residents[person.id][other] = contactFreq;
             residents[other][person.id] = contactFreq;
           }
@@ -256,9 +256,9 @@ var actions = {
         };
         for (var other in workers) {
           if (Number(other) !== person.id && !isNaN(Number(other))) {
-            contactFreq = workplaces[i].capacity / (46 - Math.abs(person.age - workers[other].age)) / workplaces[i].capacity;
-            workers[person.id][other] = contactFreq;
-            workers[other][person.id] = contactFreq;
+            contactFreq = (46 - Math.abs(person.age - workers[other].age)) / 46;
+            workers[person.id][other] = contactFreq * 0.8;
+            workers[other][person.id] = contactFreq * 0.8;
           }
         }
         workplaces[i].count += 1;
@@ -277,7 +277,7 @@ var actions = {
         };
         for (var other in stdnts) {
           if (Number(other) !== person.id && !isNaN(Number(other))) {
-            contactFreq = (16 - Math.abs(person.age - stdnts[other].age)) / 4;
+            contactFreq = (16 - Math.abs(person.age - stdnts[other].age)) / 16;
             stdnts[person.id][other] = contactFreq;
             stdnts[other][person.id] = contactFreq;
           }
@@ -290,7 +290,7 @@ var actions = {
   "parentEncounters": function(person) {
     if (!person.removed && popData[person.parent].succeptible) {
       popData[person.parent].exposed = chance1.bool({
-        likelihood: 30
+        likelihood: 80
       });
       if (popData[person.parent].exposed) {
         popData[person.parent].succeptible = false;
@@ -298,6 +298,8 @@ var actions = {
           type: "parentByChild",
           infected: person.parent,
           by: person.id,
+          infectedAge: popData[person.parent].age,
+          byAge: person.age,
           time: person.time
         });
       }
@@ -309,7 +311,7 @@ var actions = {
       for (var i = 0; i < person.children.length; i++) {
         if (!popData[person.children[i].id].exposed) {
           popData[person.children[i].id].exposed = chance1.bool({
-            likelihood: 20
+            likelihood: 60
           });
           if (popData[person.children[i].id].exposed) {
             popData[person.children[i].id].succeptible = false;
@@ -317,6 +319,8 @@ var actions = {
               type: "childByParent",
               infected: popData[person.children[i].id].id,
               by: person.id,
+              infectedAge:  popData[person.children[i].id].age,
+              byAge: person.age,
               time: person.time
             });
           }
@@ -328,10 +332,10 @@ var actions = {
     if (!person.removed) {
       for (var con in workplaces[person.work].workers[person.id]) {
         if (con !== "age") {
-          var contact = Math.sin(person.time * workplaces[person.work].workers[person.id][con]);
-          if (contact >= 0.5 && popData[con].succeptible) {
+          var contact = person.time % Math.round(11  - (10 * workplaces[person.work].workers[person.id][con]));
+          if (contact === 0 && popData[con].succeptible) {
             popData[con].exposed = chance1.bool({
-              likelihood: 1.28889
+              likelihood: 1.5
             });
             if (popData[con].exposed) {
               popData[con].succeptible = false;
@@ -339,6 +343,8 @@ var actions = {
                 type: "workplace",
                 infected: con,
                 by: person.id,
+                infectedAge: popData[con].age,
+                byAge: person.age,
                 time: person.time
               });
             }
@@ -351,10 +357,10 @@ var actions = {
     if (!person.removed) {
       for (var con in regions[person.region].residents[person.id]) {
         if (con !== "age") {
-          var contact = Math.sin(person.time * regions[person.region].residents[person.id][con]);
-          if (contact >= 0.5 && popData[con].succeptible) {
+          var contact = person.time % Math.round(11  - (10 * regions[person.region].residents[person.id][con]));
+          if (contact === 0 && popData[con].succeptible) {
             popData[con].exposed = chance1.bool({
-              likelihood: 1
+              likelihood: 0.5
             });
             if (popData[con].exposed) {
               popData[con].succeptible = false;
@@ -362,6 +368,33 @@ var actions = {
                 type: "community",
                 infected: Number(con),
                 by: person.id,
+                infectedAge: popData[con].age,
+                byAge: person.age,
+                time: person.time
+              });
+            }
+          }
+        }
+      }
+    }
+  },
+  "schoolEncounters": function(person) {
+    if (!person.removed) {
+      for (var con in schools[person.school].students[person.id]) {
+        if (con !== "age") {
+          var contact = person.time % Math.round(11  - (10 * schools[person.school].students[person.id][con]));
+          if (contact === 0 && popData[con].succeptible) {
+            popData[con].exposed = chance1.bool({
+              likelihood: 2.0
+            });
+            if (popData[con].exposed) {
+              popData[con].succeptible = false;
+              WhomInfectsWhom.push({
+                type: "school",
+                infected: con,
+                by: person.id,
+                infectedAge: popData[con].age,
+                byAge: person.age,
                 time: person.time
               });
             }
@@ -390,11 +423,14 @@ var actions = {
     if (person.children) {
       actions.childEncounters(person);
     }
+    if (person.school || person.school === 0) {
+      actions.schoolEncounters(person);
+    }
     if (person.work || person.work === 0) {
       actions.workEncounters(person);
     }
     if (person.region || person.region === 0) {
-      //actions.communityEncounters(person);
+      actions.communityEncounters(person);
     }
   },
   'unsucceptible': function(person) {
