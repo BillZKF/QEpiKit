@@ -5,11 +5,8 @@ describe("Behavior Trees are control structures for reactive agents", function()
   }, {
     id: 2
   }];
-  //ConditionSuccess = new QEpiKit.BTCondition("condition-success", {key:"active", value:true, check:QEpiKit.Utils.equalTo});
-  //ConditionFail = new QEpiKit.BTCondition("condition-failed", {key:"active", value:false, check:QEpiKit.Utils.equalTo});
-  //SelectorTest = new QEpiKit.BTSelector("selector-test",[ConditionFail, ConditionFail]);
-  //SequenceTest = new QEpiKit.BTSequence("sequence-test",[ConditionSuccess]);
-  //Root = new QEpiKit.BTRoot("the-root", [SelectorTest, SequenceTest, ParallelTest]);
+  ConditionSuccess = new QEpiKit.BTCondition("condition-success", {key:"active", value:true, check:QEpiKit.Utils.equalTo});
+  ConditionFail = new QEpiKit.BTCondition("condition-failed", {key:"active", value:false, check:QEpiKit.Utils.equalTo});
   BHTree = new QEpiKit.BehaviorTree(Root, agents);
 
 
@@ -20,11 +17,6 @@ describe("Behavior Trees are control structures for reactive agents", function()
 
 
   describe("Root Nodes are Control Nodes that tick their one child", function() {
-    ConditionSuccess = new QEpiKit.BTCondition("condition-success", {
-      key: "active",
-      value: true,
-      check: QEpiKit.Utils.equalTo
-    });
 
     it("should return SUCCESS code if child succeeds", function() {
       Root = new QEpiKit.BTRoot("the-root", [ConditionSuccess]);
@@ -33,14 +25,20 @@ describe("Behavior Trees are control structures for reactive agents", function()
     });
 
     it("should return FAILED code if child fails", function() {
-      ConditionFail = new QEpiKit.BTCondition("condition-failed", {
-        key: "active",
-        value: false,
-        check: QEpiKit.Utils.equalTo
-      });
       Root.children = [ConditionFail];
       expect(BHTree.start(agents[1])).toBe(QEpiKit.BehaviorTree.FAILED);
     });
   });
 
+  describe("Selector Nodes are Control Nodes that tick children until one succeds", function(){
+    SelectorTest = new QEpiKit.BTSelector("selector-test",[ConditionFail, ConditionFail, ConditionSuccess]);
+    Root = new QEpiKit.BTRoot("the-root", [SelectorTest]);
+    
+    it("should return SUCCESS code if a child succeeds", function(){
+      expect(1).toBe(QEpiKit.BehaviorTree.SUCCESS);
+    });
+    it("should return FAILED code if all children fail", function(){
+      expect(2).toBe(QEpiKit.BehaviorTree.FAILED);
+    });
+  });
 });
