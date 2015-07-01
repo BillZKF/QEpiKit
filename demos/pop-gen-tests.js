@@ -1,4 +1,4 @@
-self.importScripts("http://localhost:7683/bower_components/chance/chance.js","../dist/utils.js","../dist/behaviorTree.js","libs/jstat.min.js");
+self.importScripts("../bower_components/chance/chance.js","../dist/utils.js","../dist/behaviorTree.js","libs/jstat.min.js");
 //BTREE pop gen method
 postMessage("Initializing: ");
 var chance1 = chance;
@@ -32,125 +32,106 @@ function emptyPatch(number, starter, capacity) {
   return emptyData;
 }
 
-var popData = empty(2500);
-var regions = emptyPatch(25, "residents", 600);
-var schools = emptyPatch(15, "students", 500);
-var workplaces = emptyPatch(15, "workers", 700);
+var popData = empty(5000);
+var regions = emptyPatch(10, "residents", 600);
+var schools = emptyPatch(6, "students", 500);
+var workplaces = emptyPatch(7, "workers", 700);
 
 var conditions = {
   "existsAge": {
     key: "age",
     value: false,
-    check: QKit.Utils.hasProp,
-    data: popData
+    check: QEpiKit.Utils.hasProp
   },
   "existsSex": {
     key: "sex",
     value: false,
-    check: QKit.Utils.hasProp,
-    data: popData
+    check: QEpiKit.Utils.hasProp
   },
   "existsIncomeGroup": {
     key: "incomeGroup",
     value: false,
-    check: QKit.Utils.hasProp,
-    data: popData
+    check: QEpiKit.Utils.hasProp
   },
   "existsMass": {
     key: "mass",
     value: false,
-    check: QKit.Utils.hasProp,
-    data: popData
+    check: QEpiKit.Utils.hasProp
   },
   "existsLocation": {
     key: "location",
     value: false,
-    check: QKit.Utils.hasProp,
-    data: popData
+    check: QEpiKit.Utils.hasProp
   },
   "existsExposed": {
     key: "exposed",
     value: false,
-    check: QKit.Utils.hasProp,
-    data: popData
+    check: QEpiKit.Utils.hasProp
   },
   "existsInfectious": {
     key: "infectious",
     value: false,
-    check: QKit.Utils.hasProp,
-    data: popData
+    check: QEpiKit.Utils.hasProp
   },
   "existsSucceptible": {
     key: "succeptible",
     value: false,
-    check: QKit.Utils.hasProp,
-    data: popData
+    check: QEpiKit.Utils.hasProp
   },
   "isUnder3": {
     key: "age",
     value: 3,
-    check: QKit.Utils.lt,
-    data: popData
+    check: QEpiKit.Utils.lt
   },
   "isUnder19": {
     key: "age",
     value: 19,
-    check: QKit.Utils.lt,
-    data: popData
+    check: QEpiKit.Utils.lt
   },
   "isUnder65": {
     key: "age",
     value: 65,
-    check: QKit.Utils.lt,
-    data: popData
+    check: QEpiKit.Utils.lt
   },
   "isOver19": {
     key: "age",
     value: 19,
-    check: QKit.Utils.gtEq,
-    data: popData
+    check: QEpiKit.Utils.gtEq
   },
   'incubating': {
     key: "exposedT",
     value: 3 / 365,
-    check: QKit.Utils.ltEq,
-    data: popData
+    check: QEpiKit.Utils.ltEq
   },
   'exposed': {
     key: "exposed",
     value: true,
-    check: QKit.Utils.equalTo,
-    data: popData
+    check: QEpiKit.Utils.equalTo
   },
   'succeptible': {
     key: "succept",
     value: true,
-    check: QKit.Utils.equalTo,
-    data: popData
+    check: QEpiKit.Utils.equalTo
   },
   'alive': {
     key: "alive",
     value: true,
-    check: QKit.Utils.equalTo,
-    data: popData
+    check: QEpiKit.Utils.equalTo
   },
   'recovering': {
     key: "infectiousT",
     value: 4 / 365,
-    check: QKit.Utils.ltEq,
-    data: popData
+    check: QEpiKit.Utils.ltEq
   },
   'recovered': {
     key: "infectiousT",
     value: 4 / 365,
-    check: QKit.Utils.gtEq,
-    data: popData
+    check: QEpiKit.Utils.gtEq
   },
   'immune': {
     key: "removed",
     value: 4 / 365,
-    check: QKit.Utils.ltEq,
-    data: popData
+    check: QEpiKit.Utils.ltEq
   }
 };
 
@@ -445,47 +426,46 @@ var actions = {
 
 var WhomInfectsWhom = [];
 //Set Demographics & State
-var SetSucceptible = new QKit.BTAction("set-succeptible", conditions.existsSucceptible, actions.setSucceptible);
-var SetInfectious = new QKit.BTAction("set-infectious", conditions.existsInfectious, actions.setInfectious);
-var SetExposed = new QKit.BTAction("set-exposed", conditions.existsExposed, actions.setExposed);
-var SequenceState = new QKit.BTSequence("sequence-state", [SetExposed, SetInfectious, SetSucceptible]);
-var SetLocation = new QKit.BTAction("set-location", conditions.existsLocation, actions.setLocation);
-var SetMass = new QKit.BTAction("set-mass", conditions.existsMass, actions.setMass);
-var SetParent = new QKit.BTAction("set-sex", conditions.isUnder19, actions.setParent);
-var SetSex = new QKit.BTAction("set-sex", conditions.existsSex, actions.setSex);
-var SetAge = new QKit.BTAction("set-age", conditions.existsAge, actions.setAge);
-var SequenceDemographic = new QKit.BTSequence("sequence-demographic", [SetAge, SetSex, SetMass, SetLocation, SequenceState]);
+var SetSucceptible = new QEpiKit.BTAction("set-succeptible", conditions.existsSucceptible, actions.setSucceptible);
+var SetInfectious = new QEpiKit.BTAction("set-infectious", conditions.existsInfectious, actions.setInfectious);
+var SetExposed = new QEpiKit.BTAction("set-exposed", conditions.existsExposed, actions.setExposed);
+var SequenceState = new QEpiKit.BTSequence("sequence-state", [SetExposed, SetInfectious, SetSucceptible]);
+var SetLocation = new QEpiKit.BTAction("set-location", conditions.existsLocation, actions.setLocation);
+var SetMass = new QEpiKit.BTAction("set-mass", conditions.existsMass, actions.setMass);
+var SetParent = new QEpiKit.BTAction("set-parent", conditions.isUnder19, actions.setParent);
+var SetSex = new QEpiKit.BTAction("set-sex", conditions.existsSex, actions.setSex);
+var SetAge = new QEpiKit.BTAction("set-age", conditions.existsAge, actions.setAge);
+var SequenceDemographic = new QEpiKit.BTSequence("sequence-demographic", [SetAge, SetSex, SetMass, SetLocation, SequenceState]);
 //Set Contacts
-var SetWork = new QKit.BTAction("set-work", conditions.isUnder65, actions.setWork);
-var SetSchool = new QKit.BTAction("set-school", conditions.isUnder19, actions.setSchool);
-var CheckAge = new QKit.BTCondition("is-too-young", conditions.isUnder3);
-var SelectActivityGroup = new QKit.BTSelector("select-activity-group", [CheckAge, SetSchool, SetWork]);
-var IsAdult = new QKit.BTCondition("is-adult", conditions.isOver19);
-var SelectHousehold = new QKit.BTSelector("select-household", [IsAdult, SetParent]);
-var SequenceContact = new QKit.BTSequence("sequence-contact", [SelectHousehold, SelectActivityGroup]);
-var SelectPhase = new QKit.BTSelector("select-phase", [SequenceDemographic, SequenceContact]);
-var Root = new QKit.BTRoot("start", [SelectPhase]);
-var PopGen = new QKit.BehaviorTree(Root, popData, conditions, actions);
-PopGen.history = [];
+var SetWork = new QEpiKit.BTAction("set-work", conditions.isUnder65, actions.setWork);
+var SetSchool = new QEpiKit.BTAction("set-school", conditions.isUnder19, actions.setSchool);
+var CheckAge = new QEpiKit.BTCondition("is-too-young", conditions.isUnder3);
+var SelectActivityGroup = new QEpiKit.BTSelector("select-activity-group", [CheckAge, SetSchool, SetWork]);
+var IsAdult = new QEpiKit.BTCondition("is-adult", conditions.isOver19);
+var SelectHousehold = new QEpiKit.BTSelector("select-household", [IsAdult, SetParent]);
+var SequenceContact = new QEpiKit.BTSequence("sequence-contact", [SelectHousehold, SelectActivityGroup]);
+var SelectPhase = new QEpiKit.BTSelector("select-phase", [SequenceDemographic, SequenceContact]);
+var Root = new QEpiKit.BTRoot("start-pop-gen", [SelectPhase]);
+var PopGen = new QEpiKit.BehaviorTree("pop-gen-tree", Root, popData);
+postMessage(JSON.stringify(PopGen.root));
 PopGen.generateTimeData(1, 1, 1);
 
 //operating
-var Encounter = new QKit.BTAction("expose-others", conditions.incubating, actions.encounters);
-var Remove = new QKit.BTAction("Remove", conditions.recovered, actions.remove);
-var Recover = new QKit.BTAction("Recover", conditions.recovering, actions.recover);
-var Incubate = new QKit.BTAction("Incubate", conditions.incubating, actions.incubate);
-var JustExposed = new QKit.BTSequence("Incubating", [Incubate, Encounter]);
-var SelectPeriod = new QKit.BTSelector("Select-Period", [JustExposed, Recover, Remove]);
-var Exposed = new QKit.BTCondition("exposed", conditions.exposed);
-var SeqExp = new QKit.BTSequence("exposure-sequence", [Exposed, SelectPeriod]);
-var MakeOld = new QKit.BTAction("makeOld", conditions.alive, actions.makeOld);
-var General = new QKit.BTSequence("general", [MakeOld]);
-var Daily = new QKit.BTSequence("daily", [General, SeqExp]);
-var Root = new QKit.BTRoot("Entry", [Daily]);
-var BHTree = new QKit.BehaviorTree(Root, popData, conditions, actions);
-BHTree.history = [];
+var Encounter = new QEpiKit.BTAction("expose-others", conditions.incubating, actions.encounters);
+var Remove = new QEpiKit.BTAction("Remove", conditions.recovered, actions.remove);
+var Recover = new QEpiKit.BTAction("Recover", conditions.recovering, actions.recover);
+var Incubate = new QEpiKit.BTAction("Incubate", conditions.incubating, actions.incubate);
+var JustExposed = new QEpiKit.BTSequence("Incubating", [Incubate, Encounter]);
+var SelectPeriod = new QEpiKit.BTSelector("Select-Period", [JustExposed, Recover, Remove]);
+var Exposed = new QEpiKit.BTCondition("exposed", conditions.exposed);
+var SeqExp = new QEpiKit.BTSequence("exposure-sequence", [Exposed, SelectPeriod]);
+var MakeOld = new QEpiKit.BTAction("makeOld", conditions.alive, actions.makeOld);
+var General = new QEpiKit.BTSequence("general", [MakeOld]);
+var Daily = new QEpiKit.BTSequence("daily", [General, SeqExp]);
+var Root = new QEpiKit.BTRoot("start-disease", [Daily]);
+var BHTree = new QEpiKit.BehaviorTree("measles-ex-tree",Root, popData);
+postMessage(JSON.stringify(BHTree.root));
 BHTree.generateTimeData(1, 90, 3);
-
 var summarizeTimeData = function(data, keys) {
   var results = [];
   for (var step = 0; step < data.length; step++) {
@@ -501,5 +481,6 @@ var summarizeTimeData = function(data, keys) {
   return results;
 };
 
-postMessage(summarizeTimeData(BHTree.history, ["succeptible","exposed","infectious","removed"]));
+postMessage(summarizeTimeData(BHTree.record, ["succeptible","exposed","infectious","removed"]));
 postMessage(WhomInfectsWhom);
+self.close();

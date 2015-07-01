@@ -7,11 +7,13 @@ var __extends = (this && this.__extends) || function (d, b) {
 var QEpiKit;
 (function (QEpiKit) {
     var BehaviorTree = (function () {
-        function BehaviorTree(root, data) {
+        function BehaviorTree(name, root, data) {
             this.id = QEpiKit.Utils.generateUUID();
+            this.name = name;
             this.root = root;
             this.data = data;
             this.time = 0;
+            this.record = [];
         }
         BehaviorTree.prototype.start = function (agent) {
             var state;
@@ -23,8 +25,9 @@ var QEpiKit;
             return state;
         };
         BehaviorTree.prototype.update = function () {
-            for (var d in this.data) {
-                this.start(d);
+            var dataLen = this.data.length;
+            for (var d = 0; d < dataLen; d++) {
+                this.start(this.data[d]);
             }
         };
         BehaviorTree.prototype.generateTimeData = function (step, limit, saveInterval) {
@@ -35,7 +38,7 @@ var QEpiKit;
                     this.data.map(function (d) {
                         return d.time = t;
                     });
-                    this.history.push(JSON.parse(JSON.stringify(this.data)));
+                    this.record.push(JSON.parse(JSON.stringify(this.data)));
                 }
                 this.time = t;
                 this.update();
@@ -134,13 +137,13 @@ var QEpiKit;
         function BTParallel(name, children, successes) {
             _super.call(this, name, children);
             this.type = "parallel";
-            this.successess = successes;
+            this.successes = successes;
             this.operate = function (agent) {
-                var successes = [], failures = [], childState, majority;
+                var succeeded = [], failures = [], childState, majority;
                 for (var child in this.children) {
                     childState = BehaviorTree.tick(this.children[child], agent);
                     if (childState === BehaviorTree.SUCCESS) {
-                        successes.push(childState);
+                        succeeded.push(childState);
                     }
                     else if (childState === BehaviorTree.FAILED) {
                         failures.push(childState);
@@ -149,10 +152,10 @@ var QEpiKit;
                         return BehaviorTree.RUNNING;
                     }
                 }
-                if (successes.length >= this.success) {
+                if (succeeded.length >= this.successes) {
                     return BehaviorTree.SUCCESS;
                 }
-                else if (failures.length >= 1) {
+                else {
                     return BehaviorTree.FAILED;
                 }
             };

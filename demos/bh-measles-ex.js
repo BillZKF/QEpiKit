@@ -34,43 +34,43 @@ conditions = {
   'incubating': {
     key: "exposedTime",
     value: 3 / 365,
-    check: QKit.Utils.ltEq,
+    check: QEpiKit.Utils.ltEq,
     data: mpopData
   },
   'exposed': {
     key: "exposed",
     value: true,
-    check: QKit.Utils.equalTo,
+    check: QEpiKit.Utils.equalTo,
     data: mpopData
   },
   'succeptible': {
     key: "succept",
     value: true,
-    check: QKit.Utils.equalTo,
+    check: QEpiKit.Utils.equalTo,
     data: mpopData
   },
   'alive': {
     key: "alive",
     value: true,
-    check: QKit.Utils.equalTo,
+    check: QEpiKit.Utils.equalTo,
     data: mpopData
   },
   'recovering': {
     key: "recoveryTime",
     value: 4 / 365,
-    check: QKit.Utils.ltEq,
+    check: QEpiKit.Utils.ltEq,
     data: mpopData
   },
   'recovered': {
     key: "recoveryTime",
     value: 4 / 365,
-    check: QKit.Utils.gtEq,
+    check: QEpiKit.Utils.gtEq,
     data: mpopData
   },
   'immune': {
     key: "removed",
     value: 4 / 365,
-    check: QKit.Utils.ltEq,
+    check: QEpiKit.Utils.ltEq,
     data: mpopData
   }
 };
@@ -102,16 +102,16 @@ actions = {
 };
 
 //nodes
-var Remove = new QKit.BTAction("Remove", conditions.recovered, actions.remove);
-var Recover = new QKit.BTAction("Recover", conditions.recovering, actions.recover);
-var Incubate = new QKit.BTAction("Incubate", conditions.incubating, actions.incubate);
-var SelectPeriod = new QKit.BTSelector("Select-Period", [Incubate, Recover, Remove]);
-var Exposed = new QKit.BTCondition("Is-Exposed", conditions.exposed);
-var SeqExposed = new QKit.BTSequence("Exposed", [Exposed, SelectPeriod]);
-var EncounterResult = new QKit.BTAction("Encounter-Result", conditions.exposed, actions.unsucceptible);
-var Succeptible = new QKit.BTAction("Succeptible-Encounter", conditions.succeptible, actions.encounter);
-var SeqSucceptible = new QKit.BTSequence("Succeptible", [Succeptible, EncounterResult]);
-var Status = new QKit.BTSelector("Branch", [SeqSucceptible, SeqExposed]);
-var MRoot = new QKit.BTRoot("Entry", [Status]);
-var MBHTree = new QKit.BehaviorTree(MRoot, mpopData, conditions, actions);
+var Remove = new QEpiKit.BTAction("Remove", conditions.recovered, actions.remove);
+var Recover = new QEpiKit.BTAction("Recover", conditions.recovering, actions.recover);
+var Incubate = new QEpiKit.BTAction("Incubate", conditions.incubating, actions.incubate);
+var SelectPeriod = new QEpiKit.BTSelector("Select-Period", [Incubate, Recover, Remove]);
+var Exposed = new QEpiKit.BTCondition("Is-Exposed", conditions.exposed);
+var SeqExposed = new QEpiKit.BTSequence("Exposed", [Exposed, SelectPeriod]);
+var EncounterResult = new QEpiKit.BTAction("Encounter-Result", conditions.exposed, actions.unsucceptible);
+var Succeptible = new QEpiKit.BTAction("Succeptible-Encounter", conditions.succeptible, actions.encounter);
+var SeqSucceptible = new QEpiKit.BTSequence("Succeptible", [Succeptible, EncounterResult]);
+var Status = new QEpiKit.BTSelector("Branch", [SeqSucceptible, SeqExposed]);
+var MRoot = new QEpiKit.BTRoot("Entry", [Status]);
+var MBHTree = new QEpiKit.BehaviorTree(MRoot, mpopData, conditions, actions);
 genPopulation(1000);

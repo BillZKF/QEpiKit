@@ -1,10 +1,11 @@
-function zoom() {
+function zoom(svgGroup) {
   svgGroup.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
 }
 
 var zoomListener = d3.behavior.zoom().scaleExtent([0.1, 3]).on("zoom", zoom);
 
-var render = function(treeStart, container, childPropName) {
+var render = function(treeStart, container, childPropName, svgGroup) {
+  document.getElementById(container).innerHTML = "";
   var diagram, tree;
   var margin = {
       top: 20,

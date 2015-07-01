@@ -115,7 +115,7 @@
 			generateTimeData(BHTree, 1, 14, 1);
 			csv = generateCSV(BHTree.history);
 			summary = summarizeTimeData(BHTree.history, ['dead']);
-			encodedUri = QKit.Utils.createCSVURI(csv);
+			encodedUri = QEpiKit.Utils.createCSVURI(csv);
 			link = document.createElement("a");
 			link.setAttribute("href", encodedUri);
 			link.setAttribute("download", "bt_data.csv");
@@ -165,22 +165,22 @@
 				ch = $("#node-cond-op").val();
 			switch (ch) {
 				case "equalTo":
-					ch = QKit.BehaviorTree.equalTo;
+					ch = QEpiKit.BehaviorTree.equalTo;
 					break;
 				case "notEqualTo":
-					ch = QKit.BehaviorTree.notEqualTo;
+					ch = QEpiKit.BehaviorTree.notEqualTo;
 					break;
 				case "gt":
-					ch = QKit.BehaviorTree.gt;
+					ch = QEpiKit.BehaviorTree.gt;
 					break;
 				case "gtEq":
-					ch = QKit.BehaviorTree.gtEq;
+					ch = QEpiKit.BehaviorTree.gtEq;
 					break;
 				case "lt":
-					ch = QKit.BehaviorTree.lt;
+					ch = QEpiKit.BehaviorTree.lt;
 					break;
 				case "ltEq":
-					ch = QKit.BehaviorTree.ltEq;
+					ch = QEpiKit.BehaviorTree.ltEq;
 					break;
 				default:
 					throw "Not a valid condition checker"
@@ -211,7 +211,7 @@
 				node.children = [];
 			}
 			nodeJSON = JSON.stringify(node);
-			node = QKit.BehaviorTree.fromJSON(nodeJSON);
+			node = QEpiKit.BehaviorTree.fromJSON(nodeJSON);
 			var options = {};
 			options.id = $("#node-parent option:selected").val();
 			options = visit(BHTree.root, findByID, options);

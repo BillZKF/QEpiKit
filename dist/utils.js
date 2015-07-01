@@ -72,6 +72,15 @@ var QEpiKit;
                 return Utils.FAILED;
             }
         };
+        Utils.hasProp = function (a, b) {
+            a = a || false;
+            if (a === b) {
+                return Utils.SUCCESS;
+            }
+            else {
+                return Utils.FAILED;
+            }
+        };
         Utils.SUCCESS = 1;
         Utils.FAILED = 2;
         Utils.RUNNING = 3;

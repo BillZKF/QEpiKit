@@ -115,6 +115,15 @@ module QEpiKit {
         return Utils.FAILED;
       }
     }
+
+    public static hasProp(a, b) {
+      a = a || false;
+      if (a === b) {
+        return Utils.SUCCESS;
+      } else {
+        return Utils.FAILED;
+      }
+    }
   }
 
   export interface Action {

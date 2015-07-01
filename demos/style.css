@@ -1,6 +1,14 @@
 body{
 	display : flex;
+	margin-left :50px;
+	margin-right:50px;
+
 	font-family: sans-serif;
+}
+
+div{
+	padding-bottom: 20px;
+	padding-top: 20px;
 }
 path{
 	stroke:steelblue;
@@ -111,4 +119,29 @@ table td, th {
 .bh-tree-type {
 	font-size: 0.9em;
 	background-color: #c9c;
+}
+.point {
+	fill: green;
+	fill-opacity: 0.2;
+	stroke-opacity: 0.4;
+}
+
+.childByParent {
+	stroke: steelblue;
+}
+
+.parentByChild {
+	stroke: darkblue
+}
+
+.workplace {
+	stroke: orange;
+}
+
+.community {
+	stroke: purple;
+}
+
+.school {
+	stroke: gold;
 }

@@ -59,37 +59,37 @@ conditions = {
    dead : {
     key: "dead",
     value: true,
-    check: QKit.Utils.equalTo,
+    check: QEpiKit.Utils.equalTo,
     data: WpopData
   },
    normalDiet : {
     key: "diet",
     value: false,
-    check: QKit.Utils.equalTo,
+    check: QEpiKit.Utils.equalTo,
     data: WpopData
   },
    specialDiet : {
     key: "diet",
     value: true,
-    check: QKit.Utils.equalTo,
+    check: QEpiKit.Utils.equalTo,
     data: WpopData
   },
    alive : {
     key: "dead",
     value: false,
-    check: QKit.Utils.equalTo,
+    check: QEpiKit.Utils.equalTo,
     data: WpopData
   },
    exer : {
     key: "exercise",
     value: true,
-    check: QKit.Utils.equalTo,
+    check: QEpiKit.Utils.equalTo,
     data: WpopData
   },
    sed : {
     key : "exercise",
     value: false,
-    check: QKit.Utils.equalTo,
+    check: QEpiKit.Utils.equalTo,
     data: WpopData
   }
 };
@@ -130,22 +130,22 @@ actions = {
 };
 
 //nodes
-var LowCalDiet = new QKit.BTAction("low-cal-diet", conditions.specialDiet, actions.doDiet);
-var NormalDiet = new QKit.BTCondition("normal-diet", conditions.normalDiet);
-var Exercise = new QKit.BTAction("regular-moderate-exercise", conditions.exer, actions.doExercise);
-var Sed = new QKit.BTCondition("mostly-sedentary", conditions.sed);
-var ExerciseSelect = new QKit.BTSelector("select-exercise", [Sed, Exercise]);
-var DietSelect = new QKit.BTSelector("select-diet", [NormalDiet, LowCalDiet]);
-var SequenceIntervention = new QKit.BTSequence("intervention-sequence", [DietSelect, ExerciseSelect]);
-var BaseMetabolicRate = new QKit.BTAction("base-metabolic-rate", conditions.alive, actions.mifflinStJeor);
-var CaloriesBurn = new QKit.BTAction("calorie-burning-activities", conditions.alive, actions.caloriesBurn);
-var CaloriesIn = new QKit.BTAction("cals-in-and-absorbed", conditions.alive, actions.caloriesIn);
-var CalorieBalance = new QKit.BTAction("cals-in-vs-cals-burned", conditions.alive, actions.calorieBalance);
-var ChangeWeight = new QKit.BTAction("mass-change", conditions.alive, actions.changeMass);
-var Age = new QKit.BTAction("add-to-age", conditions.alive, actions.makeOld);
-var SequenceDaily = new QKit.BTSequence("daily-sequence", [BaseMetabolicRate, CaloriesIn, CaloriesBurn, CalorieBalance, ChangeWeight, Age]);
-var Dead = new QKit.BTCondition("is-person-dead", conditions.dead);
-var Status = new QKit.BTSequence("select-status", [SequenceIntervention, SequenceDaily]);
-var WRoot = new QKit.BTRoot("root", [Status]);
-var WBHTree = new QKit.BehaviorTree(WRoot, WpopData);
+var LowCalDiet = new QEpiKit.BTAction("low-cal-diet", conditions.specialDiet, actions.doDiet);
+var NormalDiet = new QEpiKit.BTCondition("normal-diet", conditions.normalDiet);
+var Exercise = new QEpiKit.BTAction("regular-moderate-exercise", conditions.exer, actions.doExercise);
+var Sed = new QEpiKit.BTCondition("mostly-sedentary", conditions.sed);
+var ExerciseSelect = new QEpiKit.BTSelector("select-exercise", [Sed, Exercise]);
+var DietSelect = new QEpiKit.BTSelector("select-diet", [NormalDiet, LowCalDiet]);
+var SequenceIntervention = new QEpiKit.BTSequence("intervention-sequence", [DietSelect, ExerciseSelect]);
+var BaseMetabolicRate = new QEpiKit.BTAction("base-metabolic-rate", conditions.alive, actions.mifflinStJeor);
+var CaloriesBurn = new QEpiKit.BTAction("calorie-burning-activities", conditions.alive, actions.caloriesBurn);
+var CaloriesIn = new QEpiKit.BTAction("cals-in-and-absorbed", conditions.alive, actions.caloriesIn);
+var CalorieBalance = new QEpiKit.BTAction("cals-in-vs-cals-burned", conditions.alive, actions.calorieBalance);
+var ChangeWeight = new QEpiKit.BTAction("mass-change", conditions.alive, actions.changeMass);
+var Age = new QEpiKit.BTAction("add-to-age", conditions.alive, actions.makeOld);
+var SequenceDaily = new QEpiKit.BTSequence("daily-sequence", [BaseMetabolicRate, CaloriesIn, CaloriesBurn, CalorieBalance, ChangeWeight, Age]);
+var Dead = new QEpiKit.BTCondition("is-person-dead", conditions.dead);
+var Status = new QEpiKit.BTSequence("select-status", [SequenceIntervention, SequenceDaily]);
+var WRoot = new QEpiKit.BTRoot("root", [Status]);
+var WBHTree = new QEpiKit.BehaviorTree(WRoot, WpopData);
 genPopulation(1000);
