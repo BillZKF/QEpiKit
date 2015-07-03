@@ -1,10 +1,9 @@
-function zoom(svgGroup) {
-  svgGroup.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
-}
-
-var zoomListener = d3.behavior.zoom().scaleExtent([0.1, 3]).on("zoom", zoom);
-
-var render = function(treeStart, container, childPropName, svgGroup) {
+var zoomListener;
+var zoom = function(svgGroup) {
+  console.log(svgGroup);
+  svgGroup[0][0].attributes.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+};
+var render = function(treeStart, container, childPropName) {
   document.getElementById(container).innerHTML = "";
   var diagram, tree;
   var margin = {
@@ -86,7 +85,16 @@ var render = function(treeStart, container, childPropName, svgGroup) {
   link.enter().insert("path", "g")
     .attr("class", "link")
     .attr("d", diagonal);
+  return svgGroup;
 };
+
+/*
+for(node )
+var act = String(action)
+act.replace(/[\r\n]/g,"");
+var start = act.search("{") + 2;
+this.actionText = act.substr(start, act.length-1);
+*/
 
 function pan(domNode, direction) {
   var speed = panSpeed;

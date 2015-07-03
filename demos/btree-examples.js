@@ -50,14 +50,17 @@ if (typeof(Worker) !== "undefined") {
       if (json) {
         if (json.hasOwnProperty("name") && json.name === "start-disease") {
           MBHTree = json;
-          render(MBHTree, "measles-diagram", "name", []);
-          d3.select("#measles-diagram").call(zoomListener);
+          mSVG = render(MBHTree, "measles-diagram", "name");
+          mZoomListener = d3.behavior.zoom().scaleExtent([0.1, 3]).on("zoom", zoom(mSVG));
+
+          d3.select("#measles-diagram").call(mZoomListener);
         }
 
         if (json.hasOwnProperty("name") && json.name === "start-pop-gen") {
           PGTree = json;
-          render(PGTree, "measles-pop-gen", "name",[]);
-          d3.select("#measles-pop-gen").call(zoomListener);
+          pgSVG = render(PGTree, "measles-pop-gen", "name");
+          pgZoomListener = d3.behavior.zoom().scaleExtent([0.1, 3]).on("zoom", zoom(pgSVG));
+          d3.select("#measles-pop-gen").call(pgZoomListener);
         }
       }
       if (e.data[0].hasOwnProperty("byAge")) {

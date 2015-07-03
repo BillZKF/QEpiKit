@@ -33,7 +33,7 @@ function emptyPatch(number, starter, capacity) {
 }
 
 var popData = empty(5000);
-var regions = emptyPatch(10, "residents", 600);
+var regions = emptyPatch(10, "residents", 800);
 var schools = emptyPatch(6, "students", 500);
 var workplaces = emptyPatch(7, "workers", 700);
 
