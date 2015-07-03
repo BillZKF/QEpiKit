@@ -5,9 +5,11 @@ module QEpiKit {
     public static FAILED: number = 2;
     public static RUNNING: number = 3;
 
-    public id: number;
+    public id: string;
     public name: string;
     public time: number;
+    public root: HTNNode;
+    public data: any[];
 
     public static tick(node: HTNNode, task: HTNRootTask, agent) {
       if (agent.runningList) {
@@ -22,16 +24,27 @@ module QEpiKit {
       return state;
     }
 
-    public static start(startNode: HTNNode, task: HTNRootTask, agents) {
+    constructor(name: string, root: HTNNode, data: any[]) {
+      this.id = QEpiKit.Utils.generateUUID();
+      this.name = name;
+      this.root = root;
+      this.data = data;
+      this.time = 0;
+    }
+
+
+    start(task: HTNRootTask) {
       //iterate each agent through the task network
       var results = []
-      for (var i = 0; i < agents.length; i++) {
-        HTNPlanner.tick(startNode, task, agents[i]);
-        if (agents[i].successList.length > 0) {
-          results[i] = agents[i].successList;
+      for (var i = 0; i < this.data.length; i++) {
+        this.data[i].active = true;
+        HTNPlanner.tick(this.root, task, this.data[i]);
+        if (this.data[i].successList.length > 0) {
+          results[i] = this.data[i].successList;
         } else {
           results[i] = false;
         }
+        this.data[i].active = false;
       }
       return results;
     }
@@ -50,20 +63,19 @@ module QEpiKit {
       var result;
       for (var p = 0; p < this.goals.length; p++) {
         result = this.goals[p].check(agent[this.goals[p].key], this.goals[p].value);
-        if (!result) {
-          return false;
-        }
+        return result;
       }
-      return true
     }
   }
 
   export class HTNNode {
+    public id: string;
     public name: string;
     public type: string;
     public preconditions: any[];
     public visit: Function;
     constructor(name: string, preconditions: any[]) {
+      this.id = QEpiKit.Utils.generateUUID();
       this.name = name;
       this.preconditions = preconditions;
     }
@@ -73,12 +85,12 @@ module QEpiKit {
       if (this.preconditions instanceof Array) {
         for (var p = 0; p < this.preconditions.length; p++) {
           result = this.preconditions[p].check(agent[this.preconditions[p].key], this.preconditions[p].value);
-          if (!result) {
-            return false;
+          if (result === HTNPlanner.FAILED) {
+            return HTNPlanner.FAILED;
           }
         }
       }
-      return true
+      return HTNPlanner.SUCCESS;
     }
   }
 
@@ -89,11 +101,13 @@ module QEpiKit {
       this.type = "operator";
       this.effects = effects;
       this.visit = function(agent, task: HTNRootTask) {
-        if (this.evaluatePreConds(agent)) {
+        if (this.evaluatePreConds(agent) === HTNPlanner.SUCCESS) {
+
           for (var i = 0; i < this.effects.length; i++) {
             this.effects[i](agent.blackboard[0]);
           }
-          if (task.evaluateGoal(agent.blackboard[0])) {
+
+          if (task.evaluateGoal(agent.blackboard[0]) === HTNPlanner.SUCCESS) {
             agent.successList.unshift(this.name);
             return HTNPlanner.SUCCESS;
           } else {
@@ -118,7 +132,7 @@ module QEpiKit {
         var copy = JSON.parse(JSON.stringify(agent));
         delete copy.blackboard;
         agent.blackboard.unshift(copy);
-        if (this.evaluatePreConds(agent)) {
+        if (this.evaluatePreConds(agent) === HTNPlanner.SUCCESS) {
           for (var i = 0; i < this.children.length; i++) {
             var state = HTNPlanner.tick(this.children[i], task, agent);
             if (state === HTNPlanner.SUCCESS) {

@@ -1,13 +1,17 @@
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 var QEpiKit;
 (function (QEpiKit) {
     var HTNPlanner = (function () {
-        function HTNPlanner() {
+        function HTNPlanner(name, root, data) {
+            this.id = QEpiKit.Utils.generateUUID();
+            this.name = name;
+            this.root = root;
+            this.data = data;
+            this.time = 0;
         }
         HTNPlanner.tick = function (node, task, agent) {
             if (agent.runningList) {
@@ -22,16 +26,18 @@ var QEpiKit;
             var state = node.visit(agent, task);
             return state;
         };
-        HTNPlanner.start = function (startNode, task, agents) {
+        HTNPlanner.prototype.start = function (task) {
             var results = [];
-            for (var i = 0; i < agents.length; i++) {
-                HTNPlanner.tick(startNode, task, agents[i]);
-                if (agents[i].successList.length > 0) {
-                    results[i] = agents[i].successList;
+            for (var i = 0; i < this.data.length; i++) {
+                this.data[i].active = true;
+                HTNPlanner.tick(this.root, task, this.data[i]);
+                if (this.data[i].successList.length > 0) {
+                    results[i] = this.data[i].successList;
                 }
                 else {
                     results[i] = false;
                 }
+                this.data[i].active = false;
             }
             return results;
         };
@@ -50,17 +56,15 @@ var QEpiKit;
             var result;
             for (var p = 0; p < this.goals.length; p++) {
                 result = this.goals[p].check(agent[this.goals[p].key], this.goals[p].value);
-                if (!result) {
-                    return false;
-                }
+                return result;
             }
-            return true;
         };
         return HTNRootTask;
     })();
     QEpiKit.HTNRootTask = HTNRootTask;
     var HTNNode = (function () {
         function HTNNode(name, preconditions) {
+            this.id = QEpiKit.Utils.generateUUID();
             this.name = name;
             this.preconditions = preconditions;
         }
@@ -69,12 +73,12 @@ var QEpiKit;
             if (this.preconditions instanceof Array) {
                 for (var p = 0; p < this.preconditions.length; p++) {
                     result = this.preconditions[p].check(agent[this.preconditions[p].key], this.preconditions[p].value);
-                    if (!result) {
-                        return false;
+                    if (result === HTNPlanner.FAILED) {
+                        return HTNPlanner.FAILED;
                     }
                 }
             }
-            return true;
+            return HTNPlanner.SUCCESS;
         };
         return HTNNode;
     })();
@@ -86,11 +90,11 @@ var QEpiKit;
             this.type = "operator";
             this.effects = effects;
             this.visit = function (agent, task) {
-                if (this.evaluatePreConds(agent)) {
+                if (this.evaluatePreConds(agent) === HTNPlanner.SUCCESS) {
                     for (var i = 0; i < this.effects.length; i++) {
                         this.effects[i](agent.blackboard[0]);
                     }
-                    if (task.evaluateGoal(agent.blackboard[0])) {
+                    if (task.evaluateGoal(agent.blackboard[0]) === HTNPlanner.SUCCESS) {
                         agent.successList.unshift(this.name);
                         return HTNPlanner.SUCCESS;
                     }
@@ -117,7 +121,7 @@ var QEpiKit;
                 var copy = JSON.parse(JSON.stringify(agent));
                 delete copy.blackboard;
                 agent.blackboard.unshift(copy);
-                if (this.evaluatePreConds(agent)) {
+                if (this.evaluatePreConds(agent) === HTNPlanner.SUCCESS) {
                     for (var i = 0; i < this.children.length; i++) {
                         var state = HTNPlanner.tick(this.children[i], task, agent);
                         if (state === HTNPlanner.SUCCESS) {

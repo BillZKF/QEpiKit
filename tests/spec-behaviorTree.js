@@ -21,7 +21,7 @@ describe("Behavior Trees are control structures for reactive agents", function()
       check: QEpiKit.Utils.equalTo
     });
     Root = new QEpiKit.BTRoot("the-root", [ConditionSuccess]);
-    BHTree = new QEpiKit.BehaviorTree(Root, agents);
+    BHTree = new QEpiKit.BehaviorTree("test-tree",Root, agents);
   });
 
   it("should instantiate with a uuid and time = 0", function() {
@@ -106,7 +106,7 @@ describe("Behavior Trees are control structures for reactive agents", function()
     });
   });
 
-  describe("Parllel Nodes are Control Nodes that tick all children and succeed or fail depending on a prespecified limit.", function() {
+  describe("Parllel Nodes are Control Nodes that tick all children and succeed or fail depending on a prespecified desired success quantity.", function() {
 
     it("should return SUCCESS code if at least 3 children succeed", function() {
       var ParallelTest = new QEpiKit.BTParallel("parallel-test", [ConditionSuccess, ConditionSuccess, ConditionFail, ConditionSuccess], 3);
@@ -114,7 +114,7 @@ describe("Behavior Trees are control structures for reactive agents", function()
       expect(BHTree.start(agents[1])).toBe(QEpiKit.BehaviorTree.SUCCESS);
     });
 
-    it("should return FAILED code if a child fails", function() {
+    it("should return FAILED less than 3 children succeed", function() {
       var ParallelTest = new QEpiKit.BTParallel("parallel-test", [ConditionSuccess, ConditionSuccess, ConditionFail, ConditionFail], 3);
       Root.children = [ParallelTest];
       expect(BHTree.start(agents[0])).toBe(QEpiKit.BehaviorTree.FAILED);
