@@ -19,33 +19,6 @@ module QEpiKit {
       return URI;
     }
 
-    public static fromJSON = function(json) {
-      json = JSON.parse(json);
-      var n;
-      switch (json.type) {
-        case "root":
-          n = new BTRoot(json.id, json.children);
-          break;
-        case "selector":
-          n = new BTSelector(json.id, json.children);
-          break;
-        case "sequence":
-          n = new BTSequence(json.id, json.children);
-          break;
-        case "parallel":
-          n = new BTParallel(json.id, json.children, json.number);
-          break;
-        case "condition":
-          n = new BTCondition(json.id, json.condition);
-          break;
-        case "action":
-          n = new BTAction(json.id, json.condition, json.action);
-          break;
-        default: ;
-      }
-      return n;
-    }
-
     public static generateUUID():string {
       // http://www.broofa.com/Tools/Math.uuid.htm
       var chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split('');
@@ -67,6 +40,21 @@ module QEpiKit {
         return uuid.join('');
     }
 
+    public static always(a){
+      if(a === Utils.SUCCESS){
+        return Utils.SUCCESS;
+      } else {
+        return Utils.FAILED;
+      }
+    }
+    
+    public static eventually(a){
+      if(a === Utils.SUCCESS){
+        return Utils.SUCCESS;
+      } else {
+        return Utils.RUNNING;
+      }
+    }
 
     public static equalTo(a, b) {
       if (a === b) {

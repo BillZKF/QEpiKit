@@ -1,5 +1,5 @@
-var QKit;
-(function (QKit) {
+var QEpiKit;
+(function (QEpiKit) {
     var Epi = (function () {
         function Epi() {
         }
@@ -21,6 +21,6 @@ var QKit;
         };
         return Epi;
     })();
-    QKit.Epi = Epi;
-})(QKit || (QKit = {}));
+    QEpiKit.Epi = Epi;
+})(QEpiKit || (QEpiKit = {}));
 //# sourceMappingURL=epi.js.map

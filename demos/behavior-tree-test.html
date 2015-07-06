@@ -37,15 +37,14 @@
 	<div>The scatterplot below shows the pattern of exposures by age of contacts. In this example I used a simple age based method for assigning contact frequncies to school, work, and community based contact patches. For the school based contact patches, children
 		of the same age had almost daily contact with each other (bottom left). In the community, two individuals with a 20 year age difference would had very infrequent contact. Parent-child relationships were assigned regular daily contact.
 		In addition to a contact frequency, I also assigned encounters between succeptible and infectious individuals a probability of transmission. For child to parent, for example, this was set at 0.7, while in the workplace this was set to 0.02.</div>
-	<div id="measles-contact" class="diagram">Running example...</div>
+	<div id="measles-contact" class="diagram"></div>
 	<div>Initially i wrote an seperate, specific function to generate some fake population data. After a few iterations of this I started using a seperate behavior tree to generate the population data and to set the contact groups for the pop. This was useful because it made it
 		easy to create nested rules for assigning things like mass based on age and gender. This method could be further extended to assign individual attributes based on real world location based parameters.</div>
-	<div id="measles-pop-gen" class="diagram">Running example...</div>
+	<div id="measles-pop-gen" class="diagram"></div>
 	<h2>
 		Weight Change Example
 	</h2>
 	<div id="p2">
-		<button onclick="runBHTree(WBHTree,WpopProps)">Run Tree</button>
 	</div>
 	<div id="weight-diagram" class="diagram"></div>
 </div>

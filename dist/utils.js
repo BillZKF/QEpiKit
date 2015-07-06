@@ -24,6 +24,22 @@ var QEpiKit;
             }
             return uuid.join('');
         };
+        Utils.always = function (a) {
+            if (a === Utils.SUCCESS) {
+                return Utils.SUCCESS;
+            }
+            else {
+                return Utils.FAILED;
+            }
+        };
+        Utils.eventually = function (a) {
+            if (a === Utils.SUCCESS) {
+                return Utils.SUCCESS;
+            }
+            else {
+                return Utils.RUNNING;
+            }
+        };
         Utils.equalTo = function (a, b) {
             if (a === b) {
                 return Utils.SUCCESS;
@@ -96,32 +112,6 @@ var QEpiKit;
             csvContent += csvContentArray.join("\n");
             URI = encodeURI(csvContent);
             return URI;
-        };
-        Utils.fromJSON = function (json) {
-            json = JSON.parse(json);
-            var n;
-            switch (json.type) {
-                case "root":
-                    n = new QEpiKit.BTRoot(json.id, json.children);
-                    break;
-                case "selector":
-                    n = new QEpiKit.BTSelector(json.id, json.children);
-                    break;
-                case "sequence":
-                    n = new QEpiKit.BTSequence(json.id, json.children);
-                    break;
-                case "parallel":
-                    n = new QEpiKit.BTParallel(json.id, json.children, json.number);
-                    break;
-                case "condition":
-                    n = new QEpiKit.BTCondition(json.id, json.condition);
-                    break;
-                case "action":
-                    n = new QEpiKit.BTAction(json.id, json.condition, json.action);
-                    break;
-                default: ;
-            }
-            return n;
         };
         return Utils;
     })();
