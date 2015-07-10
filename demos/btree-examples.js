@@ -36,7 +36,7 @@ if (typeof(Worker) !== "undefined") {
   };
 
   startMeaslesEx = function() {
-    w = new Worker("pop-gen-tests.js");
+    w = new Worker("bt-infectious-tests.js");
     start = new Date().getTime();
     w.onmessage = function(e) {
       var json;
@@ -50,18 +50,18 @@ if (typeof(Worker) !== "undefined") {
       if (json) {
         if (json.hasOwnProperty("name") && json.name === "start-disease") {
           MBHTree = json;
-          mSVG = render(MBHTree, "measles-diagram", "name");
-          mZoomListener = d3.behavior.zoom().scaleExtent([0.1, 3]).on("zoom", zoom(mSVG));
-
-          d3.select("#measles-diagram").call(mZoomListener);
+          mSVG = new QEpiKit.renderer.bTreeDiagrams(MBHTree, "measles-diagram");
+          d3.select(mSVG.container).call(d3.behavior.zoom().scaleExtent([0.1, 3]).on("zoom", mZoom));
         }
+
+
 
         if (json.hasOwnProperty("name") && json.name === "start-pop-gen") {
           PGTree = json;
-          pgSVG = render(PGTree, "measles-pop-gen", "name");
-          pgZoomListener = d3.behavior.zoom().scaleExtent([0.1, 3]).on("zoom", zoom(pgSVG));
-          d3.select("#measles-pop-gen").call(pgZoomListener);
+          pgSVG = new QEpiKit.renderer.bTreeDiagrams(PGTree, "measles-pop-gen");
+          d3.select(pgSVG.container).call(d3.behavior.zoom().scaleExtent([0.1, 3]).on("zoom", pgZoom));
         }
+        //render();
       }
       if (e.data[0].hasOwnProperty("byAge")) {
         var margin = 50,
@@ -126,6 +126,14 @@ if (typeof(Worker) !== "undefined") {
 
   startWeightEx = function() {
     wb = new Worker("bh-weight-gain-ex.js");
+  };
+
+  pgZoom = function() {
+    pgSVG.svgGroup.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+  };
+
+  mZoom = function() {
+    mSVG.svgGroup.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
   };
 
 } else {

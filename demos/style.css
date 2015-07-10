@@ -10,6 +10,17 @@ div{
 	padding-bottom: 20px;
 	padding-top: 20px;
 }
+
+.info-box span{
+	display:inline;
+	float:right;
+}
+
+.info-box p{
+	font-size:0.8em;
+	margin : 0px;
+	padding: 0px;
+}
 path{
 	stroke:steelblue;
 	fill:none;
@@ -21,15 +32,23 @@ circle{
 }
 
 .succeptible{
-	stroke:green;
+	stroke:#33CC33;
+	stroke-width:3px;
 }
 
 .infectious{
-	stroke:red;
+	stroke:#CC3399;
+	stroke-width:3px;
 }
 
 .removed{
-	stroke:blue;
+	stroke:#0066FF;
+	stroke-width:3px;
+}
+
+.exposed{
+	stroke:#6600ff;
+	stroke-width:3px;
 }
 
 table td, th {
@@ -37,7 +56,7 @@ table td, th {
 	text-align: center;
 	min-width: 72px;
 }
-.diagram {
+.diagram svg{
 	background : #ddd;
 }
 .node text {

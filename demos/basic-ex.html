@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+  <title>QEpiKit Basics Page</title>
+  <link href="style.css" rel="stylesheet"></link>
+  <script src="../bower_components/d3/d3.min.js"></script>
+</head>
+
+<body>
+  <div>
+  <h1>Compartment Models</h1>
+  <div>
+    Many introductions to epidemiological modeling start with a simple model with three compartments: Succeptible, Infectious, and Removed.
+    Each compartment is assigned a starting population. Using ordinary differential equations (ODE), some portion of the Succeptible population flows into the Infectious compartment, while some portion of the Infectious population flows into the Removed compartment.
+    The parameters determining the size of portion transitioning to the next compartment in these "SIR" examples are usually provided as 'beta' for the transmission rate (Succeptible to Infectious) and 'gamma' for the recovery rate (Infectious to Removed). I'm going to use 'transmission parameter' and 'recovery parameter' here. Below are two visualizations of this simple "SIR" model.
+  </div>
+  <button onclick="render()">Run Model</button>
+  <div id="sir-diagrams"></div>
+  <div>
+  The javascript code below shows how this example was created. The CompartmentModel class uses Heun's method (2nd order) differential equation solver. In the future, I'd like to implement an adaptive-step <a href="https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta%E2%80%93Fehlberg_method">Runge–Kutta–Fehlberg</a> method.
+  </div>
+  <pre lang="javascript">
+    var succeptible = new QEpiKit.Compartment("succeptible", 0.999999);
+    var infectious = new QEpiKit.Compartment("infectious", 0.000001);
+    var removed = new QEpiKit.Compartment("removed", 0);
+    var measPath = {
+      transmissionRate: 0.15,
+      recoveryRate: 0.1
+    };
+    var step = 1;
+    var measles = new QEpiKit.CompartmentModel("measles", step, [succeptible, infectious, removed], measPath);
+
+    succeptible.operation = function() {
+      return -measles.transmissionRate * succeptible.pop * infectious.pop * measles.step;
+    };
+    infectious.operation = function() {
+      return (measles.transmissionRate * succeptible.pop * infectious.pop * measles.step) - (measles.recoveryRate * infectious.pop * measles.step);
+    };
+    removed.operation = function() {
+      return measles.recoveryRate * infectious.pop * measles.step;
+    };
+    measles.runDuration = 365;
+  </pre>
+  <div>
+  Contemporary compartment models are more sophisticated in practice. They add additional compartments (like an exposed-latent period) relevant to the disease's pathology, population vital dynamics (births and deaths), environmental factors like weather / temperature, and frequently include spatial "patches" and modeling of travel patterns between patches.
+  <ul>
+    Examples:
+    <li><a href="http://www.gleamviz.org/challenges/">GLEAMviz</a></li>
+    <li><a href="https://www.eclipse.org/stem/">IBM STEM</a></li>
+  </ul>
+  </div>
+  <div>Below I've included a more complex compartment model and code, demonstrating how some of these concepts can be implemented using this library.
+  <div id="seirs-diagrams"></div>
+  <h1>Agent Based Models</h1>
+  <div>Agent based models take a completely different approach. Instead of using a total population figure and moving a portion of that population between compartments, an agent is
+    typically used to represent an individual within the population and is assigned a set of relevant and representative properties (like age, gender, body-mass, etc.). A set of agents, their behaviors and interactions is then modeled over a time period.</div>
+  <div>One way to model agents and their behavior is to treat the model as a <a href="http://www.ecse.rpi.edu/~agung/course/vanderschaft.pdf">hybrid dynamic system (hds)</a>. It's not as bad as it sounds. It's just a system with continuous and discrete variables and time dynamics. In practice it means some differential equations (for describing the behavior of continous state variables over time) and comparison operators (=, >=, !=) at continuous value thresholds. In fact, for me it feels more intuitive than using compartment models. I'll introduce the concept of hds and hybrid automata with a canonical example of <strike>an air conditioner</strike> person trying a variety of diets:</div>
+  <div>
+    This basic air conditioner:
+    <ol>
+      <li>Can be ON or OFF. These discrete states are elements of the AC's <strong>set of modes</strong> = [ON, OFF].</li>
+      <li>Checks the environment's temperature "x", which is a continuous variable and is part of this system's continous state space or <strong>domain map</strong> = {x : [0:100]}.
+      <li>We know that when the air conditioner is OFF, the temperature goes up (towards 90), and when it's ON the air conditioner blasts 65 degree air. When represented as a set of differential equations (or vector fields), this is called the <strong>flow map</strong> ={x: {ON:x - 65, OFF:90 - x}}.</li>
+      <li>We also want to be explicit that the air conditioner can go from ON to OFF and OFF to ON. These are called <strong>edges</strong> = [[ON,OFF], [OFF,ON]]</li>
+      <li>Knows when to switch modes based of the current temperature. This is called the <strong>guard map</strong> = {ON:{x >= 74}, OFF:{x <=73}}. </li>
+      <li>Should know whether anything special happens to "x" when we go from ON to OFF or OFF to ON. In this example, it doesn't so the <strong>reset map</strong> is just =  {ON=>OFF(x):x, OFF=>ON(x):x}.</li>
+    </ol>
+  </div>
+
+  <script src="../dist/compartment.js"></script>
+  <script src="qepikit-renderer.js"></script>
+  <script src="cm-examples.js"></script>
+
+  </div>
+</body>

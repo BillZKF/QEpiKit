@@ -5,30 +5,25 @@
     <link href="style.css" rel="stylesheet"></link>
 </head>
 <body>
-  <div ng-app="qepikit">
+  <div>
     <h1>QEpiKit - Javascript / Typescript Epidemiology Library</h1>
 
     <h2>What is it?</h2>
-    <div>This library provides broad access to tools for compartmental / differential equation (DE) and agent based (AB) modeling of communicable (and noncommunicable!) disease. Although developed with the
-      public health / epidemiology / biomedical domains in mind, the tools themselves are domain neutral, and may be useful in other areas.
+    <div>This library is a collection of tools for compartmental (differential equation) (CDE) and agent based (AB) modeling of communicable (and noncommunicable!) disease. Although developed with the
+      public health / epidemiology / biomedical domains in mind, the tools themselves are domain neutral, and may be useful in other areas. The library also integrates concepts from hybrid dynamic systems and reinforcement learning.
     </div>
     <h2>Why?</h2>
     <div>
-      When I started development (while trying to learn more about epidemiological modeling), I could not find a free, open javascript library covering multiple approaches to epidemiological modeling.
-      I chose Typescript / Javascript as the main language because they: 1) enable browser based examples on most devices 2) can be deployed to a server 3) will allow migration to ES6.
-      For the AB portion of the library, I included methods from other fields including robotics and system dynamics.
+      I started working on this library because I was trying to learn more about epidemiological modeling. In the process of writing code, I experimented with a number of different methods that are not frequently applied to epidemiology.
+      I chose Typescript / Javascript as the main language because they: 1) enable interactive browser based examples on most devices 2) can also be run on a server 3) will allow migration to ES6.
     </div>
-
     <h2>Examples</h2>
     <ul>
-        <li><h3><a href="descriptives-test.html">Descriptives</a></h3></li>
-        <li><h3><a href="compartment-model-test.html">Compartment Models</a></h3></li>
+        <li><h3><a href="basic-ex.html">Background / Compartment Models / Agents</a></h3></li>
         <li><h3><a href="behavior-tree-test.html">Behavior Trees</a></h3></li>
-        <li><h3><a href="htn-tests.html">Hierarchal Task Networks</a></h3></li>
-        <li><h3><a href="combinations-test.html">Combinations</a></h3></li>
-        <li><h3>Soon!</h3></li>
-        <li><h3><a href="">Belief Desire Intention Model</a></h3></li>
-        <li><h3><a href="">Simple Reinforcement Learning</a></h3></li>
+        <li><h3><a href="htn-test.html">Hierarchal Task Networks</a></h3></li>
+        <li><h3><a href="">Belief Desire Intention Model with Simple Reinforcement Learning</a></h3></li>
+        <li><h2><a href="combinations-test.html">Combinations!</a></h2></li>
     </ul>
   </div>
 </body>

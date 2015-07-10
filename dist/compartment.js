@@ -1,5 +1,5 @@
-var QKit;
-(function (QKit) {
+var QEpiKit;
+(function (QEpiKit) {
     var CompartmentModel = (function () {
         function CompartmentModel(name, step, compartments, pathogen, vital) {
             this.name = name;
@@ -9,22 +9,37 @@ var QKit;
             this.recoveryRate = pathogen.recoveryRate * this.step;
             this.basicReproductiveNumber = pathogen.transmissionRate / pathogen.recoveryRate;
             this.totalPop = 0;
+            this.time = 0;
+            this.runDuration = 0;
             for (var c in this.compartments) {
                 this.totalPop += this.compartments[c].pop;
                 this.compartments[c].initialPop = this.compartments[c].pop;
             }
+            this.tolerance = 1e-9;
         }
         CompartmentModel.prototype.run = function () {
-            for (var c in this.compartments) {
-                this.compartments[c].update();
-            }
-            for (var c in this.compartments) {
-                this.compartments[c].pop += this.compartments[c].dpop * this.step;
+            if (this.time <= this.runDuration) {
+                var temp_pop = [], temp_d = [], next_d = [], lte = [], err = 1, newStep;
+                for (var c in this.compartments) {
+                    this.compartments[c].update();
+                }
+                for (var c in this.compartments) {
+                    temp_pop[c] = this.compartments[c].pop;
+                    temp_d[c] = this.compartments[c].dpop;
+                    this.compartments[c].pop = temp_pop[c] + temp_d[c];
+                }
+                this.totalPop = 0;
+                for (var c in this.compartments) {
+                    next_d[c] = this.compartments[c].operation();
+                    this.compartments[c].pop = temp_pop[c] + (0.5 * (temp_d[c] + next_d[c]));
+                    this.totalPop += this.compartments[c].pop;
+                }
+                this.time += this.step;
             }
         };
         return CompartmentModel;
     })();
-    QKit.CompartmentModel = CompartmentModel;
+    QEpiKit.CompartmentModel = CompartmentModel;
     var Compartment = (function () {
         function Compartment(name, pop, operation) {
             this.name = name;
@@ -37,6 +52,6 @@ var QKit;
         };
         return Compartment;
     })();
-    QKit.Compartment = Compartment;
-})(QKit || (QKit = {}));
+    QEpiKit.Compartment = Compartment;
+})(QEpiKit || (QEpiKit = {}));
 //# sourceMappingURL=compartment.js.map
