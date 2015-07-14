@@ -16,6 +16,7 @@
         "src/compartment.ts",
         "src/contactPatch.ts",
         "src/epi.ts",
+        "src/ha.ts",
         "src/htn.ts",
         "src/utils.ts"
     ]

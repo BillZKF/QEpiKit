@@ -76,45 +76,45 @@ var conditions = {
   "hasMoney" : {
     key: "money",
     value: 45,
-    check : QKit.Utils.gtEq
+    check : QEpiKit.Utils.gtEq
   },
 
   "adult" : {
     key: "age",
     value: 21,
-    check: QKit.Utils.gtEq
+    check: QEpiKit.Utils.gtEq
   },
 
   "goodKnee" : {
     key: "kneeProblems",
     value : false,
-    check: QKit.Utils.equalTo
+    check: QEpiKit.Utils.equalTo
   },
 
   "healthyBMI" : {
     key: "BMI",
     value: 24,
-    check: QKit.Utils.ltEq
+    check: QEpiKit.Utils.ltEq
   },
   "freeTime" : {
     key: "timeFree",
     value: 60,
-    check: QKit.Utils.gtEq
+    check: QEpiKit.Utils.gtEq
   },
   "overweight":{
     key: "BMI",
     value: 24,
-    check: QKit.Utils.gtEq
+    check: QEpiKit.Utils.gtEq
   },
   "rural":{
     key: "location",
     value: "rural",
-    check: QKit.Utils.equalTo
+    check: QEpiKit.Utils.equalTo
   },
   "urban":{
     key: "location",
     value: "urban",
-    check: QKit.Utils.equalTo
+    check: QEpiKit.Utils.equalTo
   }
 
 

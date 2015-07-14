@@ -9,68 +9,115 @@
 
 <body>
   <div>
-  <h1>Compartment Models</h1>
-  <div>
-    Many introductions to epidemiological modeling start with a simple model with three compartments: Succeptible, Infectious, and Removed.
-    Each compartment is assigned a starting population. Using ordinary differential equations (ODE), some portion of the Succeptible population flows into the Infectious compartment, while some portion of the Infectious population flows into the Removed compartment.
-    The parameters determining the size of portion transitioning to the next compartment in these "SIR" examples are usually provided as 'beta' for the transmission rate (Succeptible to Infectious) and 'gamma' for the recovery rate (Infectious to Removed). I'm going to use 'transmission parameter' and 'recovery parameter' here. Below are two visualizations of this simple "SIR" model.
-  </div>
-  <button onclick="render()">Run Model</button>
-  <div id="sir-diagrams"></div>
-  <div>
-  The javascript code below shows how this example was created. The CompartmentModel class uses Heun's method (2nd order) differential equation solver. In the future, I'd like to implement an adaptive-step <a href="https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta%E2%80%93Fehlberg_method">Runge–Kutta–Fehlberg</a> method.
-  </div>
-  <pre lang="javascript">
-    var succeptible = new QEpiKit.Compartment("succeptible", 0.999999);
-    var infectious = new QEpiKit.Compartment("infectious", 0.000001);
-    var removed = new QEpiKit.Compartment("removed", 0);
-    var measPath = {
-      transmissionRate: 0.15,
-      recoveryRate: 0.1
-    };
-    var step = 1;
-    var measles = new QEpiKit.CompartmentModel("measles", step, [succeptible, infectious, removed], measPath);
+    <h1>Introduction</h1>
+    <div>
+      Models have a few roles epidemiology. They are used to forecast or predict future outcomes based on available data, they are used for projecting and comparing outcomes for a variety of scenarios, and they can be used to enhance understanding of causal relationships through evaluation of counterfactuals.
+      In the next two sections, I'll provide brief introductions to two of the main types of models used in epidemiology with example code from this library. My views are neither authorataive
+    </div>
+    <h1>Compartment Models</h1>
+    <div>
+      Many introductions to epidemiological modeling start with a simple model with three compartments: Succeptible, Infectious, and Removed. Each compartment is assigned a starting population. Using ordinary differential equations (ODE), some portion of the
+      Succeptible population flows into the Infectious compartment, while some portion of the Infectious population flows into the Removed compartment. The parameters determining the size of portion transitioning to the next compartment in these "SIR"
+      examples are usually provided as 'beta' for the transmission rate (Succeptible to Infectious) and 'gamma' for the recovery rate (Infectious to Removed). I'm going to use 'transmission parameter' and 'recovery parameter' here. Below are two visualizations
+      of this simple "SIR" model.
+    </div>
+    <button onclick="sir=true">Run Model</button>
+    <div id="sir-diagrams"></div>
+    <div>
+      The javascript code below shows how this example was created. The CompartmentModel class uses Heun's method (2nd order) differential equation solver. In the future, I'd like to implement an adaptive-step <a href="https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta%E2%80%93Fehlberg_method">Runge–Kutta–Fehlberg</a> method.
+    </div>
+    <div>
+      Contemporary compartment models are more sophisticated. They add additional compartments (like an exposed-latent period) relevant to the disease's pathology, population vital dynamics (births and deaths), environmental factors like weather
+      / temperature, and frequently include spatial "patches" and modeling of travel patterns between patches.
+      <ul>
+        Examples:
+        <li><a href="http://www.gleamviz.org/challenges/">GLEAMviz</a></li>
+        <li><a href="https://www.eclipse.org/stem/">IBM STEM</a></li>
+      </ul>
+    </div>
+    <div>Below I've included a more complex compartment model and code, demonstrating how some of these concepts can be implemented using this library.
+    </div>
+      <button onclick="seir=true">Run Model</button>
+      <div id="seirs-diagrams"></div>
+      <h1>Agent Based Models</h1>
+      <div>Agent based models take a completely different approach. Instead of using a total population figure and moving a portion of that population between compartments, an agent is typically used to represent an individual within the population and is
+        assigned a set of relevant and representative properties (like age, gender, body-mass, etc.). A set of agents, their behaviors and interactions is then modeled over a time period.</div>
+            <div>One way to model agents and their behavior is to treat the agent as a <a href="http://www.ecse.rpi.edu/~agung/course/vanderschaft.pdf">hybrid dynamic system (hds)</a>. This is a type of system with continuous and discrete
+        variables and time dynamics. In practice it means using differential equations (for describing the behavior of continous state variables over time) and comparison operators (=, >=, !=) at continuous value thresholds. I'll introduce the concept of hds and hybrid automata with a canonical example of
+        an air conditioner:</div>
+      <div>
+        This basic air conditioner:
+        <ol>
+          <li>Can be ON or OFF. These discrete states are elements of the AC's
+            <strong>set of modes</strong> = [ON, OFF].</li>
+          <li>Checks the environment's temperature "x", which is a continuous variable and is part of this system's continous state space or
+            <strong>flow set</strong> = {x : [0:100]}.
+            <li>When it is OFF, the temperature goes up (towards 85), and when it's ON the air conditioner blasts 65 degree air. When represented as a set of differential equations (or vector fields), this is called the
+              <strong>flow map</strong> ={x: {ON:65 - x, OFF:85 - x}}.</li>
+            <li>Knows when to switch modes based of the current temperature. This is called the
+              <strong>jump set</strong> = {ON:{x >= 74}, OFF:{x
+              <=71}}. </li>
+                <li>Should know whether anything special happens to "x" when we go from ON to OFF or OFF to ON. In this example, it doesn't so the
+                  <strong>jump map</strong> is just = {ON=>OFF(x):x, OFF=>ON(x):x}.</li>
+                  <li>We also want to be explicit that the air conditioner can go from ON to OFF and OFF to ON. These are called
+                    <strong>edges</strong> = [[ON,OFF], [OFF,ON]]</li>
+        </ol>
+        <div id="ac-diagram"></div>
+      </div>
+      <div>
+        Based on this very simple example, it may be hard to see exactly how these concepts are applied to epidemiological modeling.
+        Let's consider a oversimplified infectious disease model:
+        <ol>
+          <li>We'll say that the modes = [SUCCEPTIBLE, INFECTIOUS, LATENT]</li>
+          <li>The flow set will contain the person's pathogen shedding rate = [1 : 10], immune response = [1:100] and pathogen load = [1 :1000]</li>
+          <li>The flow map is more involved this time.
+          <pre>{
+            {
+              load: {
+              SUCCEPTIBLE : return 0.03 * (agent.load / 1000) * agent.load - agent.immuneResponse,
+              INFECTIOUS: function(){return 0.05 * (agent.load / 1000) * agent.load - agent.immuneResponse},
+              LATENT: function(){return 0.01 * (agent.load / 100) * agent.load - agent.immuneResponse}
+            },
+            {
+              sheddingRate : {
+                SUCCEPTIBLE: 0,
+                INFECTIOUS: function(){ return agent.load / 1000 * 10},
+                LATENT: function(){ return agent.load / 1000 * 5}
+              },
+              immuneResponse : {
+                SUCCEPTIBLE : 0,
+                INFECTIOUS: function(){return agent.load / 1000 * 200},
+                LATENT: function(){return agent.immuneResponse}
+              }
+          }
+        </pre>
+          In other words, an infectious agent produces 5% more of the pathogen at each time step and lose up to 250 uhhh...units based on the immune response which ramps up along with the load.
+          The shedding rate also increases as the load increases.
+        </li>
+        <li>
+          The jump set will include = { INFECTIOUS:{agent.load >= 100}, LATENT:{agent.load <= 500} }
+        </li>
+        <li>
+          The jump map will not be anything but identity as above.
+        </li>
+      <li>
+        The edges include = [[SUCCEPTIBLE, INFECTIOUS][INFECTIOUS,LATENT]]
+      </li>
+        </ol>
+      </div>
+      <div>
+        While this works.
+      </div>
+      <div id="ha-contact-graph"></div>
+      <div id="ha-contact-diagram"></div>
+      <script src="../dist/compartment.js"></script>
+      <script src="../dist/ha.js"></script>
+      <script src="../dist/contactPatch.js"></script>
+      <script src="../dist/utils.js"></script>
+      <script src="qepikit-renderer.js"></script>
+      <script src="ha-examples.js"></script>
+      <script src="ha-id-example.js"></script>
+      <script src="cm-examples.js"></script>
 
-    succeptible.operation = function() {
-      return -measles.transmissionRate * succeptible.pop * infectious.pop * measles.step;
-    };
-    infectious.operation = function() {
-      return (measles.transmissionRate * succeptible.pop * infectious.pop * measles.step) - (measles.recoveryRate * infectious.pop * measles.step);
-    };
-    removed.operation = function() {
-      return measles.recoveryRate * infectious.pop * measles.step;
-    };
-    measles.runDuration = 365;
-  </pre>
-  <div>
-  Contemporary compartment models are more sophisticated in practice. They add additional compartments (like an exposed-latent period) relevant to the disease's pathology, population vital dynamics (births and deaths), environmental factors like weather / temperature, and frequently include spatial "patches" and modeling of travel patterns between patches.
-  <ul>
-    Examples:
-    <li><a href="http://www.gleamviz.org/challenges/">GLEAMviz</a></li>
-    <li><a href="https://www.eclipse.org/stem/">IBM STEM</a></li>
-  </ul>
-  </div>
-  <div>Below I've included a more complex compartment model and code, demonstrating how some of these concepts can be implemented using this library.
-  <div id="seirs-diagrams"></div>
-  <h1>Agent Based Models</h1>
-  <div>Agent based models take a completely different approach. Instead of using a total population figure and moving a portion of that population between compartments, an agent is
-    typically used to represent an individual within the population and is assigned a set of relevant and representative properties (like age, gender, body-mass, etc.). A set of agents, their behaviors and interactions is then modeled over a time period.</div>
-  <div>One way to model agents and their behavior is to treat the model as a <a href="http://www.ecse.rpi.edu/~agung/course/vanderschaft.pdf">hybrid dynamic system (hds)</a>. It's not as bad as it sounds. It's just a system with continuous and discrete variables and time dynamics. In practice it means some differential equations (for describing the behavior of continous state variables over time) and comparison operators (=, >=, !=) at continuous value thresholds. In fact, for me it feels more intuitive than using compartment models. I'll introduce the concept of hds and hybrid automata with a canonical example of <strike>an air conditioner</strike> person trying a variety of diets:</div>
-  <div>
-    This basic air conditioner:
-    <ol>
-      <li>Can be ON or OFF. These discrete states are elements of the AC's <strong>set of modes</strong> = [ON, OFF].</li>
-      <li>Checks the environment's temperature "x", which is a continuous variable and is part of this system's continous state space or <strong>domain map</strong> = {x : [0:100]}.
-      <li>We know that when the air conditioner is OFF, the temperature goes up (towards 90), and when it's ON the air conditioner blasts 65 degree air. When represented as a set of differential equations (or vector fields), this is called the <strong>flow map</strong> ={x: {ON:x - 65, OFF:90 - x}}.</li>
-      <li>We also want to be explicit that the air conditioner can go from ON to OFF and OFF to ON. These are called <strong>edges</strong> = [[ON,OFF], [OFF,ON]]</li>
-      <li>Knows when to switch modes based of the current temperature. This is called the <strong>guard map</strong> = {ON:{x >= 74}, OFF:{x <=73}}. </li>
-      <li>Should know whether anything special happens to "x" when we go from ON to OFF or OFF to ON. In this example, it doesn't so the <strong>reset map</strong> is just =  {ON=>OFF(x):x, OFF=>ON(x):x}.</li>
-    </ol>
-  </div>
-
-  <script src="../dist/compartment.js"></script>
-  <script src="qepikit-renderer.js"></script>
-  <script src="cm-examples.js"></script>
-
-  </div>
+    </div>
 </body>

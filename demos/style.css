@@ -30,6 +30,29 @@ circle{
 	stroke:steelblue;
 	fill:none;
 }
+.ON{
+	stroke-width:5px;
+	stroke:#0066FF
+}
+
+.OFF{
+	stroke-width:8px;
+	stroke:#CC3399
+}
+.SUCCEPTIBLE{
+	stroke:#33CC33;
+	stroke-width:2px;
+}
+
+.INFECTIOUS{
+	stroke:#CC3399;
+	stroke-width:2px;
+}
+
+.LATENT{
+	stroke:#6600ff;
+	stroke-width:2px;
+}
 
 .succeptible{
 	stroke:#33CC33;

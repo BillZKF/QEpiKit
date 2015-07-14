@@ -15,7 +15,7 @@ module QEpiKit {
     }
 
     static defaultFreqF(a, b): number {
-      var val = 100 - Math.abs(a.age - b.age) / 100;
+      var val = (50 - Math.abs(a.age - b.age)) / 100;
       return val;
     }
 
@@ -59,13 +59,17 @@ module QEpiKit {
     encounters(agent: any, precondition: Condition, contactFunc: Function, resultKey: string) {
       contactFunc = contactFunc || ContactPatch.defaultContactF;
       for (var contact in this.members) {
-        if (precondition.check(this.members[contact][precondition.key], precondition.value)) {
-          agent[resultKey] = contactFunc(this.members[agent.id][contact], agent.time);
+        if (precondition.check(this.members[contact][precondition.key], precondition.value) && Number(contact) !== agent.id) {
+          this.members[agent.id][resultKey] = contactFunc(this.members[contact], agent);
           ContactPatch.WIWArray.push({
             patchID: this.id,
             name: this.name,
             infected: contact,
+            infectedAge: this.members[contact].age,
+            result: this.members[agent.id][resultKey],
+            resultKey: resultKey,
             by: agent.id,
+            byAge: agent.age,
             time: agent.time
           });
         }

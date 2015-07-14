@@ -9,6 +9,7 @@ var measPath = {
   recoveryRate: 0.1
 };
 var step = 1;
+var sir = false;
 var measles = new QEpiKit.CompartmentModel("measles", step, [succeptible, infectious, removed], measPath);
 succeptible.operation = function() {
   return -measles.transmissionRate * succeptible.pop * infectious.pop * measles.step;
@@ -22,12 +23,9 @@ removed.operation = function() {
 measles.runDuration = 365;
 var sirDiagrams = new QEpiKit.renderer.compModelDiagrams(measles, "sir-diagrams");
 
-function render() {
+function renderSIR() {
   measles.run();
-  seasonalFlu.run();
-  seirsDiagrams.update();
   sirDiagrams.update();
-  requestAnimationFrame(render);
 }
 sirDiagrams.update();
 
@@ -36,7 +34,7 @@ var S = new QEpiKit.Compartment("succeptible", 0.999998);
 var E = new QEpiKit.Compartment("exposed", 0.000001);
 var I = new QEpiKit.Compartment("infectious", 0.000001);
 var R = new QEpiKit.Compartment("removed", 0);
-
+var seir = false;
 var sfParams = {
   transmissionRate: 0.16,
   latentTime: 1 / 3,
@@ -72,4 +70,20 @@ R.operation = function() {
 };
 
 seirsDiagrams = new QEpiKit.renderer.compModelDiagrams(seasonalFlu, "seirs-diagrams");
+var renderSEIR = function(){
+  seasonalFlu.run();
+  seirsDiagrams.update();
+};
 seirsDiagrams.update();
+
+function render(){
+  if(seir){
+    renderSEIR();
+  }
+
+  if(sir){
+    renderSIR();
+  }
+  requestAnimationFrame(render);
+}
+render();
