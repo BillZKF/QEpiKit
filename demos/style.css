@@ -6,6 +6,10 @@ body{
 	font-family: sans-serif;
 }
 
+a{
+	text-decoration: none;
+}
+
 div{
 	padding-bottom: 20px;
 	padding-top: 20px;
