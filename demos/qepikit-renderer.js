@@ -313,10 +313,11 @@ var QEpiKit = (function(Q, d3) {
         .linkDistance(dW / 2)
         .size([dW, dH]);
 
-      WIW.map(function(d) {
-        d.source = d.by - 1;
-        d.target = d.infected - 1;
-      });
+        this.links = {};
+        WIW.map(function(d) {
+          d.source = d.by - 1;
+          d.target = d.infected - 1;
+        });
 
       this.force.nodes(agents).links(WIW);
       var resultExtent = d3.extent(WIW, function(d) {
@@ -373,7 +374,6 @@ var QEpiKit = (function(Q, d3) {
       this.update = function(agents,WIW){
         this.force.stop();
         this.contactSVG.selectAll("*").remove();
-
         WIW.map(function(d) {
           d.source = d.by - 1;
           d.target = d.infected - 1;

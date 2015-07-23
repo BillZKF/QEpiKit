@@ -47,7 +47,7 @@ module QEpiKit {
         return Utils.FAILED;
       }
     }
-    
+
     public static eventually(a){
       if(a === Utils.SUCCESS){
         return Utils.SUCCESS;

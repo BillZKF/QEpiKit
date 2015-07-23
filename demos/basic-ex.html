@@ -11,8 +11,8 @@
   <div>
     <h1>Introduction</h1>
     <div>
-      Models have a number of roles in epidemiology. They are used to forecast or predict future outcomes based on available data, they are used for projecting and comparing outcomes for a variety of scenarios, and they can be used to enhance understanding of causal
-      relationships through evaluation of counterfactuals. In the next two sections, I'll provide brief introductions to two of the main types of models used in epidemiology with example code from this library. My views are neither authorataive
+      Models have a number of roles in epidemiology. They are used to forecast or predict future outcomes based on available data, they are used for projecting and comparing outcomes for a variety of scenarios, and they can be used to enhance understanding
+      of causal relationships through evaluation of counterfactuals. In the next two sections, I'll provide brief introductions to two of the main types of models used in epidemiology with example code from this library. My views are neither authorataive
     </div>
     <h1>Compartment Models</h1>
     <div>
@@ -47,28 +47,29 @@
 
     <h2>Agent "Microdata"</h2>
     <div>
-      One of the first problems I ran into when trying out agent based modeling is the need for realistic "microdata", data representing individual agents. Without access to detailed patient records, it can be tough to find a dataset that represents the population
+      <p>One of the first challenges I ran into when trying out agent based modeling is the need for realistic "microdata", data representing individual agents. Without access to detailed patient records, it can be tough to find a dataset that represents the population
       you're trying to model. Several larger projects, including <a href="https://www.rti.org/pubs/mr-0010-0905-wheaton.pdf">MIDAS (Wheaton, et al., 2009 )</a>, have combined a variety of population and individual level sources and methods to generate
-      agent microdata.
-    </div>
-    <div>
-      In this library each agent is represented a <a href="http://www.json.org/">JSON</a> object, within an array. Below I outline a method for using the Census Bureau's RESTful APIs, and the chance.js library to generate population data for a census tract.
-      This method can be expanded to generate zip code or county level data as well.
+      agent microdata.</p>
+      <p>In this library each agent is represented a <a href="http://www.json.org/">JSON</a> object, within an array. Below I outline a method for using the Census Bureau's RESTful APIs, and the chance.js library to generate population data for a census
+      tract. This method can be expanded to generate zip code or county level data as well.</p>
     </div>
 
     <h2>Environment</h2>
     <div>
       The environment could mean a few different things in the context of agent based modeling.
     </div>
+    <div>
+      In this library the environment contains resources, which can be described as sets of finite resources, a schedule, which is keeps time for the model, and an event queue which dispatches certain events at or during certain time intervals.
+    </div>
     <h2>Social Contact Patterns</h2>
     <div>
-      If the interactions between agents is important to your model ()
+      The interactions between agents is important to most models. One of the most common ways to model social contacts, is to create a matrix with all of the possible contacts 1 to 1 and assign each a contact frequency.
     </div>
     <h2>Rules!</h2>
     <div>
-      Within the model, agents (and the environment) usually behave according to some set of rules. Sometimes these rules are simple conditional / flow control statements, sometimes implemented using their own syntax, or they fit within a larger framework or
+      Within the model, agents (and the environment) usually behave according to some set of rules. Sometimes these rules are simple conditional / flow control statements, sometimes they are implemented using their own syntax, or they fit within a larger framework or
       system with it's own set of rules. Unfortunately, how rules for agents are implemented seems to be less standardized or at least less reported in the literature than would be useful.</div>
-    <div>For this library I wanted the rules to be explicit (all in one place), language standards compliant, and shareable between models, and other libraries, and easily implemented in other languages.
+    <div>For this library I wanted the rules to be explicit (all in one place), language standards compliant, and shareable between models, and easily implemented in other languages.
     </div>
     <h3>Hybrid Automata</h3>
     <div>One way to model agents and their behavior is to treat the agent as a <a href="http://www.ecse.rpi.edu/~agung/course/vanderschaft.pdf">hybrid dynamic system (hds)</a>. This is a type of system with continuous and discrete variables and time dynamics.
@@ -95,7 +96,7 @@
     </div>
     <div>
       Based on this very simple example, it may be hard to see exactly how these concepts are applied to epidemiological modeling. Let's consider a simplified infectious disease model spreading through (doesn't have to, but should be) an English boardings school
-      with 500 students:
+      with 25 students:
       <ol>
         <li>We'll say that the modes = [SUCCEPTIBLE, INFECTIOUS, LATENT]</li>
         <li>The flow set will contain the person's pathogen shedding rate = [1 : 10], immune response = [1:100] and pathogen load = [1 :1000]</li>
@@ -117,26 +118,10 @@
     <div id="ha-contact-graph"></div>
     <div id="ha-contact-diagram"></div>
     <div>
-      If the individual was between 3 and 18 years of age they were assigned to schools of ~600 students, individuals between 19 and 65 were assigned to a workplace of up to 500, and all individuals were also assigned to a community-patch with a population
-      of ~1000. Children 18 and under were also assigned a parent.
+      Here, in addition to a contact frequency, each agent sheds the pathogen at a rate proportional to their total pathogen load. As the pathogen load increases, an immuneResponse is engaged, removing a portion of that load each step.
     </div>
-    <ul>
-      Sources
-      <li><a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC128598/">Bonabeau, E. (2002). Agent-based modeling: Methods and techniques for simulating human systems. Proceedings of the National Academy of Sciences of the United States of America, 99(Suppl 3), 7280–7287. doi:10.1073/pnas.082080899</a></li>
-      <li><a href="http://smr.sagepub.com/content/44/2/179.short">Recent Trends in Agent-based Computational Research A Brief Introduction</a></li>
-      <li><a href="http://www.statisticsviews.com/details/feature/6354691/Agent-Based-Models-Statistical-Challenges-and-Opportunities.html">Agent Based Models: Statistical Challenges and Opportunities</a></li>
-      <li><a href="http://journals.cambridge.org.libproxy.temple.edu/download.php?file=%2FPAR%2FPAR140_08%2FS0031182013000310a.pdf&code=07eb0b95e38c5a04be3d4e84592ebdd3">An agent-based model of exposure to human toxocariasis:
-a multi-country validation</a></li>
-      <li><a href="http://aje.oxfordjournals.org/content/181/2/92.full?sid=98a1c9e1-ae16-41ed-a1cd-4ec73ca39ca0">Brandon D. L. Marshall and Sandro Galea
-Editor's Choice: Formalizing the Role of Agent-Based Modeling in Causal Inference and Epidemiology
-Am. J. Epidemiol. (2015) 181 (2): 92-99 first published online December 5, 2014 doi:10.1093/aje/kwu274</a></li>
-      <li><a href="http://www.sciencedirect.com.libproxy.temple.edu/science/article/pii/S1364815213000807#bib54">Spatial agent-based models for socio-ecological systems: Challenges and prospects</a></li>
-      <li><a href="http://aje.oxfordjournals.org/content/168/1/1.short">Amy H. Auchincloss and Ana V. Diez Roux
-Review: A New Tool for Epidemiology: The Usefulness of Dynamic-Agent Models in Understanding Place Effects on Health
-Am. J. Epidemiol. (2008) 168 (1): 1-8 first published online May 13, 2008 doi:10.1093/aje/kwn118</a></li>
-      <li><a href="http://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1002673">Fumanelli L, Ajelli M, Manfredi P, Vespignani A, Merler S (2012) Inferring the Structure of Social Contacts from Demographic Data in the Analysis of Infectious Diseases Spread. PLoS Comput Biol 8(9): e1002673. doi: 10.1371/journal.pcbi.1002673</a></li>
-      <li><a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2875687/">Wheaton, W. D., Cajka, J. C., Chasteen, B. M., Wagener, D. K., Cooley, P. C., Ganapathi, L., ... & Allpress, J. L. (2009). Synthesized population databases: A US geospatial database for agent-based models. Methods report (RTI Press), 2009(10), 905.</a></li>
-    </ul>
+    <h2>Sources</h2>
+    <iframe width="840" height="360" frameborder="0" scrolling="no" src="https://onedrive.live.com/embed?cid=2D54C2F48C7536A5&resid=2D54C2F48C7536A5%2138618&authkey=AKuWQfeI3XA_8F8&em=2&wdHideGridlines=True&wdHideHeaders=True&wdDownloadButton=True"></iframe>
     <script src="../dist/compartment.js"></script>
     <script src="../dist/ha.js"></script>
     <script src="../dist/contactPatch.js"></script>

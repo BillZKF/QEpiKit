@@ -1,4 +1,4 @@
-﻿module QEpiKit {
+module QEpiKit {
   export class CompartmentModel {
     public name: string;
     public step: number;
@@ -12,6 +12,7 @@
     public time: number;
     public tolerance: number;
     public runDuration: number;
+    public history: any[];
 
     constructor(name: string, step: number, compartments: Compartment[], pathogen: Pathogen, vital: Vital) {
       this.name = name;
@@ -22,7 +23,7 @@
       this.basicReproductiveNumber = pathogen.transmissionRate / pathogen.recoveryRate;
       this.totalPop = 0;
       this.time = 0;
-      this.runDuration = 0;
+      this.history = [];
       for (var c in this.compartments) {
         this.totalPop += this.compartments[c].pop;
         this.compartments[c].initialPop = this.compartments[c].pop;
@@ -30,26 +31,35 @@
       this.tolerance = 1e-9;
     }
 
-    public run() {
-      if (this.time <= this.runDuration) {
-        var temp_pop = [], temp_d = [], next_d = [], lte = [], err = 1, newStep;
-        for (var c in this.compartments) {
-          this.compartments[c].update();
-        }
-        //first order (Euler)
-        for (var c in this.compartments) {
-          temp_pop[c] = this.compartments[c].pop;
-          temp_d[c] = this.compartments[c].dpop;
-          this.compartments[c].pop = temp_pop[c] + temp_d[c];
-        }
-        //second order (Heuns)
-        this.totalPop = 0;
-        for (var c in this.compartments) {
-          next_d[c] = this.compartments[c].operation();
-          this.compartments[c].pop = temp_pop[c] + (0.5 * (temp_d[c] + next_d[c]));
-          this.totalPop += this.compartments[c].pop;
+    run(step:number, until:number, saveInterval:number) {
+      var rem;
+      while (this.time <= until) {
+        this.update();
+        rem = (this.time / step) % saveInterval;
+        if(rem === 0 ){
+          this.history[this.time / step] = JSON.parse(JSON.stringify(this.compartments));
         }
         this.time += this.step;
+      }
+    }
+
+    update(){
+      var temp_pop = [], temp_d = [], next_d = [], lte = [], err = 1, newStep;
+      for (var c in this.compartments) {
+        this.compartments[c].update();
+      }
+      //first order (Euler)
+      for (var c in this.compartments) {
+        temp_pop[c] = this.compartments[c].pop;
+        temp_d[c] = this.compartments[c].dpop;
+        this.compartments[c].pop = temp_pop[c] + temp_d[c];
+      }
+      //second order (Heuns)
+      this.totalPop = 0;
+      for (var c in this.compartments) {
+        next_d[c] = this.compartments[c].operation();
+        this.compartments[c].pop = temp_pop[c] + (0.5 * (temp_d[c] + next_d[c]));
+        this.totalPop += this.compartments[c].pop;
       }
     }
   }
@@ -60,6 +70,7 @@
     public initialPop: number;
     public operation: Function;
     public dpop: number;
+    public travelWeight: number;
 
     constructor(name: string, pop: number, operation: Function) {
       this.name = name;

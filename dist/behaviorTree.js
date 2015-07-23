@@ -1,8 +1,7 @@
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 var QEpiKit;
 (function (QEpiKit) {
@@ -30,19 +29,19 @@ var QEpiKit;
                 this.start(this.data[d]);
             }
         };
-        BehaviorTree.prototype.generateTimeData = function (step, limit, saveInterval) {
-            var t = 0, rem;
-            while (t <= limit) {
-                rem = t % saveInterval;
+        BehaviorTree.prototype.run = function (step, until, saveInterval) {
+            var rem;
+            this.time = 0;
+            while (this.time <= until) {
+                rem = (this.time / step) % saveInterval;
                 if (rem == 0) {
                     this.data.map(function (d) {
-                        return d.time = t;
+                        return d.time = this.time;
                     });
                     this.record.push(JSON.parse(JSON.stringify(this.data)));
                 }
-                this.time = t;
                 this.update();
-                t += step;
+                this.time += step;
             }
         };
         BehaviorTree.SUCCESS = 1;

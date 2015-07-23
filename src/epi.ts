@@ -1,4 +1,4 @@
-﻿module QEpiKit {
+module QEpiKit {
     export class Epi {
         static prevalence(cases:number, total:number) {
             var prev: number = cases / total;

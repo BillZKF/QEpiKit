@@ -47,19 +47,19 @@ module QEpiKit {
       }
     }
 
-    generateTimeData(step: number, limit: number, saveInterval: number) {
-      var t = 0, rem;
-      while (t <= limit) {
-        rem = t % saveInterval;
+    run(step: number, until: number, saveInterval: number) {
+      var rem;
+      this.time = 0;
+      while (this.time <= until) {
+        rem = (this.time / step) % saveInterval;
         if (rem == 0) {
           this.data.map(function(d) {
-            return d.time = t;
+            return d.time = this.time;
           });
           this.record.push(JSON.parse(JSON.stringify(this.data)));
         }
-        this.time = t;
         this.update();
-        t += step;
+        this.time += step;
       }
     }
   }
