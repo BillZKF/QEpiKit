@@ -1,6 +1,7 @@
 //Replace this file with Iterative Portion Fitting or better agent gen method.
 self.importScripts("../bower_components/chance/chance.js","../dist/utils.js","../dist/behaviorTree.js","libs/jstat.min.js");
 //
+var chance1 = chance;
 var popGenConditions = {
   "existsAge": {
     key: "age",
@@ -95,12 +96,11 @@ var popGenActions = {
 }
 };
 //Generate agents for SPHERE demo
-var SetHeight = new QEpiKit.BTAction("set-mass", conditions.existsMass, actions.setMass);
-var SetMass = new QEpiKit.BTAction("set-mass", conditions.existsMass, actions.setMass);
-var SetSex = new QEpiKit.BTAction("set-sex", conditions.existsSex, actions.setSex);
-var SetAge = new QEpiKit.BTAction("set-age", conditions.existsAge, actions.setAge);
-var SetOrigin = new QEpiKit.BTAction("set-location", conditions.existsLocation, actions.setOrigin);
-var SequenceDemographic = new QEpiKit.BTSequence("sequence-demographic", [SetOrigin, SetAge, SetSex, SetPhysical]);
+var SetMass = new QEpiKit.BTAction("set-mass", popGenConditions.existsMass, popGenActions.setMass);
+var SetSex = new QEpiKit.BTAction("set-sex", popGenConditions.existsSex, popGenActions.setSex);
+var SetAge = new QEpiKit.BTAction("set-age", popGenConditions.existsAge, popGenActions.setAge);
+var SetOrigin = new QEpiKit.BTAction("set-origin", popGenConditions.existsLocation, popGenActions.setOrigin);
+var SequenceDemographic = new QEpiKit.BTSequence("sequence-demographic", [SetOrigin, SetAge, SetSex, SetMass]);
 var Root = new QEpiKit.BTRoot("start-pop-gen", [SequenceDemographic]);
 
 function empty(number) {
@@ -108,7 +108,8 @@ function empty(number) {
   for (var i = 0; i < number; i++) {
     emptyData[i] = {
       id: i,
-      alive: true
+      alive: true,
+      resources : {}
     };
   }
   return emptyData;

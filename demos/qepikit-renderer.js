@@ -1,5 +1,132 @@
 var QEpiKit = (function(Q, d3) {
   Q.renderer = {
+    resourceLineChart: function(resources, el, datatype) {
+      var max = 0, min = 1e20, height = 480,
+        width = 480,
+        margin = 60,
+        container = document.createElement("div");
+      container.id = "resource-diagrams";
+      this.info = document.createElement("span");
+      this.info.id = "resource-info-box";
+      this.info.className = "info-box";
+      container.appendChild(this.info);
+      document.getElementById(el).appendChild(container);
+
+      this.svgResTime = d3.select(container).append("svg").attr("height", height).attr("width", width).append("g");
+      var x = d3.scale.linear()
+        .domain([0, 90])
+        .range([margin, width - margin]);
+
+      var y = d3.scale.linear()
+        .domain([max, min])
+        .range([margin, height - margin]);
+
+      var xAxis = d3.svg.axis()
+        .scale(x)
+        .orient("bottom");
+
+      var yAxis = d3.svg.axis()
+        .scale(y)
+        .orient("left");
+
+      var curveFunc = d3.svg.line()
+        .x(function(d) {
+          return x(d.x);
+        })
+        .y(function(d) {
+          return y(d.y);
+        });
+      this.curveDatas = [];
+      for (var res in resources[0]) {
+        if (resources[0][res].hasOwnProperty(datatype)) {
+          this.curveDatas[res] = [];
+          for (var t = 0; t < resources.length; t++) {
+
+            if(resources[t][res][datatype] > max){
+              max = resources[t][res][datatype];
+            }
+
+            if(resources[t][res][datatype] < min){
+              min = resources[t][res][datatype];
+            }
+            y.domain([max, min]);
+            this.curveDatas[res].push({
+              x: t * 10,
+              y: resources[t][res][datatype]
+            });
+          }
+          this.svgResTime.append('path')
+            .datum(this.curveDatas[res])
+            .attr('class', 'line')
+            .style('stroke', '#' + Math.floor(Math.random() * 16777215).toString(16))
+            .style('stroke-width', 3)
+            .attr('d', curveFunc)
+            .append("svg:title")
+            .text(res);
+        }
+      }
+      this.svgResTime.append("g")
+        .attr("class", "axis")
+        .attr("transform", "translate(0," + (height - margin) + ")")
+        .call(xAxis);
+
+      this.svgResTime.append("g")
+        .attr("class", "axis")
+        .attr("transform", "translate( " + margin + ",0)")
+        .call(yAxis);
+      return this;
+    },
+    containerLineChart: function(containers, arrayKey, el, datatype) {
+      var max = 0, min = 1e20, height = 480,
+        width = 480,
+        margin = 60,
+        container = document.createElement("div");
+      container.id = "container-diagrams";
+      this.info = document.createElement("span");
+      this.info.id = "container-info-box";
+      this.info.className = "info-box";
+      container.appendChild(this.info);
+      document.getElementById(el).appendChild(container);
+
+      this.svgConTime = d3.select(container).append("svg").attr("height", height).attr("width", width).append("g");
+      var x = d3.scale.linear()
+        .domain([0, 90])
+        .range([margin, width - margin]);
+
+      var y = d3.scale.linear()
+        .domain([max, min])
+        .range([margin, height - margin]);
+
+      var xAxis = d3.svg.axis()
+        .scale(x)
+        .orient("bottom");
+
+      var yAxis = d3.svg.axis()
+        .scale(y)
+        .orient("left");
+
+      var curveFunc = d3.svg.line()
+        .x(function(d) {
+          return x(d.x);
+        })
+        .y(function(d) {
+          return y(d.y);
+        });
+      this.curveDatas = [];
+      this.capDatas = [];
+      
+
+      this.svgResTime.append("g")
+        .attr("class", "axis")
+        .attr("transform", "translate(0," + (height - margin) + ")")
+        .call(xAxis);
+
+      this.svgResTime.append("g")
+        .attr("class", "axis")
+        .attr("transform", "translate( " + margin + ",0)")
+        .call(yAxis);
+      return this;
+    },
     compModelDiagrams: function(model, el) {
       var height = 280,
         width = 480,
@@ -284,7 +411,9 @@ var QEpiKit = (function(Q, d3) {
           return y(d.infectedAge);
         })
         .attr("r", 5)
-        .style("fill-opacity", function(d){return d.result/cExt[1];})
+        .style("fill-opacity", function(d) {
+          return d.result / cExt[1];
+        })
         .attr("class", function(d) {
           return "point " + d.id;
         });
@@ -313,11 +442,11 @@ var QEpiKit = (function(Q, d3) {
         .linkDistance(dW / 2)
         .size([dW, dH]);
 
-        this.links = {};
-        WIW.map(function(d) {
-          d.source = d.by - 1;
-          d.target = d.infected - 1;
-        });
+      this.links = {};
+      WIW.map(function(d) {
+        d.source = d.by - 1;
+        d.target = d.infected - 1;
+      });
 
       this.force.nodes(agents).links(WIW);
       var resultExtent = d3.extent(WIW, function(d) {
@@ -371,7 +500,7 @@ var QEpiKit = (function(Q, d3) {
       });
 
       this.force.start();
-      this.update = function(agents,WIW){
+      this.update = function(agents, WIW) {
         this.force.stop();
         this.contactSVG.selectAll("*").remove();
         WIW.map(function(d) {

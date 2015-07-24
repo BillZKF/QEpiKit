@@ -3,39 +3,39 @@ var sphereWASHGuidelines = [
   {
     temporal: QEpiKit.Utils.always,
     condition: {
-      ref: campEnv.resources.waterTransportContainers,
+      data: campEnv.resources.waterTransportContainers,
       key: "count",
-      value: campEnv.houselholdCount,
+      value: campEnv.householdCount,
       check: QEpiKit.Utils.gt
     }
   }, {
     temporal: QEpiKit.Utils.always,
     condition: {
-      ref: campEnv.resources.waterStorageContainers,
+      data: campEnv.resources.waterStorageContainers,
       key: "count",
-      value: campEnv.houselholdCount,
+      value: campEnv.householdCount,
       check: QEpiKit.Utils.gt
     }
   }, {
     temporal: QEpiKit.Utils.always,
     condition: {
-      ref: campEnv.resources.bathingSoap,
+      data: campEnv.resources.bathingSoap,
       key: "count",
-      value: campEnv.houselholdCount,
+      value: campEnv.householdCount,
       check: QEpiKit.Utils.gt
     }
   }, {
     temporal: QEpiKit.Utils.always,
     condition: {
-      ref: campEnv.resources.laundrySoap,
+      data: campEnv.resources.laundrySoap,
       key: "count",
-      value: campEnv.houselholdCount,
+      value: campEnv.householdCount,
       check: QEpiKit.Utils.gt
     }
   }, {
     temporal: QEpiKit.Utils.always,
     condition: {
-      ref: campEnv.resources.menstrualHygeineCotton,
+      data: campEnv.resources.menstrualHygeineCotton,
       key: "count",
       value: campEnv.girls8AndUpCount,
       check: QEpiKit.Utils.gt
@@ -45,7 +45,7 @@ var sphereWASHGuidelines = [
   {
     temporal: QEpiKit.Utils.always,
     condition: {
-      ref: campEnv.resources.totalWater,
+      data: campEnv.resources.totalWater,
       key: "quantity",
       value: campEnv.totalPop * 15,
       check: QEpiKit.Utils.gt
@@ -53,10 +53,18 @@ var sphereWASHGuidelines = [
   }, { //@Water Supply Standard 1, Guidance Note  5
     temporal: QEpiKit.Utils.always,
     condition: {
-      ref: campEnv.resources.waterTaps,
+      data: campEnv.resources.waterTaps,
       key: "count",
       value: Math.ceil(campEnv.totalPop / 250),
       check: QEpiKit.Utils.gt
     }
   }
 ];
+
+var sphereAgentIndicators = {
+  "dehydrated" : {
+    key : "dailyWater",
+    value : 2.5,
+    check : QEpiKit.Utils.gt
+  }
+};
