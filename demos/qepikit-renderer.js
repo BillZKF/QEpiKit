@@ -1,7 +1,9 @@
 var QEpiKit = (function(Q, d3) {
   Q.renderer = {
     resourceLineChart: function(resources, el, datatype) {
-      var max = 0, min = 1e20, height = 480,
+      var max = 0,
+        min = 1e20,
+        height = 480,
         width = 480,
         margin = 60,
         container = document.createElement("div");
@@ -42,11 +44,11 @@ var QEpiKit = (function(Q, d3) {
           this.curveDatas[res] = [];
           for (var t = 0; t < resources.length; t++) {
 
-            if(resources[t][res][datatype] > max){
+            if (resources[t][res][datatype] > max) {
               max = resources[t][res][datatype];
             }
 
-            if(resources[t][res][datatype] < min){
+            if (resources[t][res][datatype] < min) {
               min = resources[t][res][datatype];
             }
             y.domain([max, min]);
@@ -76,8 +78,10 @@ var QEpiKit = (function(Q, d3) {
         .call(yAxis);
       return this;
     },
-    containerLineChart: function(containers, arrayKey, el, datatype) {
-      var max = 0, min = 1e20, height = 480,
+    containerLineChart: function(con, chart) {
+      var max = 0,
+        min = 1e20,
+        height = 480,
         width = 480,
         margin = 60,
         container = document.createElement("div");
@@ -114,7 +118,7 @@ var QEpiKit = (function(Q, d3) {
         });
       this.curveDatas = [];
       this.capDatas = [];
-      
+
 
       this.svgResTime.append("g")
         .attr("class", "axis")

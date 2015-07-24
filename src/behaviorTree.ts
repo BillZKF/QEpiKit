@@ -30,21 +30,23 @@ module QEpiKit {
       this.record = [];
     }
 
-    start(agent) {
+    start(agent, step: number) {
       var state;
       agent.active = true;
       while (agent.active === true) {
         state = BehaviorTree.tick(this.root, agent);
+        agent.time = this.time;
         agent.active = false;
       }
       return state;
     }
 
-    update() {
+    update(step) {
       var dataLen = this.data.length;
       for (var d = 0; d < dataLen; d++) {
-        this.start(this.data[d]);
+        this.start(this.data[d], step);
       }
+      this.time += step;
     }
 
     run(step: number, until: number, saveInterval: number) {
@@ -53,13 +55,9 @@ module QEpiKit {
       while (this.time <= until) {
         rem = (this.time / step) % saveInterval;
         if (rem == 0) {
-          this.data.map(function(d) {
-            return d.time = this.time;
-          });
           this.record.push(JSON.parse(JSON.stringify(this.data)));
         }
-        this.update();
-        this.time += step;
+        this.update(step);
       }
     }
   }

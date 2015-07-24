@@ -14,20 +14,22 @@ var QEpiKit;
             this.time = 0;
             this.record = [];
         }
-        BehaviorTree.prototype.start = function (agent) {
+        BehaviorTree.prototype.start = function (agent, step) {
             var state;
             agent.active = true;
             while (agent.active === true) {
                 state = BehaviorTree.tick(this.root, agent);
+                agent.time = this.time;
                 agent.active = false;
             }
             return state;
         };
-        BehaviorTree.prototype.update = function () {
+        BehaviorTree.prototype.update = function (step) {
             var dataLen = this.data.length;
             for (var d = 0; d < dataLen; d++) {
-                this.start(this.data[d]);
+                this.start(this.data[d], step);
             }
+            this.time += step;
         };
         BehaviorTree.prototype.run = function (step, until, saveInterval) {
             var rem;
@@ -35,13 +37,9 @@ var QEpiKit;
             while (this.time <= until) {
                 rem = (this.time / step) % saveInterval;
                 if (rem == 0) {
-                    this.data.map(function (d) {
-                        return d.time = this.time;
-                    });
                     this.record.push(JSON.parse(JSON.stringify(this.data)));
                 }
-                this.update();
-                this.time += step;
+                this.update(step);
             }
         };
         BehaviorTree.SUCCESS = 1;

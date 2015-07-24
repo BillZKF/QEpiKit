@@ -1,32 +1,73 @@
+<html ng-app="sphereDemo">
+<head>
 <script src="../bower_components/angular/angular.min.js">
 </script>
 <link rel="stylesheet" href="qepikit-render-style.css">
 <link rel="stylesheet" href="../bower_components/material-design-lite/material.min.css">
 <script src="../bower_components/material-design-lite/material.min.js"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-<label for="continouse-result">Water</label>
-<div id="continous-result">
+</head>
+<body>
+<div ng-controller="sphereDemoCtrl">
+<div id="current-resources">
+  <h2>Current Resources</h2>
+  <table class="mdl-data-table mdl-js-data-table mdl-data-table--selectable mdl-shadow--2dp">
+    <tr ng-repeat="res in resources">
+      <td>{{res.label}}</td>
+      <td>
+        <input class="mdl-textfield__input" ng-model=res.amount />
+      </td>
+      <td class="mdl-cell">{{res.units}}</td>
+    </tr>
+  </table>
 </div>
-<label for="countable-result">Supplies</label>
-<div id="countable-result">
+<div id="current-facilities">
+  <h2>Current Facilities</h2>
+  <table ng-repeat="facType in facilities" class="mdl-data-table mdl-js-data-table mdl-data-table--selectable mdl-shadow--2dp">
+    <h3>{{facType}}</h3>
+    <tr ng-repeat="fac in facType">
+      <td>{{fac.sex}}</td>
+      <td>
+        <input class="mdl-textfield__input" ng-model=fac.status />
+      </td>
+      <td class="mdl-cell">Working: {{fac.working}}</td>
+    </tr>
+  </table>
 </div>
-<div id="btree-result">
+<button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored">
+  FORECAST
+</button>
+    <div id="model-results">
+      <h2>Forecast</h2>
+      <label for="continous-result">Water</label>
+      <div id="continous-result">
+      </div>
+      <label for="countable-result">Supplies</label>
+      <div id="countable-result">
+      </div>
+      <div id="btree-result">
+      </div>
+      <script src="../dist/utils.js">
+      </script>
+      <script src="../dist/behaviorTree.js">
+      </script>
+      <script src="../dist/htn.js">
+      </script>
+      <script src="../dist/bdi.js">
+      </script>
+      <script src="../dist/environment.js">
+      </script>
+      <script src="sphere-env.js">
+      </script>
+      <script src="../bower_components/d3/d3.min.js">
+      </script>
+      <script src="qepikit-renderer.js">
+      </script>
+      <!--
+  <script src="sphere-main.js">
+  </script> -->
+    </div>
+  </div>
 </div>
-<script src="../dist/utils.js">
-</script>
-<script src="../dist/behaviorTree.js">
-</script>
-<script src="../dist/htn.js">
-</script>
-<script src="../dist/bdi.js">
-</script>
-<script src="../dist/environment.js">
-</script>
-<script src="sphere-env.js">
-</script>
-<script src="../bower_components/d3/d3.min.js">
-</script>
-<script src="qepikit-renderer.js">
-</script>
-<script src="sphere-main.js">
-</script>
+</body>
+</html>

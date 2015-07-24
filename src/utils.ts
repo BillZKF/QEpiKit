@@ -124,6 +124,7 @@ module QEpiKit {
   export interface Condition {
     key: string;
     value: any;
+    data: any;
     check: Function;
   }
 }

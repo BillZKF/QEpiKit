@@ -28,9 +28,23 @@ module QEpiKit{
     * The geographic network
     */
     public geoNetwork: any;
-    constructor(){
+    /**
+    * The finite resources of the environment
+    */
+    public resources: any;
+    /**
+    * The agents in the simulation
+    */
+    public agents: any;
+
+    constructor(agents, resources, eventsQueue:Event[]){
       this.time = 0;
       this.geoNetwork = [];
+      this.models = [];
+      this.history = [];
+      this.agents = agents;
+      this.resources = resources;
+      this.eventsQueue = eventsQueue;
     }
 
     /** Add a model components from the environment
@@ -56,9 +70,10 @@ module QEpiKit{
     */
     run(step:number, until:number, saveInterval:number){
       while(this.time <= until){
+        this.update(step);
         var rem = (this.time / step) % saveInterval;
         if(rem === 0){
-
+          this.history.push(JSON.parse(JSON.stringify(this.resources)));
         }
         this.time += step;
       }
@@ -68,8 +83,15 @@ module QEpiKit{
     * @param step the step size
     */
     update(step:number){
-      for(var component = 0; component < this.models.length; component++){
-        this.models[component].update(step)
+      var eKey = this.time.toString();
+      if(this.eventsQueue.hasOwnProperty(eKey)){
+        this.eventsQueue[eKey].trigger(this.agents);
+        this.eventsQueue[eKey].triggered = true;
+      } else {
+        this.eventsQueue[eKey] = null;
+      }
+      for(var c = 0; c < this.models.length; c++){
+        this.models[c].update(step);
       }
     }
   }
