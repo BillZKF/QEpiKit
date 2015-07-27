@@ -19,37 +19,37 @@ module QEpiKit {
       return URI;
     }
 
-    public static generateUUID():string {
+    public static generateUUID(): string {
       // http://www.broofa.com/Tools/Math.uuid.htm
       var chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split('');
       var uuid = new Array(36);
       var rnd = 0, r;
 
-        for (var i = 0; i < 36; i++) {
-          if (i == 8 || i == 13 || i == 18 || i == 23) {
-            uuid[i] = '-';
-          } else if (i == 14) {
-            uuid[i] = '4';
-          } else {
-            if (rnd <= 0x02) rnd = 0x2000000 + (Math.random() * 0x1000000) | 0;
-            r = rnd & 0xf;
-            rnd = rnd >> 4;
-            uuid[i] = chars[(i == 19) ? (r & 0x3) | 0x8 : r];
-          }
+      for (var i = 0; i < 36; i++) {
+        if (i == 8 || i == 13 || i == 18 || i == 23) {
+          uuid[i] = '-';
+        } else if (i == 14) {
+          uuid[i] = '4';
+        } else {
+          if (rnd <= 0x02) rnd = 0x2000000 + (Math.random() * 0x1000000) | 0;
+          r = rnd & 0xf;
+          rnd = rnd >> 4;
+          uuid[i] = chars[(i == 19) ? (r & 0x3) | 0x8 : r];
         }
-        return uuid.join('');
+      }
+      return uuid.join('');
     }
 
-    public static always(a){
-      if(a === Utils.SUCCESS){
+    public static always(a) {
+      if (a === Utils.SUCCESS) {
         return Utils.SUCCESS;
       } else {
         return Utils.FAILED;
       }
     }
 
-    public static eventually(a){
-      if(a === Utils.SUCCESS){
+    public static eventually(a) {
+      if (a === Utils.SUCCESS) {
         return Utils.SUCCESS;
       } else {
         return Utils.RUNNING;
@@ -111,6 +111,35 @@ module QEpiKit {
       } else {
         return Utils.FAILED;
       }
+    }
+
+    public static getMatcherString(check) {
+      var string = null;
+      switch (check) {
+        case QEpiKit.Utils.equalTo:
+          string = "equal to";
+          break;
+        case QEpiKit.Utils.notEqualTo:
+          string = "not equal to";
+          break;
+        case QEpiKit.Utils.gt:
+          string = "greater than";
+          break;
+        case QEpiKit.Utils.gtEq:
+          string = "greater than or equal to";
+          break;
+        case QEpiKit.Utils.lt:
+          string = "less than";
+          break;
+        case QEpiKit.Utils.ltEq:
+          string = "less than or equal to";
+          break;
+        default:
+          break;
+      }
+
+      return string;
+
     }
   }
 

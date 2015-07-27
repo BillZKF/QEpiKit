@@ -1,0 +1,38 @@
+<form class="pure-form pure-form-stacked pure-u-2-3" id="current-people">
+  <fieldset>
+    <h2>Estimate Resources Needed</h2>
+    <label for="houseHolds">Number of Households</label>
+    <input id="houseHolds" type="number" max="20000" ng-change="getAgents()" ng-model=householdCount />
+    <span>Total People : {{agents.length}}</span>
+    <label for="days">Duration</label>
+    <input id="days" type="number" max="730" ng-model=forecastLength />
+    <button class="pure-button pure-button-primary" ng-click="calcNeeds()">Calculate Needs</button>
+  </fieldset>
+</form>
+<div class="pure-u-2-3" id="current-resources">
+  <h2>Required Resources</h2>
+  <table class="pure-table">
+    <tr ng-repeat="res in resources ">
+      <td>{{res.label}}</td>
+      <td>
+        <input ng-model=res.amount />
+      </td>
+      <td>{{res.units}}</td>
+    </tr>
+  </table>
+</div>
+<div class="pure-u-2-3" id="current-facilities ">
+  <h2>Required Facilities</h2>
+  <table class="pure-table" ng-repeat="facType in facilities ">
+    <tr ng-repeat="fac in facType ">
+      <td>{{fac.label}}</td>
+      <td>{{fac.type}}</td>
+      <td>
+        <input ng-model=fac.status />
+      </td>
+      <td>{{fac.capacity}} {{fac.units}}</td>
+      <td>Working: {{fac.working}}</td>
+    </tr>
+  </table>
+  <button class="pure-button">Add Facility</button>
+</div>

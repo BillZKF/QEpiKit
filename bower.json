@@ -20,6 +20,8 @@
     "chance": "~0.7.5",
     "angular": "~1.4.0",
     "MathJax": "~2.5.3",
-    "material-design-lite": "~1.0.1"
+    "material-design-lite": "~1.0.1",
+    "random": "~1.0.5",
+    "angular-route": "~1.4.3"
   }
 }

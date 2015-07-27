@@ -3,6 +3,10 @@
 	float:right;
 }
 
+.small-ticks {
+	font-size:0.5em;
+}
+
 .info-box p{
 	font-size:0.8em;
 	margin : 0px;

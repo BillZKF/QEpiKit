@@ -1,7 +1,5 @@
-//Replace this file with Iterative Portion Fitting or better agent gen method.
-self.importScripts("../bower_components/chance/chance.js","../dist/utils.js","../dist/behaviorTree.js","libs/jstat.min.js");
-//
-var chance1 = chance;
+var chance1 = Chance(123456);
+var campAgents, PopGenTree;
 var popGenConditions = {
   "existsAge": {
     key: "age",
@@ -89,7 +87,7 @@ var popGenActions = {
     min: 0,
     max: 1
   });
-  person.mass = person.sex === "female" ? jStat.normal.inv(percentile, 60, 5) : jStat.normal.inv(percentile, 75, 8);
+  person.mass = person.sex === "female" ? chance1.normal({mean: 60, dev: 5})  : chance1.normal({mean:78, dev: 7});
 },
 "setOrigin": function(person){
   person.origin = "Nepal";
@@ -103,7 +101,7 @@ var SetOrigin = new QEpiKit.BTAction("set-origin", popGenConditions.existsLocati
 var SequenceDemographic = new QEpiKit.BTSequence("sequence-demographic", [SetOrigin, SetAge, SetSex, SetMass]);
 var Root = new QEpiKit.BTRoot("start-pop-gen", [SequenceDemographic]);
 
-function empty(number) {
+var empty = function(number) {
   var emptyData = [];
   for (var i = 0; i < number; i++) {
     emptyData[i] = {
@@ -113,11 +111,11 @@ function empty(number) {
     };
   }
   return emptyData;
-}
+};
 
-var campAgents = empty(960);
-var PopGenTree = new QEpiKit.BehaviorTree("pop-gen-tree", Root, campAgents);
-PopGenTree.update();
-
-postMessage(campAgents);
-self.close();
+var genPop = function(num){
+  campAgents = empty(num);
+  PopGenTree = new QEpiKit.BehaviorTree("pop-gen-tree", Root, campAgents);
+  PopGenTree.update();
+  return campAgents;
+};

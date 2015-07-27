@@ -97,6 +97,32 @@ var QEpiKit;
                 return Utils.FAILED;
             }
         };
+        Utils.getMatcherString = function (check) {
+            var string = null;
+            switch (check) {
+                case QEpiKit.Utils.equalTo:
+                    string = "equal to";
+                    break;
+                case QEpiKit.Utils.notEqualTo:
+                    string = "not equal to";
+                    break;
+                case QEpiKit.Utils.gt:
+                    string = "greater than";
+                    break;
+                case QEpiKit.Utils.gtEq:
+                    string = "greater than or equal to";
+                    break;
+                case QEpiKit.Utils.lt:
+                    string = "less than";
+                    break;
+                case QEpiKit.Utils.ltEq:
+                    string = "less than or equal to";
+                    break;
+                default:
+                    break;
+            }
+            return string;
+        };
         Utils.SUCCESS = 1;
         Utils.FAILED = 2;
         Utils.RUNNING = 3;

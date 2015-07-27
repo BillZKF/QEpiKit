@@ -1,0 +1,14 @@
+<div class="pure-u-2-3" id="model-results " data-ng-init="forecast()">
+  <div>
+  <h2>Forecast</h2>
+</div>
+  <div ng-repeat="barrier in barriers">
+  <div class="accent-c barrier">{{barrier.label}} - Expected : {{barrier.expected}}, Actual : {{barrier.actual}}</div>
+  </div>
+  <label for="resources-forecast">Resources</label>
+  <div id="resources-forecast">
+  </div>
+  <label for="facilities-forecast">Facilities</label>
+  <div id="facilities-forecast">
+  </div>
+</div>

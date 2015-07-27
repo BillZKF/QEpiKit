@@ -1,49 +1,32 @@
 var QEpiKit = (function(Q, d3) {
   Q.renderer = {
-    resourceLineChart: function(resources, el, datatype) {
-      var max = 0,
+    resourceLineChart: function(resources, until, el, datatype) {
+      var timeInt = until / (resources.length - 1),
+        max = 0,
         min = 1e20,
         height = 480,
-        width = 480,
-        margin = 60,
+        width = window.innerWidth * 0.75,
+        margin = 80,
+        start = new Date().getTime(),
         container = document.createElement("div");
       container.id = "resource-diagrams";
       this.info = document.createElement("span");
       this.info.id = "resource-info-box";
       this.info.className = "info-box";
       container.appendChild(this.info);
+      document.getElementById(el).innerHTML = "";
       document.getElementById(el).appendChild(container);
-
       this.svgResTime = d3.select(container).append("svg").attr("height", height).attr("width", width).append("g");
-      var x = d3.scale.linear()
-        .domain([0, 90])
-        .range([margin, width - margin]);
 
-      var y = d3.scale.linear()
-        .domain([max, min])
-        .range([margin, height - margin]);
 
-      var xAxis = d3.svg.axis()
-        .scale(x)
-        .orient("bottom");
-
-      var yAxis = d3.svg.axis()
-        .scale(y)
-        .orient("left");
-
-      var curveFunc = d3.svg.line()
-        .x(function(d) {
-          return x(d.x);
-        })
-        .y(function(d) {
-          return y(d.y);
-        });
       this.curveDatas = [];
       for (var res in resources[0]) {
         if (resources[0][res].hasOwnProperty(datatype)) {
           this.curveDatas[res] = [];
           for (var t = 0; t < resources.length; t++) {
 
+            var time = new Date();
+            time = time.addDays( t * timeInt);
             if (resources[t][res][datatype] > max) {
               max = resources[t][res][datatype];
             }
@@ -51,59 +34,31 @@ var QEpiKit = (function(Q, d3) {
             if (resources[t][res][datatype] < min) {
               min = resources[t][res][datatype];
             }
-            y.domain([max, min]);
             this.curveDatas[res].push({
-              x: t * 10,
+              x: time,
               y: resources[t][res][datatype]
             });
           }
-          this.svgResTime.append('path')
-            .datum(this.curveDatas[res])
-            .attr('class', 'line')
-            .style('stroke', '#' + Math.floor(Math.random() * 16777215).toString(16))
-            .style('stroke-width', 3)
-            .attr('d', curveFunc)
-            .append("svg:title")
-            .text(res);
         }
       }
-      this.svgResTime.append("g")
-        .attr("class", "axis")
-        .attr("transform", "translate(0," + (height - margin) + ")")
-        .call(xAxis);
 
-      this.svgResTime.append("g")
-        .attr("class", "axis")
-        .attr("transform", "translate( " + margin + ",0)")
-        .call(yAxis);
-      return this;
-    },
-    containerLineChart: function(con, chart) {
-      var max = 0,
-        min = 1e20,
-        height = 480,
-        width = 480,
-        margin = 60,
-        container = document.createElement("div");
-      container.id = "container-diagrams";
-      this.info = document.createElement("span");
-      this.info.id = "container-info-box";
-      this.info.className = "info-box";
-      container.appendChild(this.info);
-      document.getElementById(el).appendChild(container);
+      var dateFormat = d3.time.format("%x");
 
-      this.svgConTime = d3.select(container).append("svg").attr("height", height).attr("width", width).append("g");
-      var x = d3.scale.linear()
-        .domain([0, 90])
+      var end = new Date();
+      end = end.addDays(until);
+
+      var x = d3.time.scale()
+        .domain([start, end])
         .range([margin, width - margin]);
 
-      var y = d3.scale.linear()
+      var y = d3.scale.log()
         .domain([max, min])
         .range([margin, height - margin]);
 
       var xAxis = d3.svg.axis()
         .scale(x)
-        .orient("bottom");
+        .orient("bottom")
+        .tickFormat(dateFormat);
 
       var yAxis = d3.svg.axis()
         .scale(y)
@@ -116,8 +71,17 @@ var QEpiKit = (function(Q, d3) {
         .y(function(d) {
           return y(d.y);
         });
-      this.curveDatas = [];
-      this.capDatas = [];
+
+      for (var i in this.curveDatas) {
+        this.svgResTime.append('path')
+          .datum(this.curveDatas[i])
+          .attr('class', 'line')
+          .style('stroke', '#' + Math.floor(Math.random() * 16777215).toString(16))
+          .style('stroke-width', 3)
+          .attr('d', curveFunc)
+          .append("svg:title")
+          .text(resources[0][i].label);
+      }
 
 
       this.svgResTime.append("g")
@@ -129,6 +93,104 @@ var QEpiKit = (function(Q, d3) {
         .attr("class", "axis")
         .attr("transform", "translate( " + margin + ",0)")
         .call(yAxis);
+
+        d3.selectAll(".tick > text")
+          .style("font-size",6);
+
+      return this;
+    },
+    facilitiesLineChart: function(history, until, el, type) {
+      var timeInt = until / (history.length - 1),
+        max = 0,
+        min = 1e20,
+        height = 480,
+        width = window.innerWidth * 0.75,
+        margin = 80,
+        start = new Date().getTime(),
+        container = document.createElement("div");
+      container.id = "resource-diagrams";
+      this.info = document.createElement("span");
+      this.info.id = "resource-info-box";
+      this.info.className = "info-box";
+      container.appendChild(this.info);
+      document.getElementById(el).innerHTML = "";
+      document.getElementById(el).appendChild(container);
+      this.svgResTime = d3.select(container).append("svg").attr("height", height).attr("width", width).append("g");
+
+
+      this.curveDatas = [];
+
+      for (var i = 0; i < history[0].facilities[type].length; i++) {
+          this.curveDatas[i] = [];
+          for (var t = 0; t < history.length; t++) {
+            var fac = history[t].facilities[type][i];
+            var time = new Date();
+            time = time.addDays( t * timeInt);
+              if (fac.capacity > max) {
+                max = fac.capacity;
+              }
+              this.curveDatas[i].push({
+                x: time,
+                y: fac.status
+              });
+            }
+          }
+
+      var dateFormat = d3.time.format("%x");
+
+      var end = new Date();
+      end = end.addDays(until);
+
+      var x = d3.time.scale()
+        .domain([start, end])
+        .range([margin, width - margin]);
+
+      var y = d3.scale.linear()
+        .domain([max, 0])
+        .range([margin, height - margin]);
+
+      var xAxis = d3.svg.axis()
+        .scale(x)
+        .orient("bottom")
+        .tickFormat(dateFormat);
+
+      var yAxis = d3.svg.axis()
+        .scale(y)
+        .orient("left");
+
+      var curveFunc = d3.svg.line()
+        .x(function(d) {
+          return x(d.x);
+        })
+        .y(function(d) {
+          return y(d.y);
+        });
+
+      for (var j = 0; j < this.curveDatas.length; j++) {
+        this.svgResTime.append('path')
+          .datum(this.curveDatas[j])
+          .attr('class', 'line')
+          .style('stroke', '#' + Math.floor(Math.random() * 16777215).toString(16))
+          .style('stroke-width', 3)
+          .attr('d', curveFunc)
+          .append("svg:title")
+          .text(history[0].facilities[type][j].label + ": " + history[0].facilities[type][j].type);
+      }
+
+
+      this.svgResTime.append("g")
+        .attr("class", "axis")
+        .attr("transform", "translate(0," + (height - margin) + ")")
+        .call(xAxis);
+
+      this.svgResTime.append("g")
+        .attr("class", "axis")
+        .attr("transform", "translate( " + margin + ",0)")
+        .call(yAxis);
+
+        d3.selectAll(".tick > text")
+          .style("font-size",10);
+
       return this;
     },
     compModelDiagrams: function(model, el) {

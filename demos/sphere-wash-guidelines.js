@@ -3,68 +3,66 @@ var sphereWASHGuidelines = [
   {
     temporal: QEpiKit.Utils.always,
     condition: {
+      label: "water transport container for all house holds",
       data: campEnv.resources.waterTransportContainers,
-      key: "count",
+      key: "amount",
       value: campEnv.householdCount,
-      check: QEpiKit.Utils.gt
+      check: QEpiKit.Utils.gtEq
     }
   }, {
     temporal: QEpiKit.Utils.always,
     condition: {
+      label: "water storage container for all house holds",
       data: campEnv.resources.waterStorageContainers,
-      key: "count",
+      key: "amount",
       value: campEnv.householdCount,
-      check: QEpiKit.Utils.gt
+      check: QEpiKit.Utils.gtEq
     }
   }, {
     temporal: QEpiKit.Utils.always,
     condition: {
+      label: "bathing soap for each person each month",
       data: campEnv.resources.bathingSoap,
-      key: "count",
+      key: "amount",
       value: campEnv.householdCount,
-      check: QEpiKit.Utils.gt
+      check: QEpiKit.Utils.gtEq
     }
   }, {
     temporal: QEpiKit.Utils.always,
     condition: {
+      label: "laundry soap for each person each month",
       data: campEnv.resources.laundrySoap,
-      key: "count",
+      key: "amount",
       value: campEnv.householdCount,
-      check: QEpiKit.Utils.gt
-    }
-  }, {
-    temporal: QEpiKit.Utils.always,
-    condition: {
-      data: campEnv.resources.menstrualHygeineCotton,
-      key: "count",
-      value: campEnv.girls8AndUpCount,
-      check: QEpiKit.Utils.gt
+      check: QEpiKit.Utils.gtEq
     }
   },
   // @Water Supply Standard 1
   {
     temporal: QEpiKit.Utils.always,
     condition: {
+      label: "each person has 15 litres of water total, per day",
       data: campEnv.resources.totalWater,
-      key: "quantity",
-      value: campEnv.totalPop * 15,
-      check: QEpiKit.Utils.gt
+      key: "amount",
+      value: campAgents.length * 15,
+      check: QEpiKit.Utils.gtEq
     }
   }, { //@Water Supply Standard 1, Guidance Note  5
     temporal: QEpiKit.Utils.always,
     condition: {
+      label: "enough water taps (pop / 250)",
       data: campEnv.resources.waterTaps,
-      key: "count",
-      value: Math.ceil(campEnv.totalPop / 250),
-      check: QEpiKit.Utils.gt
+      key: "amount",
+      value: Math.ceil(campAgents.length / 250),
+      check: QEpiKit.Utils.gtEq
     }
   }
 ];
 
 var sphereAgentIndicators = {
-  "dehydrated" : {
-    key : "dailyWater",
-    value : 2.5,
-    check : QEpiKit.Utils.gt
+  "dehydrated": {
+    key: "dailyWater",
+    value: 2.5,
+    check: QEpiKit.Utils.gt
   }
 };

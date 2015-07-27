@@ -48,7 +48,13 @@ module QEpiKit {
       }
       return results;
     }
+
+    update(step: number, task:HTNRootTask) {
+      HTNPlanner.tick(this.root, task, this.data);
+    }
   }
+
+
 
   export class HTNRootTask {
     public name: string;
@@ -60,9 +66,14 @@ module QEpiKit {
     }
 
     evaluateGoal(agent) {
-      var result;
+      var result, g;
       for (var p = 0; p < this.goals.length; p++) {
-        result = this.goals[p].check(agent[this.goals[p].key], this.goals[p].value);
+        g = this.goals[p];
+        if(g.data){
+          result = g.check(g.data[g.key], g.value);
+        } else{
+          result = g.check(agent[g.key], g.value);
+        }
         return result;
       }
     }
@@ -114,7 +125,7 @@ module QEpiKit {
             return HTNPlanner.RUNNING;
           }
         } else {
-          agent.barrierList.unshift([this.name, this.preconditions]);
+          agent.barrierList.unshift({name: this.name, conditions: this.preconditions});
           return HTNPlanner.FAILED;
         }
       }
@@ -141,7 +152,7 @@ module QEpiKit {
             }
           }
         } else {
-          agent.barrierList.unshift([this.name, this.preconditions]);
+          agent.barrierList.unshift({name: this.name, conditions: this.preconditions});
         }
         return HTNPlanner.FAILED;
       }

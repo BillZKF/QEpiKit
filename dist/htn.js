@@ -41,6 +41,9 @@ var QEpiKit;
             }
             return results;
         };
+        HTNPlanner.prototype.update = function (step, task) {
+            HTNPlanner.tick(this.root, task, this.data);
+        };
         HTNPlanner.SUCCESS = 1;
         HTNPlanner.FAILED = 2;
         HTNPlanner.RUNNING = 3;
@@ -53,9 +56,15 @@ var QEpiKit;
             this.goals = goals;
         }
         HTNRootTask.prototype.evaluateGoal = function (agent) {
-            var result;
+            var result, g;
             for (var p = 0; p < this.goals.length; p++) {
-                result = this.goals[p].check(agent[this.goals[p].key], this.goals[p].value);
+                g = this.goals[p];
+                if (g.data) {
+                    result = g.check(g.data[g.key], g.value);
+                }
+                else {
+                    result = g.check(agent[g.key], g.value);
+                }
                 return result;
             }
         };
@@ -103,7 +112,7 @@ var QEpiKit;
                     }
                 }
                 else {
-                    agent.barrierList.unshift([this.name, this.preconditions]);
+                    agent.barrierList.unshift({ name: this.name, conditions: this.preconditions });
                     return HTNPlanner.FAILED;
                 }
             };
@@ -131,7 +140,7 @@ var QEpiKit;
                     }
                 }
                 else {
-                    agent.barrierList.unshift([this.name, this.preconditions]);
+                    agent.barrierList.unshift({ name: this.name, conditions: this.preconditions });
                 }
                 return HTNPlanner.FAILED;
             };
