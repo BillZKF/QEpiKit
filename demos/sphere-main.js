@@ -18,19 +18,19 @@
     var monitorPlans = {
       "noIntervention": function() {
         console.log("baseline");
-        var agentBTree = new QEpiKit.BehaviorTree("camp-resident-behavior", Root, campAgents);
+        var agentBTree = new QEpiKit.BehaviorTree("camp-resident-behavior", BTRoot, campAgents);
         campEnv.add(agentBTree);
         campEnv.run(1, until, 2);
       },
       "taskNetworkEval": function() {
         console.log("taskNetworkEval");
         var tempAgents = JSON.parse(JSON.stringify(campAgents));
-        var agentBTree = new QEpiKit.BehaviorTree("camp-resident-behavior", Root, tempAgents);
+        var agentBTree = new QEpiKit.BehaviorTree("camp-resident-behavior", BTRoot, tempAgents);
         campEnv.add(agentBTree);
 
         var scenarioPlanningAgent = new QEpiKit.HTNPlanner('camp-scenario-planner',StartHTN, campEnv.resources);
         scenarioPlanningAgent.update(1, MeetSphereGoals);
-        console.log(campEnv.resources);
+        self.postMessage(["htn-result", campEnv.resources.successList]);
       }
     };
     importScripts("sphere-btree.js");

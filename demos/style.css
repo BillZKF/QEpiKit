@@ -1,34 +1,44 @@
-.main-c{
-	background-color: #2196F3;
+.main-c {
+  background-color: #2196F3;
+  color: #fff;
 }
-
-.main-c a{
-	color: #fff;
+.small-meta {
+  font-size: 75%;
+  color: #666;
 }
-
-.main-c :hover{
-	background-color: #8BC34A;
-	color: #fff;
+a:hover {
+  background-color: #12D37F;
+  color: #fff;
 }
-
-.accent-c{
-	background-color: #E91E63;
-	color: #fff;
+.accent-c {
+  background-color: #E91E63;
+  color: #fff;
 }
-.surprise-c{
-	background-color: #12D37F;
+.surprise-c {
+  background-color: #12D37F;
+  color: #fff;
 }
-.warn-c{
-	background-color: #FF2D2D;
+.warn-c {
+  background-c color: #FF2D2D;
+}
+.feed-item {
+  padding: 12px;
+  box-shadow: 0 0 4px #666;
+}
+.button-xlarge {
+  font-size: 125%;
+	top-margin:8px;
+	bottom-margin:8px;
 }
 .sphere-header-menu{
-	font-weight: bolder;
-	height:48px;
-	color: #fff;
+	height: 48px;
 }
-
-.barrier {
-	font-size:1.1em;
-	padding:12px;
-	margin-bottom:4px;
+.sphere-header-menu a{
+  font-weight: bolder;
+  color: #fff;
+}
+.forecast-msg {
+  font-size: 1.1em;
+  padding: 12px;
+  margin-bottom: 4px;
 }

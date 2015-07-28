@@ -2,37 +2,50 @@
   <fieldset>
     <h2>Estimate Resources Needed</h2>
     <label for="houseHolds">Number of Households</label>
-    <input id="houseHolds" type="number" max="20000" ng-change="getAgents()" ng-model=householdCount />
-    <span>Total People : {{agents.length}}</span>
+    <input id="houseHolds" type="number" max="20000" ng-change="totalPopEst()" ng-model=householdCount />
+    <p>Total People : {{totalPop}}</p>
     <label for="days">Duration</label>
     <input id="days" type="number" max="730" ng-model=forecastLength />
-    <button class="pure-button pure-button-primary" ng-click="calcNeeds()">Calculate Needs</button>
+    <button class="pure-button pure-button-primary button-xlarge" ng-click="calcNeeds()">Calculate Required Resources</button>
   </fieldset>
 </form>
 <div class="pure-u-2-3" id="current-resources">
-  <h2>Required Resources</h2>
+  <h2>Resources</h2>
   <table class="pure-table">
-    <tr ng-repeat="res in resources ">
-      <td>{{res.label}}</td>
+    <tr ng-repeat="(key,value) in resources">
+      <td>{{value.label}}</td>
       <td>
-        <input ng-model=res.amount />
+        <input ng-model=value.amount />
       </td>
-      <td>{{res.units}}</td>
+      <td>{{value.units}}</td>
+      <td>
+        <div ng-click="removeResource(key)" class="pure-button">X</button>
+      </td>
     </tr>
   </table>
-</div>
-<div class="pure-u-2-3" id="current-facilities ">
-  <h2>Required Facilities</h2>
-  <table class="pure-table" ng-repeat="facType in facilities ">
-    <tr ng-repeat="fac in facType ">
-      <td>{{fac.label}}</td>
-      <td>{{fac.type}}</td>
-      <td>
-        <input ng-model=fac.status />
-      </td>
-      <td>{{fac.capacity}} {{fac.units}}</td>
-      <td>Working: {{fac.working}}</td>
-    </tr>
-  </table>
-  <button class="pure-button">Add Facility</button>
-</div>
+  <form class="pure-form">
+    <input placeholder="Enter a new resource" ng-model="newName" />
+    <input placeholder="Enter resource units" ng-model="newUnits" />
+    <button class="pure-button pure-button-primary button-xlarge" ng-click="addResource(newName, newUnits)">Add Resource Row</button>
+  </form>
+  </div>
+  <div class="pure-u-2-3" id="current-facilities ">
+    <h2>Facilities</h2>
+    <table class="pure-table" ng-repeat="(key,value) in facilities">
+      <tr>
+        <th ng-click="toggleShow(key)">{{key}}</th>
+      </tr>
+      <tr ng-show="show[key]" ng-repeat="fac in value track by $index">
+        <td>{{fac.label}}</td>
+        <td>{{fac.type}}</td>
+        <td>
+          <input ng-model=fac.status />
+        </td>
+        <td>{{fac.capacity}} {{fac.units}}</td>
+        <td>Working: {{fac.working}}</td>
+        <td>
+          <div ng-click="removeFacility(key,$index)" class="pure-button">X</button>
+        </td>
+      </tr>
+    </table>
+  </div>

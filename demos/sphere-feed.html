@@ -1,0 +1,8 @@
+<div class="pure-u-1">
+<h2>Update Feed</h2>
+<div class="feed-item" ng-repeat="item in $root.feed">
+  <p>{{item.type}} : {{item.label}}</p>
+  <p>FROM : {{item.oldVal}}, TO: {{item.newVal}}</p>
+  <p class="small-meta"> by :{{item.user}} - on : {{item.date | date:"MM/dd/yyyy 'at' h:mma"}}</p>
+</div>
+</div>

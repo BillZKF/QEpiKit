@@ -49,6 +49,6 @@ var htnEffects = {
 var OrderSupplies = new QEpiKit.HTNOperator("order-supplies", null, [htnEffects.takeCorrectiveActions, function() {
   campEnv.run(1, until, 10);
 }]);
-var StartHTN = new QEpiKit.HTNMethod("start", [htnCond.hadBarriers], [OrderSupplies]);
+var StartHTN = new QEpiKit.HTNMethod("calculate-shortfall", [htnCond.hadBarriers], [OrderSupplies]);
 
 var MeetSphereGoals = new QEpiKit.HTNRootTask("MeetSphereGoals", [sphereWASHGuidelines[1].condition], campEnv.resources);

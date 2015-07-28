@@ -45,6 +45,14 @@ var actions = {
     //use 6l per day
     campEnv.resources.totalWater.amount -= 3.5 * step + random.integer(-1, 2);
   },
+  "useCookingWater": function(person) {
+    //use 6l per day
+    campEnv.resources.totalWater.amount -= 3.5 * step + random.integer(-1, 2);
+  },
+  "useDrinkingWater": function(person) {
+    //use 6l per day
+    campEnv.resources.totalWater.amount -= 4.5 * step + random.integer(-1, 2);
+  },
   "useMenstrualProd": function(person) {
     //use 8 every 28 days
     person.resources.menstrualHygeineCotton.amount -= (6 / 28) * step;
@@ -83,14 +91,17 @@ var actions = {
 
 //What do the people actually do!? By Behavior Tree!
 var UseMenstrualProduct = new QEpiKit.BTAction("use-menstr-prod", conditions.isReproductiveAge, actions.useMenstrualProd);
-var IsFemale = new QEpiKit.BTCondition("is-female?", conditions.isFemale);
-var Menstration = new QEpiKit.BTSequence("menstruates?", [IsFemale, UseMenstrualProduct]);
-var UseHygWater = new QEpiKit.BTAction("use-water", conditions.isActive, actions.useHygWater);
+var IsFemale = new QEpiKit.BTCondition("female-8-50?", conditions.isFemale);
+var Menstration = new QEpiKit.BTSequence("menstruates", [IsFemale, UseMenstrualProduct]);
+var UseHygWater = new QEpiKit.BTAction("use-bathing-water", conditions.isActive, actions.useHygWater);
 var DoLaundry = new QEpiKit.BTAction("do-laundry", conditions.isActive, actions.doLaundry);
 var UseSoap = new QEpiKit.BTAction("use-soap", conditions.isActive, actions.useSoap);
 var HygieneSequence = new QEpiKit.BTSequence("hygiene-sequence", [UseHygWater, UseSoap, DoLaundry, Menstration]);
 var UseTP = new QEpiKit.BTAction("use-toilet-paper", conditions.isActive, actions.useTP);
 var UseLatrine = new QEpiKit.BTAction("use-latrine", conditions.isActive, actions.useLatrine);
+var UseDrinkingWater = new QEpiKit.BTAction("use-drinking-water", conditions.isActive, actions.useDrinkingWater);
+var UseCookingWater = new QEpiKit.BTAction("use-cooking-water", conditions.isActive, actions.useCookingWater);
 var WasteSequence = new QEpiKit.BTSequence("waste-sequence", [UseLatrine]);
-var DailySequence = new QEpiKit.BTSequence("daily", [WasteSequence, HygieneSequence]);
-var Root = new QEpiKit.BTRoot("start", [DailySequence]);
+var ConsumeSequence = new QEpiKit.BTSequence("water-use-sequence", [UseDrinkingWater, UseCookingWater]);
+var DailySequence = new QEpiKit.BTSequence("daily", [ WasteSequence, ConsumeSequence,HygieneSequence]);
+var BTRoot = new QEpiKit.BTRoot("start", [DailySequence]);

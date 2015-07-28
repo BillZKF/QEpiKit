@@ -448,7 +448,7 @@ var SelectPhase = new QEpiKit.BTSelector("select-phase", [SequenceDemographic, S
 var Root = new QEpiKit.BTRoot("start-pop-gen", [SelectPhase]);
 var PopGen = new QEpiKit.BehaviorTree("pop-gen-tree", Root, popData);
 postMessage(JSON.stringify(PopGen.root));
-PopGen.generateTimeData(1, 1, 1);
+PopGen.run(1, 1, 1);
 
 //operating
 var Encounter = new QEpiKit.BTAction("expose-others", conditions.incubating, actions.encounters);
@@ -465,7 +465,7 @@ var Daily = new QEpiKit.BTSequence("daily", [General, SeqExp]);
 var Root = new QEpiKit.BTRoot("start-disease", [Daily]);
 var BHTree = new QEpiKit.BehaviorTree("measles-ex-tree",Root, popData);
 postMessage(JSON.stringify(BHTree.root));
-BHTree.generateTimeData(1, 90, 3);
+BHTree.run(1, 90, 3);
 var summarizeTimeData = function(data, keys) {
   var results = [];
   for (var step = 0; step < data.length; step++) {
@@ -481,6 +481,6 @@ var summarizeTimeData = function(data, keys) {
   return results;
 };
 
-postMessage(summarizeTimeData(BHTree.record, ["succeptible","exposed","infectious","removed"]));
+postMessage(summarizeTimeData(BHTree.history, ["succeptible","exposed","infectious","removed"]));
 postMessage(WhomInfectsWhom);
 self.close();

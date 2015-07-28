@@ -26,6 +26,9 @@ var events = {
   },
   "issueToiletPaper": function(person) {
     give(campEnv.resources, person.resources, "tolietPaper", 1);
+  },
+  "issuePUR": function(person) {
+    give(campEnv.resources, person.resources, "PURtablets", 1);
   }
 
 };
@@ -53,16 +56,6 @@ var eventsQueue = {
         if (agents[i].sex === "female" && agents[i].reproductiveAge) {
           events.issueMenstrualProd(agents[i]);
         }
-      }
-    },
-    triggered: false
-  },
-  50: {
-    trigger: function(agents) {
-      var l, per = Math.floor(campEnv.resources.facilities.latrines.length * 0.1);
-      for (var i = 0; i < per ; i++) {
-        l = random.integer(0, campEnv.resources.facilities.latrines.length);
-        campEnv.resources.facilities.latrines[l].working = false;
       }
     },
     triggered: false
