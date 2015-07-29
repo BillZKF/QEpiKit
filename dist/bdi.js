@@ -43,6 +43,30 @@ var QEpiKit;
             this.planHistory.push({ time: this.time, intention: policy, goals: achievements, barriers: barriers, r: successes / this.goals.length });
             this.time += step;
         };
+        BDIAgent.prototype.assess = function (eventName, agents, resources) {
+            var c, matcher, policy, intent, achievements = [], barriers = [], belief = [agents, resources], successes = 0;
+            policy = this.policySelector(this.plans, this.planHistory);
+            intent = this.plans[policy];
+            intent(belief);
+            for (var i = 0; i < this.goals.length; i++) {
+                c = this.goals[i].condition;
+                achievements[i] = this.goals[i].temporal(c.check(c.data[c.key], c.value));
+                if (achievements[i] === BDIAgent.SUCCESS) {
+                    successes += 1;
+                }
+                else {
+                    matcher = QEpiKit.Utils.getMatcherString(c.check);
+                    barriers.push({
+                        label: c.label,
+                        key: c.key,
+                        check: matcher,
+                        actual: c.data[c.key],
+                        expected: c.value
+                    });
+                }
+            }
+            this.planHistory.push({ event: eventName, intention: policy, goals: achievements, barriers: barriers, r: successes / this.goals.length });
+        };
         BDIAgent.prototype.run = function (step, limit, recordInt, events) {
             while (this.time <= limit) {
                 this.update(step, events);

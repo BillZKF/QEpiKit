@@ -2,20 +2,24 @@
 *The QEpi main module and namespace.
 *@preferred
 */
-module QEpiKit{
+module QEpiKit {
   /**
   *Environments are the executable environment containing the model components,
   *shared resources, and scheduler.
   */
-  export class Environment{
+  export class Environment {
     /**
     * time current time for the environment (shared with all model components)
     */
-    public time : number;
+    public time: number;
     /**
     * The models array contains runnable model components
     */
-    public models : any[];
+    public models: any[];
+    /**
+    * The observers for this environment
+    */
+    public observers: any[];
     /**
     * The eventsQueue is an array of Event objects
     */
@@ -37,10 +41,11 @@ module QEpiKit{
     */
     public agents: any;
 
-    constructor(agents, resources, eventsQueue:Event[]){
+    constructor(agents, resources, eventsQueue: Event[]) {
       this.time = 0;
       this.geoNetwork = [];
       this.models = [];
+      this.observers = [];
       this.history = [];
       this.agents = agents;
       this.resources = resources;
@@ -50,17 +55,30 @@ module QEpiKit{
     /** Add a model components from the environment
     * @param component the model component object to be added to the environment.
     */
-    add(component){
+    add(component) {
       this.models.push(component);
     }
 
     /** Remove a model components from the environment by id
     * @param id UUID of the component to be removed.
     */
-    remove(id){
+    remove(id) {
       var deleteIndex;
-      this.models.forEach(function(c, index){ if (c.id === id){ deleteIndex = index;}});
+      this.models.forEach(function(c, index) { if (c.id === id) { deleteIndex = index; } });
       this.models.splice(deleteIndex, 1)
+    }
+
+    /** Add an observer to this environemnt
+    * @param observer agent to be called on change
+    */
+    addObserver(observer) {
+      this.observers.push(observer);
+    }
+
+    removeObserver(id) {
+      var deleteIndex;
+      this.observers.forEach(function(c, index) { if (c.id === id) { deleteIndex = index; } });
+      this.observers.splice(deleteIndex, 1);
     }
 
     /** Run all environment model components from t=0 until t=until using time step = step
@@ -68,29 +86,36 @@ module QEpiKit{
     * @param until the end time
     * @param saveInterval save every 'x' steps
     */
-    run(step:number, until:number, saveInterval:number){
-      while(this.time <= until){
+    run(step: number, until: number, saveInterval: number) {
+      while (this.time <= until) {
         this.update(step);
         var rem = (this.time / step) % saveInterval;
-        if(rem === 0){
+        if (rem === 0) {
           this.history.push(JSON.parse(JSON.stringify(this.resources)));
         }
         this.time += step;
+      }
+      this.publish("finished", this.agents, this.resources);
+    }
+
+    publish(eventName, agents, resources) {
+      for (var o = 0; o < this.observers.length; o++) {
+        this.observers[o].assess(eventName, this.agents, this.resources);
       }
     }
 
     /** Update each model compenent one time step forward
     * @param step the step size
     */
-    update(step:number){
+    update(step: number) {
       var eKey = this.time.toString();
-      if(this.eventsQueue.hasOwnProperty(eKey)){
+      if (this.eventsQueue.hasOwnProperty(eKey)) {
         this.eventsQueue[eKey].trigger(this.agents);
         this.eventsQueue[eKey].triggered = true;
       } else {
         this.eventsQueue[eKey] = null;
       }
-      for(var c = 0; c < this.models.length; c++){
+      for (var c = 0; c < this.models.length; c++) {
         this.models[c].update(step);
       }
     }
@@ -99,7 +124,7 @@ module QEpiKit{
   /**
   * Events are triggered at a given time
   */
-  export class Event{
+  export class Event {
     /**
     * trigged false until trigger function is called for event, then set true
     */
@@ -109,7 +134,7 @@ module QEpiKit{
     */
     public trigger: Function;
 
-    constructor(trigger:Function){
+    constructor(trigger: Function) {
       this.trigger = trigger;
     }
   }

@@ -57,6 +57,30 @@ module QEpiKit {
       this.time += step;
     }
 
+    assess(eventName:string, agents:any[], resources){
+      var c, matcher, policy, intent, achievements = [], barriers = [], belief = [agents, resources], successes = 0;
+      policy = this.policySelector(this.plans, this.planHistory);
+      intent = this.plans[policy];
+      intent(belief);
+      for (var i = 0; i < this.goals.length; i++) {
+        c = this.goals[i].condition;
+        achievements[i] = this.goals[i].temporal(c.check(c.data[c.key], c.value));
+        if (achievements[i] === BDIAgent.SUCCESS) {
+          successes += 1;
+        } else {
+          matcher = Utils.getMatcherString(c.check);
+          barriers.push({
+            label: c.label,
+            key: c.key,
+            check: matcher,
+            actual: c.data[c.key],
+            expected: c.value
+          });
+        }
+      }
+      this.planHistory.push({ event: eventName, intention: policy, goals: achievements, barriers: barriers, r: successes / this.goals.length });
+    }
+
     run(step: number, limit: number, recordInt: number, events: any) {
       while (this.time <= limit) {
         this.update(step, events);

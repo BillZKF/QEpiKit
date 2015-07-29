@@ -118,6 +118,9 @@ var QEpiKit;
                 case QEpiKit.Utils.ltEq:
                     string = "less than or equal to";
                     break;
+                case QEpiKit.Utils.ltEq:
+                    string = "has the property";
+                    break;
                 default:
                     break;
             }

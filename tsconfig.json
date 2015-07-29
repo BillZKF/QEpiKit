@@ -14,6 +14,7 @@
         "src/bdi.ts",
         "src/behaviorTree.ts",
         "src/compartment.ts",
+        "src/component.ts",
         "src/contactPatch.ts",
         "src/environment.ts",
         "src/epi.ts",

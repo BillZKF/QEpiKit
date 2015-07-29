@@ -32,13 +32,17 @@ describe("A Belief Desire Intent Agent", function() {
     goals = [{
       temporal: QEpiKit.Utils.always,
       condition: {
+        label: "vaccine cache is always greater than 2mil",
+        data: environment,
         key: "vaccineCache",
-        value: 2000000,
+        value: 2e7,
         check: QEpiKit.Utils.gt
       }
     },{
       temporal: QEpiKit.Utils.always,
       condition: {
+        label: "incidence is always below 110",
+        data: environment,
         key: "incidence",
         value: 110,
         check: QEpiKit.Utils.lt
@@ -46,6 +50,8 @@ describe("A Belief Desire Intent Agent", function() {
     }, {
       temporal: QEpiKit.Utils.eventually,
       condition: {
+        label: "schools eventually open",
+        data: environment,
         key: "schoolsOpen",
         value: true,
         check: QEpiKit.Utils.equalTo
@@ -53,6 +59,8 @@ describe("A Belief Desire Intent Agent", function() {
     }, {
       temporal: QEpiKit.Utils.eventually,
       condition: {
+        label: "incidence eventually gets below 70",
+        data: environment,
         key: "incidence",
         value: 70,
         check: QEpiKit.Utils.lt
@@ -77,12 +85,12 @@ describe("A Belief Desire Intent Agent", function() {
         environment.schoolsOpen = false;
       }
     };
-    TestDecider = new QEpiKit.BDIAgent('test-decider', goals, plans, environment, QEpiKit.BDIAgent.pastRewardSelection);
+    TestDecider = new QEpiKit.BDIAgent('test-decider', goals, plans, environment);
   });
 
   it("should take the current state of the data, create a new belief", function() {
     TestDecider.update(1, eventQueue);
     expect(environment.incidence).not.toBe(100); //step,
-    TestDecider.generateTimeData(1,20,2,eventQueue);
+    TestDecider.run(1,20,2,eventQueue);
   });
 });

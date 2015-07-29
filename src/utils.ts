@@ -134,12 +134,13 @@ module QEpiKit {
         case QEpiKit.Utils.ltEq:
           string = "less than or equal to";
           break;
+        case QEpiKit.Utils.ltEq:
+          string = "has the property";
+          break;
         default:
           break;
       }
-
       return string;
-
     }
   }
 
@@ -151,6 +152,7 @@ module QEpiKit {
   }
 
   export interface Condition {
+    label: string;
     key: string;
     value: any;
     data: any;

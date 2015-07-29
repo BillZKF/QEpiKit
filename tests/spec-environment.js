@@ -43,9 +43,9 @@ describe('An environment contains resources and model components', function() {
       return (I.pop * sfParams.recoveryRate * seasonalFlu.step) - (R.pop * sfParams.resuccept * seasonalFlu.step);
     };
 
-  })
+  });
 
   it('should start at time 0', function() {
     expect(env.time).toBe(0);
-  })
-})
+  });
+});

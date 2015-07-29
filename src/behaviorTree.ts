@@ -41,7 +41,7 @@ module QEpiKit {
       return state;
     }
 
-    update(step) {
+    update(step:number) {
       var dataLen = this.data.length;
       for (var d = 0; d < dataLen; d++) {
         this.start(this.data[d], step);
