@@ -1,38 +1,31 @@
 module QEpiKit {
-  //Belief Desire Intent
-  export class BDIAgent {
-    public static SUCCESS: number = 1;
-    public static FAILED: number = 2;
-    public static RUNNING: number = 3;
+  /**
+  * Belief Desire Intent agents are simple planning agents with modular plans / deliberation processes.
+  */
+  export class BDIAgent extends QComponent implements Observer {
 
-    public id: string;
-    public name: string;
     public goals: any;
     public plans: any;
     public data: any;
+    public results: any[];
     public policySelector: Function;
-    public time: number;
     public beliefHistory: any[];
     public planHistory: any[];
 
     constructor(name: string, goals: any, plans, data, policySelector) {
-      this.id = QEpiKit.Utils.generateUUID();
-      this.name = name;
+      super(name);
       this.goals = goals;
       this.plans = plans;
       this.data = data;
       this.policySelector = policySelector || BDIAgent.stochasticSelection;
-      this.time = 0;
       this.beliefHistory = [];
       this.planHistory = [];
     }
 
-    update(step: number, events: any) {
-      try {
-        events[this.time](this.data);
-      } catch (e) {
-        events[this.time] = null;
-      }
+    /** Take one time step forward, take in beliefs, deliberate, implement policy
+    * @param step size of time step (in days by convention)
+    */
+    update(step: number) {
       var c, matcher, policy, intent, achievements = [], barriers = [], belief = this.data, successes = 0;
       policy = this.policySelector(this.plans, this.planHistory);
       intent = this.plans[policy];
@@ -57,8 +50,11 @@ module QEpiKit {
       this.time += step;
     }
 
-    assess(eventName:string, agents:any[], resources){
-      var c, matcher, policy, intent, achievements = [], barriers = [], belief = [agents, resources], successes = 0;
+    /** Assess the current state of the data under observation by evaluating the bdi agent.
+    * @param eventName name of the event
+    */
+    assess(eventName:string){
+      var c, matcher, policy, intent, achievements = [], barriers = [], belief = this.data, successes = 0;
       policy = this.policySelector(this.plans, this.planHistory);
       intent = this.plans[policy];
       intent(belief);
@@ -78,13 +74,13 @@ module QEpiKit {
           });
         }
       }
-      this.planHistory.push({ event: eventName, intention: policy, goals: achievements, barriers: barriers, r: successes / this.goals.length });
+      this.planHistory[eventName] = {intention: policy, goals: achievements, barriers: barriers, r: successes / this.goals.length };
     }
 
-    run(step: number, limit: number, recordInt: number, events: any) {
-      while (this.time <= limit) {
-        this.update(step, events);
-        var rem = this.time % recordInt;
+    run(step: number, until: number, saveInterval: number) {
+      while (this.time <= until) {
+        this.update(step);
+        var rem = this.time % saveInterval;
         if (rem === 0) {
           this.beliefHistory.push(JSON.parse(JSON.stringify(this.data)));
         }

@@ -68,7 +68,7 @@ module QEpiKit {
       this.models.splice(deleteIndex, 1)
     }
 
-    /** Add an observer to this environemnt
+    /** Add an observer to this environment
     * @param observer agent to be called on change
     */
     addObserver(observer) {
@@ -95,12 +95,12 @@ module QEpiKit {
         }
         this.time += step;
       }
-      this.publish("finished", this.agents, this.resources);
+      this.publish("finished");
     }
 
-    publish(eventName, agents, resources) {
+    publish(eventName) {
       for (var o = 0; o < this.observers.length; o++) {
-        this.observers[o].assess(eventName, this.agents, this.resources);
+        this.observers[o].assess(eventName);
       }
     }
 
@@ -113,7 +113,7 @@ module QEpiKit {
         this.eventsQueue[eKey].trigger(this.agents);
         this.eventsQueue[eKey].triggered = true;
       } else {
-        this.eventsQueue[eKey] = null;
+        //this.eventsQueue[eKey] = undefined;
       }
       for (var c = 0; c < this.models.length; c++) {
         this.models[c].update(step);

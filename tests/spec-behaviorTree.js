@@ -140,8 +140,8 @@ describe("Behavior Trees are control structures for reactive agents", function()
       var SelectorTest = new QEpiKit.BTSelector("selector-test", [ActionA]);
       Root.children = [SelectorTest];
       BHTree.run(1, 10, 1);
-      expect(BHTree.record[0][0].state).toEqual("a");
-      expect(BHTree.record[6][0].state).toEqual("b");
+      expect(BHTree.history[0][0].state).toEqual("a");
+      expect(BHTree.history[6][0].state).toEqual("b");
     });
   });
 });

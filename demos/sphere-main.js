@@ -1,7 +1,7 @@
   /*
    *This is demonstration combining several modeling techniques.
    */
-  importScripts("../dist/utils.js", "../dist/environment.js", "../dist/behaviorTree.js", "../dist/htn.js", "../dist/bdi.js", "sphere-events.js","../bower_components/random/lib/random.min.js");
+  importScripts("../dist/QEpiKit.js", "sphere-events.js","../bower_components/random/lib/random.min.js");
   var monitoringAgent, campAgents, campEnv, step;
   var random = new Random(Random.engines.mt19937().seedWithArray([0x12345678, 0x90abcdef]));
 

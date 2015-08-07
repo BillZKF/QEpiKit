@@ -2,7 +2,7 @@ module QEpiKit {
   /**
   *QComponents are the base class for many model components.
   */
-  class QComponent {
+  export class QComponent {
     public static SUCCESS: number = 1;
     public static FAILED: number = 2;
     public static RUNNING: number = 3;
@@ -26,7 +26,7 @@ module QEpiKit {
       this.time += step;
     }
 
-    /** Run all  component from t=0 until t=until using time step = step
+    /** Run QComponent from t = 0 until t = until using time step = step
     * @param step size of time step (in days by convention)
     * @param until the end time
     * @param saveInterval save every 'x' steps
@@ -42,10 +42,5 @@ module QEpiKit {
         this.update(step);
       }
     }
-  }
-
-  interface Observer {
-    assess(eventName, agents, resources): Function;
-    results: any[];
   }
 }

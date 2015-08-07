@@ -4,7 +4,7 @@ module QEpiKit {
     public static FAILED: number = 2;
     public static RUNNING: number = 3;
 
-    public static createCSVURI = function(data: any[]) {
+    public static createCSVURI(data: any[]) {
       var dataString;
       var URI;
       var csvContent = "data:text/csv;charset=utf-8,";
@@ -142,20 +142,35 @@ module QEpiKit {
       }
       return string;
     }
-  }
 
-  export interface Action {
-    agent: any;
-    blackboard: any;
-    result: any;
-    operate(): void;
-  }
+    public static setMin(params, keys) {
+      for (var param in params) {
+        if (keys.length > 0 && keys.indexOf(param) !== -1) {
+          params[param].current = params[param].value - params[param].error;
+        } else if (typeof (keys) === 'undefined') {
+          params[param].current = params[param].value - params[param].error;
+        }
+      }
+    }
 
-  export interface Condition {
-    label: string;
-    key: string;
-    value: any;
-    data: any;
-    check: Function;
+    public static setMax(params, keys) {
+      for (var param in params) {
+        if (keys.length > 0 && keys.indexOf(param) !== -1) {
+          params[param].current = params[param].value + params[param].error;
+        } else if (typeof (keys) === 'undefined') {
+          params[param].current = params[param].value + params[param].error;
+        }
+      }
+    }
+
+    public static setStandard(params, keys) {
+      for (var param in params) {
+        if (keys.length > 0 && keys.indexOf(param) !== -1) {
+          params[param].current = params[param].value;
+        } else if (typeof (keys) === 'undefined') {
+          params[param].current = params[param].value;
+        }
+      }
+    }
   }
 }

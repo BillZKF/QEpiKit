@@ -1,19 +1,15 @@
 module QEpiKit {
   //Hierarchal Task Network
-  export class HTNPlanner {
-    public static SUCCESS: number = 1;
-    public static FAILED: number = 2;
-    public static RUNNING: number = 3;
+  export class HTNPlanner extends QComponent implements Observer {
 
-    public id: string;
-    public name: string;
-    public time: number;
     public root: HTNNode;
+    public task: HTNRootTask;
     public data: any[];
+    public results: any[];
 
-    public static tick(node: HTNNode, task: HTNRootTask, agent) {
+    static tick(node: HTNNode, task: HTNRootTask, agent) {
       if (agent.runningList) {
-        agent.runningList.push(node.name)
+        agent.runningList.push(node.name);
       } else {
         agent.runningList = [node.name];
         agent.successList = [];
@@ -24,37 +20,44 @@ module QEpiKit {
       return state;
     }
 
-    constructor(name: string, root: HTNNode, data: any[]) {
-      this.id = QEpiKit.Utils.generateUUID();
-      this.name = name;
+    constructor(name: string, root: HTNNode, task:HTNRootTask, data: any[]) {
+      super(name);
       this.root = root;
       this.data = data;
-      this.time = 0;
+      this.results = [];
+      this.task = task;
     }
 
-
-    start(task: HTNRootTask) {
-      //iterate each agent through the task network
-      var results = []
+    update(step:number) {
+      //iterate each piece of data through the task network
       for (var i = 0; i < this.data.length; i++) {
         this.data[i].active = true;
-        HTNPlanner.tick(this.root, task, this.data[i]);
+        HTNPlanner.tick(this.root, this.task, this.data[i]);
         if (this.data[i].successList.length > 0) {
-          results[i] = this.data[i].successList;
+          this.results[i] = this.data[i].successList;
         } else {
-          results[i] = false;
+          this.results[i] = false;
         }
         this.data[i].active = false;
       }
-      return results;
+      this.time += step;
     }
 
-    update(step: number, task:HTNRootTask) {
-      HTNPlanner.tick(this.root, task, this.data);
+    assess(eventName:string){
+      //iterate each piece of data through the task network
+      for (var i = 0; i < this.data.length; i++) {
+        this.data[i].active = true;
+        HTNPlanner.tick(this.root, this.task, this.data[i]);
+        if (this.data[i].successList.length > 0) {
+          this.results[i] = this.data[i].successList;
+        } else {
+          this.results[i] = false;
+        }
+        this.data[i].active = false;
+
+      }
     }
   }
-
-
 
   export class HTNRootTask {
     public name: string;

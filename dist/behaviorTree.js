@@ -5,15 +5,18 @@ var __extends = (this && this.__extends) || function (d, b) {
 };
 var QEpiKit;
 (function (QEpiKit) {
-    var BehaviorTree = (function () {
+    var BehaviorTree = (function (_super) {
+        __extends(BehaviorTree, _super);
         function BehaviorTree(name, root, data) {
-            this.id = QEpiKit.Utils.generateUUID();
-            this.name = name;
+            _super.call(this, name);
             this.root = root;
             this.data = data;
-            this.time = 0;
-            this.record = [];
+            this.results = [];
         }
+        BehaviorTree.tick = function (node, agent) {
+            var state = node.operate(agent);
+            return state;
+        };
         BehaviorTree.prototype.start = function (agent, step) {
             var state;
             agent.active = true;
@@ -37,23 +40,20 @@ var QEpiKit;
             while (this.time <= until) {
                 rem = (this.time / step) % saveInterval;
                 if (rem == 0) {
-                    this.record.push(JSON.parse(JSON.stringify(this.data)));
+                    this.history.push(JSON.parse(JSON.stringify(this.data)));
                 }
                 this.update(step);
             }
         };
-        BehaviorTree.SUCCESS = 1;
-        BehaviorTree.FAILED = 2;
-        BehaviorTree.RUNNING = 3;
-        BehaviorTree.tick = function (node, agent) {
-            var state = node.operate(agent);
-            if (state === BehaviorTree.RUNNING) {
-                this.runningMem.push(node);
+        BehaviorTree.prototype.assess = function (eventName) {
+            var dataLen = this.data.length;
+            for (var d = 0; d < dataLen; d++) {
+                this.start(this.data[d], 0);
             }
-            return state;
+            this.results.push(JSON.parse(JSON.stringify(this.data)));
         };
         return BehaviorTree;
-    })();
+    })(QEpiKit.QComponent);
     QEpiKit.BehaviorTree = BehaviorTree;
     var BTNode = (function () {
         function BTNode(name) {

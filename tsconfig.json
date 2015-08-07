@@ -2,25 +2,26 @@
     "compilerOptions": {
         "target": "es5",
         "module": "commonjs",
-        "outDir": "dist/",
+        "out": "dist/QEpiKit2.js",
         "watch": true,
         "sourceMap": true
     },
-    "filesGlob": [
-        "src/*.ts"
-    ],
     "files": [
+      "src/interfaces.ts",
+      "src/utils.ts",
+        "src/QComponent.ts",
+        "src/environment.ts",
         "src/QLearner.ts",
         "src/bdi.ts",
         "src/behaviorTree.ts",
         "src/compartment.ts",
-        "src/component.ts",
         "src/contactPatch.ts",
-        "src/environment.ts",
+
         "src/epi.ts",
         "src/geoPatch.ts",
         "src/ha.ts",
         "src/htn.ts",
-        "src/utils.ts"
+        "src/QEpiKit.ts"
+
     ]
 }

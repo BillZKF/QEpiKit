@@ -3,6 +3,19 @@ var QEpiKit;
     var Utils = (function () {
         function Utils() {
         }
+        Utils.createCSVURI = function (data) {
+            var dataString;
+            var URI;
+            var csvContent = "data:text/csv;charset=utf-8,";
+            var csvContentArray = [];
+            data.forEach(function (infoArray) {
+                dataString = infoArray.join(",");
+                csvContentArray.push(dataString);
+            });
+            csvContent += csvContentArray.join("\n");
+            URI = encodeURI(csvContent);
+            return URI;
+        };
         Utils.generateUUID = function () {
             var chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split('');
             var uuid = new Array(36);
@@ -126,22 +139,39 @@ var QEpiKit;
             }
             return string;
         };
+        Utils.setMin = function (params, keys) {
+            for (var param in params) {
+                if (keys.length > 0 && keys.indexOf(param) !== -1) {
+                    param.current = param.value - param.error;
+                }
+                else if (typeof (keys) === 'undefined') {
+                    param.current = param.value - param.error;
+                }
+            }
+        };
+        Utils.setMax = function (params, keys) {
+            for (var param in params) {
+                if (keys.length > 0 && keys.indexOf(param) !== -1) {
+                    param.current = param.value + param.error;
+                }
+                else if (typeof (keys) === 'undefined') {
+                    param.current = param.value + param.error;
+                }
+            }
+        };
+        Utils.setStandard = function (params, keys) {
+            for (var param in params) {
+                if (keys.length > 0 && keys.indexOf(param) !== -1) {
+                    param.current = param.value;
+                }
+                else if (typeof (keys) === 'undefined') {
+                    param.current = param.value;
+                }
+            }
+        };
         Utils.SUCCESS = 1;
         Utils.FAILED = 2;
         Utils.RUNNING = 3;
-        Utils.createCSVURI = function (data) {
-            var dataString;
-            var URI;
-            var csvContent = "data:text/csv;charset=utf-8,";
-            var csvContentArray = [];
-            data.forEach(function (infoArray) {
-                dataString = infoArray.join(",");
-                csvContentArray.push(dataString);
-            });
-            csvContent += csvContentArray.join("\n");
-            URI = encodeURI(csvContent);
-            return URI;
-        };
         return Utils;
     })();
     QEpiKit.Utils = Utils;

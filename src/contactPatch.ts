@@ -56,7 +56,7 @@ module QEpiKit {
       }
     }
 
-    encounters(agent: any, precondition: Condition, contactFunc: Function, resultKey: string) {
+    encounters(agent: any, precondition: any, contactFunc: Function, resultKey: string) {
       contactFunc = contactFunc || ContactPatch.defaultContactF;
       for (var contact in this.members) {
         if (precondition.check(this.members[contact][precondition.key], precondition.value) && Number(contact) !== agent.id) {

@@ -1,33 +1,21 @@
 module QEpiKit {
   //Behavior Tree
-  export class BehaviorTree {
-    public static SUCCESS: number = 1;
-    public static FAILED: number = 2;
-    public static RUNNING: number = 3;
+  export class BehaviorTree extends QComponent implements Observer{
 
-    public id: string;
-    public name: string;
-    public time: number;
     public data: any[];
+    public results: any[];
     public root: BTNode;
-    public runningMem: any[];
-    public record: any[];
 
-    public static tick = function(node: BTNode, agent) {
+    static tick(node: BTNode, agent) {
       var state = node.operate(agent);
-      if (state === BehaviorTree.RUNNING) {
-        this.runningMem.push(node);
-      }
       return state;
     }
 
     constructor(name: string, root: BTNode, data: any[]) {
-      this.id = QEpiKit.Utils.generateUUID();
-      this.name = name;
+      super(name);
       this.root = root;
       this.data = data;
-      this.time = 0;
-      this.record = [];
+      this.results = [];
     }
 
     start(agent, step: number) {
@@ -55,10 +43,21 @@ module QEpiKit {
       while (this.time <= until) {
         rem = (this.time / step) % saveInterval;
         if (rem == 0) {
-          this.record.push(JSON.parse(JSON.stringify(this.data)));
+          this.history.push(JSON.parse(JSON.stringify(this.data)));
         }
         this.update(step);
       }
+    }
+
+    /** Assess the current state of the data under observation by evaluating the behavior tree.
+    * @param eventName name of the event
+    */
+    assess(eventName){
+      var dataLen = this.data.length;
+      for (var d = 0; d < dataLen; d++) {
+        this.start(this.data[d], 0);
+      }
+      this.results.push(JSON.parse(JSON.stringify(this.data)));
     }
   }
 
