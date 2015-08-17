@@ -11,14 +11,13 @@ var QEpiKit;
             this.time += step;
         };
         QComponent.prototype.run = function (step, until, saveInterval) {
-            var rem;
             this.time = 0;
             while (this.time <= until) {
-                rem = (this.time / step) % saveInterval;
+                this.update(step);
+                var rem = (this.time / step) % saveInterval;
                 if (rem == 0) {
                     this.history.push(JSON.parse(JSON.stringify(this)));
                 }
-                this.update(step);
             }
         };
         QComponent.SUCCESS = 1;

@@ -35,10 +35,9 @@ var QEpiKit;
             this.time += step;
         };
         BehaviorTree.prototype.run = function (step, until, saveInterval) {
-            var rem;
             this.time = 0;
             while (this.time <= until) {
-                rem = (this.time / step) % saveInterval;
+                var rem = (this.time / step) % saveInterval;
                 if (rem == 0) {
                     this.history.push(JSON.parse(JSON.stringify(this.data)));
                 }

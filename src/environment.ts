@@ -124,18 +124,19 @@ module QEpiKit {
   /**
   * Events are triggered at a given time
   */
-  export class Event {
+  export class QEvent {
     /**
     * trigged false until trigger function is called for event, then set true
     */
     public triggered: boolean;
     /**
-    * trigger called at time specified by event
+    * trigger called at time /event specified by event
     */
-    public trigger: Function;
+    public trigger;
 
-    constructor(trigger: Function) {
+    constructor(trigger) {
       this.trigger = trigger;
+      this.triggered = false;
     }
   }
 }

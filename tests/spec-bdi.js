@@ -91,6 +91,17 @@ describe("A Belief Desire Intent Agent", function() {
   it("should take the current state of the data, create a new belief", function() {
     TestDecider.update(1, eventQueue);
     expect(environment.incidence).not.toBe(100); //step,
-    TestDecider.run(1,20,2,eventQueue);
+    TestDecider.run(1,10,2,eventQueue);
+    TestDecider.policySelector = QEpiKit.BDIAgent.lazyPolicySelection;
+    TestDecider.run(1,10,2,eventQueue);
+  });
+
+  it("should also be able to act as an observer",function(){
+    var env = new QEpiKit.Environment('ob',environment,{});
+    var obsBDI = new QEpiKit.BDIAgent('test-decider', goals, plans, environment, QEpiKit.BDIAgent.lazyPolicySelection);
+    env.addObserver(obsBDI);
+    env.run(1,2,1);
+    console.log(obsBDI.planHistory.length);
+    expect(obsBDI.planHistory.length).toBe(1);
   });
 });

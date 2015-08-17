@@ -1,18 +1,12 @@
 module QEpiKit {
   export class ContactPatch {
-    public static CID: number = 1;
     public static WIWArray: any[] = [];
-    public id: number;
+    public id: string;
     public name: string;
     public capacity: number;
     public pop: number;
     public members: Object;
 
-    static createID(): number {
-      var id = ContactPatch.CID;
-      ContactPatch.CID++;
-      return id;
-    }
 
     static defaultFreqF(a, b): number {
       var val = (50 - Math.abs(a.age - b.age)) / 100;
@@ -29,7 +23,7 @@ module QEpiKit {
     }
 
     constructor(name: string, capacity: number) {
-      this.id = ContactPatch.createID();
+      this.id = QEpiKit.Utils.generateUUID();
       this.name = name;
       this.capacity = capacity;
       this.pop = 0;

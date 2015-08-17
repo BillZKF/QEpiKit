@@ -105,7 +105,7 @@ module QEpiKit {
     }
 
     public static hasProp(a, b) {
-      a = a || false;
+      a = a || undefined;
       if (a === b) {
         return Utils.SUCCESS;
       } else {
@@ -134,18 +134,23 @@ module QEpiKit {
         case QEpiKit.Utils.ltEq:
           string = "less than or equal to";
           break;
-        case QEpiKit.Utils.ltEq:
+        case QEpiKit.Utils.hasProp:
           string = "has the property";
           break;
         default:
+          try{
+            string = "not a defined matcher";
+          } catch (e){
+            console.log(e);
+          }
           break;
       }
       return string;
     }
 
-    public static setMin(params, keys) {
+    public static setMin(params, keys?) {
       for (var param in params) {
-        if (keys.length > 0 && keys.indexOf(param) !== -1) {
+        if (typeof(keys) !== 'undefined' && keys.indexOf(param) !== -1) {
           params[param].current = params[param].value - params[param].error;
         } else if (typeof (keys) === 'undefined') {
           params[param].current = params[param].value - params[param].error;
@@ -153,9 +158,9 @@ module QEpiKit {
       }
     }
 
-    public static setMax(params, keys) {
+    public static setMax(params, keys?) {
       for (var param in params) {
-        if (keys.length > 0 && keys.indexOf(param) !== -1) {
+        if (typeof(keys) !== 'undefined'&& keys.indexOf(param) !== -1) {
           params[param].current = params[param].value + params[param].error;
         } else if (typeof (keys) === 'undefined') {
           params[param].current = params[param].value + params[param].error;
@@ -163,9 +168,9 @@ module QEpiKit {
       }
     }
 
-    public static setStandard(params, keys) {
+    public static setStandard(params, keys?) {
       for (var param in params) {
-        if (keys.length > 0 && keys.indexOf(param) !== -1) {
+        if (typeof(keys) !== 'undefined' && keys.indexOf(param) !== -1) {
           params[param].current = params[param].value;
         } else if (typeof (keys) === 'undefined') {
           params[param].current = params[param].value;

@@ -1,5 +1,5 @@
 describe("Hybrid Automata and Dynamic System common utils", function() {
-  var ac, modes, flowSet, flowMap, jumpSet, jumpMap, schedule, eventsQueue;
+  var ac, acHA, modes, flowSet, flowMap, jumpSet, jumpMap, schedule, eventsQueue;
   beforeEach(function() {
     modes = ["ON", "OFF"];
     flowSet = {
@@ -47,31 +47,14 @@ describe("Hybrid Automata and Dynamic System common utils", function() {
     ac = {
       x: 95,
       currentMode: "OFF",
-      modes: modes,
-      flowSet: flowSet,
-      flowMap: flowMap,
-      jumpSet: jumpSet,
-      jumpMap: jumpMap
+      modes: modes
     };
-    scheduler = {
-      time: 0,
-      step: 1 / 60
-    };
+
+    acHA = new QEpiKit.HybridAutomata('ac', [ac], flowSet, flowMap, jumpSet, jumpMap);
   });
   it("should change to off", function() {
-    //run for 90 minutes
-    while (scheduler.time <= 90 / 60) {
-      for (var mode in ac.jumpSet) {
-        var edge = ac.jumpSet[mode];
-        var edgeState = edge.check(ac[edge.key], edge.value);
-        if (edgeState === QEpiKit.Utils.SUCCESS && mode != ac.currentMode) {
-          ac.x = ac.jumpMap[edge.key][ac.currentMode][mode](ac[edge.key]);
-          ac.currentMode = mode;
-        }
-      }
-      ac.x += ac.flowMap.x[ac.currentMode](ac.x) * scheduler.step;
-      scheduler.time += scheduler.step;
-    }
-    expect(ac.x).toBeLessThan(74);
+    //run for 10 minutes
+    acHA.run(1, 10, 1);
+    expect(acHA.time).toBe(11);
   });
 });

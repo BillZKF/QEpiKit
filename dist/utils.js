@@ -102,7 +102,7 @@ var QEpiKit;
             }
         };
         Utils.hasProp = function (a, b) {
-            a = a || false;
+            a = a || undefined;
             if (a === b) {
                 return Utils.SUCCESS;
             }
@@ -131,41 +131,47 @@ var QEpiKit;
                 case QEpiKit.Utils.ltEq:
                     string = "less than or equal to";
                     break;
-                case QEpiKit.Utils.ltEq:
+                case QEpiKit.Utils.hasProp:
                     string = "has the property";
                     break;
                 default:
+                    try {
+                        string = "not a defined matcher";
+                    }
+                    catch (e) {
+                        console.log(e);
+                    }
                     break;
             }
             return string;
         };
         Utils.setMin = function (params, keys) {
             for (var param in params) {
-                if (keys.length > 0 && keys.indexOf(param) !== -1) {
-                    param.current = param.value - param.error;
+                if (typeof (keys) !== 'undefined' && keys.indexOf(param) !== -1) {
+                    params[param].current = params[param].value - params[param].error;
                 }
                 else if (typeof (keys) === 'undefined') {
-                    param.current = param.value - param.error;
+                    params[param].current = params[param].value - params[param].error;
                 }
             }
         };
         Utils.setMax = function (params, keys) {
             for (var param in params) {
-                if (keys.length > 0 && keys.indexOf(param) !== -1) {
-                    param.current = param.value + param.error;
+                if (typeof (keys) !== 'undefined' && keys.indexOf(param) !== -1) {
+                    params[param].current = params[param].value + params[param].error;
                 }
                 else if (typeof (keys) === 'undefined') {
-                    param.current = param.value + param.error;
+                    params[param].current = params[param].value + params[param].error;
                 }
             }
         };
         Utils.setStandard = function (params, keys) {
             for (var param in params) {
-                if (keys.length > 0 && keys.indexOf(param) !== -1) {
-                    param.current = param.value;
+                if (typeof (keys) !== 'undefined' && keys.indexOf(param) !== -1) {
+                    params[param].current = params[param].value;
                 }
                 else if (typeof (keys) === 'undefined') {
-                    param.current = param.value;
+                    params[param].current = params[param].value;
                 }
             }
         };

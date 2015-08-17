@@ -32,14 +32,13 @@ module QEpiKit {
     * @param saveInterval save every 'x' steps
     */
     run(step: number, until: number, saveInterval: number) {
-      var rem;
       this.time = 0;
       while (this.time <= until) {
-        rem = (this.time / step) % saveInterval;
+        this.update(step);
+        let rem = (this.time / step) % saveInterval;
         if (rem == 0) {
           this.history.push(JSON.parse(JSON.stringify(this)));
         }
-        this.update(step);
       }
     }
   }
