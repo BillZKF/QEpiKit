@@ -40,11 +40,11 @@ var QEpiKit;
                 }
                 this.time += step;
             }
-            this.publish("finished", this.agents, this.resources);
+            this.publish("finished");
         };
-        Environment.prototype.publish = function (eventName, agents, resources) {
+        Environment.prototype.publish = function (eventName) {
             for (var o = 0; o < this.observers.length; o++) {
-                this.observers[o].assess(eventName, this.agents, this.resources);
+                this.observers[o].assess(eventName);
             }
         };
         Environment.prototype.update = function (step) {
@@ -54,7 +54,6 @@ var QEpiKit;
                 this.eventsQueue[eKey].triggered = true;
             }
             else {
-                this.eventsQueue[eKey] = null;
             }
             for (var c = 0; c < this.models.length; c++) {
                 this.models[c].update(step);
@@ -63,12 +62,5 @@ var QEpiKit;
         return Environment;
     })();
     QEpiKit.Environment = Environment;
-    var Event = (function () {
-        function Event(trigger) {
-            this.trigger = trigger;
-        }
-        return Event;
-    })();
-    QEpiKit.Event = Event;
 })(QEpiKit || (QEpiKit = {}));
 //# sourceMappingURL=environment.js.map

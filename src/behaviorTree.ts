@@ -1,5 +1,7 @@
 module QEpiKit {
-  //Behavior Tree
+  /**
+  * Behavior Tree
+  **/
   export class BehaviorTree extends QComponent implements Observer{
 
     public data: any[];
@@ -56,7 +58,7 @@ module QEpiKit {
       for (var d = 0; d < dataLen; d++) {
         this.start(this.data[d], 0);
       }
-      this.results.push(JSON.parse(JSON.stringify(this.data)));
+      this.results[eventName] = JSON.parse(JSON.stringify(this.data));
     }
   }
 

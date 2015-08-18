@@ -17,34 +17,10 @@ module QEpiKit {
       this.name = name;
       this.geoJSONurl = geoJSONurl;
       this.population = population;
-      this.getGeoJSON();
     }
 
-    getGeoJSON() {
-      var gjReq = new XMLHttpRequest();
-      gjReq.open("GET", this.geoJSONurl, true);
-      try {
-        gjReq.send();
-      } catch (err) {
-        throw err;
-      }
-      gjReq.onreadystatechange = function() {
-        if (gjReq.readyState == gjReq.DONE) {
-          this.geoJSON = gjReq.response;
-        }
-      }
-    }
 
-    useCompartmentModel(model){
-      this.compartmentModel = model;
-    }
 
-    setTravelMap(environment, map){
-      this.environment = environment;
-      this.travelMap = map;
-      for(var dest in map){
-        this.environment.geoNetwork[this.name][dest] = map[dest];
-      }
-    }
+
   }
 }

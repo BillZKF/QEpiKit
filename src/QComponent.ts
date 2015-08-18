@@ -34,11 +34,11 @@ module QEpiKit {
     run(step: number, until: number, saveInterval: number) {
       this.time = 0;
       while (this.time <= until) {
-        this.update(step);
         let rem = (this.time / step) % saveInterval;
         if (rem == 0) {
           this.history.push(JSON.parse(JSON.stringify(this)));
         }
+        this.update(step);
       }
     }
   }

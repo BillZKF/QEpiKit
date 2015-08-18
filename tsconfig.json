@@ -19,7 +19,6 @@
     "src/epi.ts",
     "src/geoPatch.ts",
     "src/ha.ts",
-    "src/htn.ts",
-    "src/QEpiKit.ts"
+    "src/htn.ts"
   ]
 }

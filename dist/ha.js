@@ -28,7 +28,6 @@ var QEpiKit;
                             agent.currentMode = mode;
                         }
                         catch (Err) {
-                            console.log(Err);
                         }
                     }
                     for (var key in this.flowMap) {

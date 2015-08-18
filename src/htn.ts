@@ -5,6 +5,7 @@ module QEpiKit {
     public root: HTNNode;
     public task: HTNRootTask;
     public data: any[];
+    public summary: any[];
     public results: any[];
 
     static tick(node: HTNNode, task: HTNRootTask, agent) {
@@ -24,6 +25,7 @@ module QEpiKit {
       super(name);
       this.root = root;
       this.data = data;
+      this.summary = [];
       this.results = [];
       this.task = task;
     }
@@ -34,13 +36,24 @@ module QEpiKit {
         this.data[i].active = true;
         HTNPlanner.tick(this.root, this.task, this.data[i]);
         if (this.data[i].successList.length > 0) {
-          this.results[i] = this.data[i].successList;
+          this.summary[i] = this.data[i].successList;
         } else {
-          this.results[i] = false;
+          this.summary[i] = false;
         }
         this.data[i].active = false;
       }
       this.time += step;
+    }
+
+    run(step: number, until: number, saveInterval: number) {
+      this.time = 0;
+      while (this.time <= until) {
+        let rem = (this.time / step) % saveInterval;
+        if (rem == 0) {
+          this.history.push(JSON.parse(JSON.stringify(this.data)));
+        }
+        this.update(step);
+      }
     }
 
     assess(eventName:string){
@@ -49,13 +62,13 @@ module QEpiKit {
         this.data[i].active = true;
         HTNPlanner.tick(this.root, this.task, this.data[i]);
         if (this.data[i].successList.length > 0) {
-          this.results[i] = this.data[i].successList;
+          this.summary[i] = this.data[i].successList;
         } else {
-          this.results[i] = false;
+          this.summary[i] = false;
         }
         this.data[i].active = false;
-
       }
+      this.results[eventName] = this.summary;
     }
   }
 

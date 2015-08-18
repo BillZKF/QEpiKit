@@ -78,9 +78,10 @@ module QEpiKit {
     }
 
     run(step: number, until: number, saveInterval: number) {
+      this.time = 0;
       while (this.time <= until) {
         this.update(step);
-        var rem = this.time % saveInterval;
+        let rem = this.time % saveInterval;
         if (rem === 0) {
           this.beliefHistory.push(JSON.parse(JSON.stringify(this.data)));
         }

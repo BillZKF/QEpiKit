@@ -5,13 +5,15 @@ var __extends = (this && this.__extends) || function (d, b) {
 };
 var QEpiKit;
 (function (QEpiKit) {
-    var HTNPlanner = (function () {
-        function HTNPlanner(name, root, data) {
-            this.id = QEpiKit.Utils.generateUUID();
-            this.name = name;
+    var HTNPlanner = (function (_super) {
+        __extends(HTNPlanner, _super);
+        function HTNPlanner(name, root, task, data) {
+            _super.call(this, name);
             this.root = root;
             this.data = data;
-            this.time = 0;
+            this.summary = [];
+            this.results = [];
+            this.task = task;
         }
         HTNPlanner.tick = function (node, task, agent) {
             if (agent.runningList) {
@@ -26,29 +28,46 @@ var QEpiKit;
             var state = node.visit(agent, task);
             return state;
         };
-        HTNPlanner.prototype.start = function (task) {
-            var results = [];
+        HTNPlanner.prototype.update = function (step) {
             for (var i = 0; i < this.data.length; i++) {
                 this.data[i].active = true;
-                HTNPlanner.tick(this.root, task, this.data[i]);
+                HTNPlanner.tick(this.root, this.task, this.data[i]);
                 if (this.data[i].successList.length > 0) {
-                    results[i] = this.data[i].successList;
+                    this.summary[i] = this.data[i].successList;
                 }
                 else {
-                    results[i] = false;
+                    this.summary[i] = false;
                 }
                 this.data[i].active = false;
             }
-            return results;
+            this.time += step;
         };
-        HTNPlanner.prototype.update = function (step, task) {
-            HTNPlanner.tick(this.root, task, this.data);
+        HTNPlanner.prototype.run = function (step, until, saveInterval) {
+            this.time = 0;
+            while (this.time <= until) {
+                var rem = (this.time / step) % saveInterval;
+                if (rem == 0) {
+                    this.history.push(JSON.parse(JSON.stringify(this.data)));
+                }
+                this.update(step);
+            }
         };
-        HTNPlanner.SUCCESS = 1;
-        HTNPlanner.FAILED = 2;
-        HTNPlanner.RUNNING = 3;
+        HTNPlanner.prototype.assess = function (eventName) {
+            for (var i = 0; i < this.data.length; i++) {
+                this.data[i].active = true;
+                HTNPlanner.tick(this.root, this.task, this.data[i]);
+                if (this.data[i].successList.length > 0) {
+                    this.summary[i] = this.data[i].successList;
+                }
+                else {
+                    this.summary[i] = false;
+                }
+                this.data[i].active = false;
+            }
+            this.results[eventName] = this.summary;
+        };
         return HTNPlanner;
-    })();
+    })(QEpiKit.QComponent);
     QEpiKit.HTNPlanner = HTNPlanner;
     var HTNRootTask = (function () {
         function HTNRootTask(name, goals) {

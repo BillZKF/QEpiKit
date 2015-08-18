@@ -101,7 +101,6 @@ describe("A Belief Desire Intent Agent", function() {
     var obsBDI = new QEpiKit.BDIAgent('test-decider', goals, plans, environment, QEpiKit.BDIAgent.lazyPolicySelection);
     env.addObserver(obsBDI);
     env.run(1,2,1);
-    console.log(obsBDI.planHistory.length);
     expect(obsBDI.planHistory.length).toBe(1);
   });
 });
