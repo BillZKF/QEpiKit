@@ -1,4 +1,4 @@
-self.importScripts("../bower_components/chance/chance.js","../dist/utils.js","../dist/behaviorTree.js","libs/jstat.min.js");
+self.importScripts("../bower_components/chance/chance.js","../qepikit.min.js","libs/jstat.min.js");
 //BTREE pop gen method
 postMessage("Initializing: ");
 var chance1 = chance;
@@ -31,11 +31,11 @@ function emptyPatch(number, starter, capacity) {
   }
   return emptyData;
 }
-
-var popData = empty(5000);
-var regions = emptyPatch(10, "residents", 800);
-var schools = emptyPatch(6, "students", 500);
-var workplaces = emptyPatch(7, "workers", 700);
+var total = 10000;
+var popData = empty(total);
+var regions = emptyPatch(Math.ceil(total / 700), "residents", 800);
+var schools = emptyPatch(Math.ceil(total / 400), "students", 500);
+var workplaces = emptyPatch(Math.ceil(total / 600), "workers", 700);
 
 var conditions = {
   "existsAge": {
@@ -385,11 +385,13 @@ var actions = {
     }
   },
   'incubate': function(person) {
+
     person.exposedT += 1 / 365;
     person.exposed = true;
     person.succeptible = false;
   },
   'recover': function(person) {
+
     person.infectiousT += 1 / 365;
     person.infectious = true;
   },
@@ -398,6 +400,7 @@ var actions = {
     person.time += 1;
   },
   'encounters': function(person) {
+
     if (person.parent) {
       actions.parentEncounters(person);
     }
@@ -449,7 +452,6 @@ var Root = new QEpiKit.BTRoot("start-pop-gen", [SelectPhase]);
 var PopGen = new QEpiKit.BehaviorTree("pop-gen-tree", Root, popData);
 postMessage(JSON.stringify(PopGen.root));
 PopGen.run(1, 1, 1);
-
 //operating
 var Encounter = new QEpiKit.BTAction("expose-others", conditions.incubating, actions.encounters);
 var Remove = new QEpiKit.BTAction("Remove", conditions.recovered, actions.remove);
@@ -462,10 +464,10 @@ var SeqExp = new QEpiKit.BTSequence("exposed-sequence", [Exposed, SelectPeriod])
 var MakeOld = new QEpiKit.BTAction("daily-routine", conditions.alive, actions.makeOld);
 var General = new QEpiKit.BTSequence("general", [MakeOld]);
 var Daily = new QEpiKit.BTSequence("daily", [General, SeqExp]);
-var Root = new QEpiKit.BTRoot("start-disease", [Daily]);
-var BHTree = new QEpiKit.BehaviorTree("measles-ex-tree",Root, popData);
-postMessage(JSON.stringify(BHTree.root));
+var R = new QEpiKit.BTRoot("start-disease", [Daily]);
+var BHTree = new QEpiKit.BehaviorTree("measles-ex-tree",R, popData);
 BHTree.run(1, 90, 3);
+postMessage(JSON.stringify(BHTree.root));
 var summarizeTimeData = function(data, keys) {
   var results = [];
   for (var step = 0; step < data.length; step++) {

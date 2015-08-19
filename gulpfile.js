@@ -10,7 +10,8 @@ var Server = require('karma').Server;
  */
 gulp.task('tdd', function (done) {
   new Server({
-    configFile: __dirname + '/karma.conf.js'
+    configFile: __dirname + '/karma.conf.js',
+    runOnce: true
   }, done).start();
 });
 
@@ -32,7 +33,7 @@ gulp.task('server', function() {
 
 // Watch Files For Changes
 gulp.task('watch', function() {
-    gulp.watch(['dist/*.js','tests/*.js'], ['scripts', 'tdd']);
+    gulp.watch(['dist/*.js','tests/*.js','demos/*'], ['scripts']);
 });
 
 gulp.task('default', ['server', 'watch']);

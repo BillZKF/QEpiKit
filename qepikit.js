@@ -13,11 +13,11 @@ var QEpiKit;
         QComponent.prototype.run = function (step, until, saveInterval) {
             this.time = 0;
             while (this.time <= until) {
-                this.update(step);
                 var rem = (this.time / step) % saveInterval;
                 if (rem == 0) {
                     this.history.push(JSON.parse(JSON.stringify(this)));
                 }
+                this.update(step);
             }
         };
         QComponent.SUCCESS = 1;
@@ -260,7 +260,7 @@ var QEpiKit;
             for (var d = 0; d < dataLen; d++) {
                 this.start(this.data[d], 0);
             }
-            this.results.push(JSON.parse(JSON.stringify(this.data)));
+            this.results[eventName] = JSON.parse(JSON.stringify(this.data));
         };
         return BehaviorTree;
     })(QEpiKit.QComponent);
@@ -587,11 +587,11 @@ var QEpiKit;
                 }
                 this.time += step;
             }
-            this.publish("finished", this.agents, this.resources);
+            this.publish("finished");
         };
-        Environment.prototype.publish = function (eventName, agents, resources) {
+        Environment.prototype.publish = function (eventName) {
             for (var o = 0; o < this.observers.length; o++) {
-                this.observers[o].assess(eventName, this.agents, this.resources);
+                this.observers[o].assess(eventName);
             }
         };
         Environment.prototype.update = function (step) {
@@ -601,7 +601,6 @@ var QEpiKit;
                 this.eventsQueue[eKey].triggered = true;
             }
             else {
-                this.eventsQueue[eKey] = null;
             }
             for (var c = 0; c < this.models.length; c++) {
                 this.models[c].update(step);
@@ -610,13 +609,6 @@ var QEpiKit;
         return Environment;
     })();
     QEpiKit.Environment = Environment;
-    var Event = (function () {
-        function Event(trigger) {
-            this.trigger = trigger;
-        }
-        return Event;
-    })();
-    QEpiKit.Event = Event;
 })(QEpiKit || (QEpiKit = {}));
 //# sourceMappingURL=environment.js.map
 var QEpiKit;
@@ -653,33 +645,7 @@ var QEpiKit;
             this.name = name;
             this.geoJSONurl = geoJSONurl;
             this.population = population;
-            this.getGeoJSON();
         }
-        GeoPatch.prototype.getGeoJSON = function () {
-            var gjReq = new XMLHttpRequest();
-            gjReq.open("GET", this.geoJSONurl, true);
-            try {
-                gjReq.send();
-            }
-            catch (err) {
-                throw err;
-            }
-            gjReq.onreadystatechange = function () {
-                if (gjReq.readyState == gjReq.DONE) {
-                    this.geoJSON = gjReq.response;
-                }
-            };
-        };
-        GeoPatch.prototype.useCompartmentModel = function (model) {
-            this.compartmentModel = model;
-        };
-        GeoPatch.prototype.setTravelMap = function (environment, map) {
-            this.environment = environment;
-            this.travelMap = map;
-            for (var dest in map) {
-                this.environment.geoNetwork[this.name][dest] = map[dest];
-            }
-        };
         return GeoPatch;
     })();
     QEpiKit.GeoPatch = GeoPatch;
@@ -749,13 +715,15 @@ var __extends = (this && this.__extends) || function (d, b) {
 };
 var QEpiKit;
 (function (QEpiKit) {
-    var HTNPlanner = (function () {
-        function HTNPlanner(name, root, data) {
-            this.id = QEpiKit.Utils.generateUUID();
-            this.name = name;
+    var HTNPlanner = (function (_super) {
+        __extends(HTNPlanner, _super);
+        function HTNPlanner(name, root, task, data) {
+            _super.call(this, name);
             this.root = root;
             this.data = data;
-            this.time = 0;
+            this.summary = [];
+            this.results = [];
+            this.task = task;
         }
         HTNPlanner.tick = function (node, task, agent) {
             if (agent.runningList) {
@@ -770,29 +738,46 @@ var QEpiKit;
             var state = node.visit(agent, task);
             return state;
         };
-        HTNPlanner.prototype.start = function (task) {
-            var results = [];
+        HTNPlanner.prototype.update = function (step) {
             for (var i = 0; i < this.data.length; i++) {
                 this.data[i].active = true;
-                HTNPlanner.tick(this.root, task, this.data[i]);
+                HTNPlanner.tick(this.root, this.task, this.data[i]);
                 if (this.data[i].successList.length > 0) {
-                    results[i] = this.data[i].successList;
+                    this.summary[i] = this.data[i].successList;
                 }
                 else {
-                    results[i] = false;
+                    this.summary[i] = false;
                 }
                 this.data[i].active = false;
             }
-            return results;
+            this.time += step;
         };
-        HTNPlanner.prototype.update = function (step, task) {
-            HTNPlanner.tick(this.root, task, this.data);
+        HTNPlanner.prototype.run = function (step, until, saveInterval) {
+            this.time = 0;
+            while (this.time <= until) {
+                var rem = (this.time / step) % saveInterval;
+                if (rem == 0) {
+                    this.history.push(JSON.parse(JSON.stringify(this.data)));
+                }
+                this.update(step);
+            }
         };
-        HTNPlanner.SUCCESS = 1;
-        HTNPlanner.FAILED = 2;
-        HTNPlanner.RUNNING = 3;
+        HTNPlanner.prototype.assess = function (eventName) {
+            for (var i = 0; i < this.data.length; i++) {
+                this.data[i].active = true;
+                HTNPlanner.tick(this.root, this.task, this.data[i]);
+                if (this.data[i].successList.length > 0) {
+                    this.summary[i] = this.data[i].successList;
+                }
+                else {
+                    this.summary[i] = false;
+                }
+                this.data[i].active = false;
+            }
+            this.results[eventName] = this.summary;
+        };
         return HTNPlanner;
-    })();
+    })(QEpiKit.QComponent);
     QEpiKit.HTNPlanner = HTNPlanner;
     var HTNRootTask = (function () {
         function HTNRootTask(name, goals) {
@@ -999,7 +984,7 @@ var QEpiKit;
             }
         };
         Utils.hasProp = function (a, b) {
-            a = a || undefined;
+            a = a || false;
             if (a === b) {
                 return Utils.SUCCESS;
             }

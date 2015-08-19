@@ -105,7 +105,7 @@ module QEpiKit {
     }
 
     public static hasProp(a, b) {
-      a = a || undefined;
+      a = a || false;
       if (a === b) {
         return Utils.SUCCESS;
       } else {
