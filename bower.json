@@ -1,6 +1,6 @@
 {
   "name": "QEpiKit",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "homepage": "https://github.com/BillZKF/QKit",
   "authors": [
     "wzkflynn-A8 <wzkflynn@gmail.com>"
@@ -17,11 +17,7 @@
   ],
   "dependencies": {
     "d3": "~3.5.5",
-    "chance": "~0.7.5",
-    "angular": "~1.4.0",
     "MathJax": "~2.5.3",
-    "material-design-lite": "~1.0.1",
     "random": "~1.0.5",
-    "angular-route": "~1.4.3"
-  }
+    }
 }
