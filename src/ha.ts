@@ -33,6 +33,7 @@ module QEpiKit {
             }
           }
           for (var key in this.flowMap) {
+            //second order integration
             temp[key] = this.flowMap[key][agent.currentMode](agent);
             agent[key] = 0.5 * (temp[key] + this.flowMap[key][agent.currentMode](temp));
           }

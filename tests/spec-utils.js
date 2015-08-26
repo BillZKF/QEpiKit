@@ -18,7 +18,8 @@ describe('Utils class contains common methods used for a variety of purposes', f
 
     var test = {"bakingSoda":0, "vinegar":1};
     expect(QEpiKit.Utils.hasProp(test.vinegar,1)).toBe(QEpiKit.Utils.SUCCESS);
-    expect(QEpiKit.Utils.hasProp(test.volcano,false)).toBe(QEpiKit.Utils.FAILED);
+    expect(QEpiKit.Utils.hasProp(test.volcano,true)).toBe(QEpiKit.Utils.FAILED);
+    expect(QEpiKit.Utils.hasProp(test.volcano,false)).toBe(QEpiKit.Utils.SUCCESS);
 
   });
 
@@ -32,6 +33,7 @@ describe('Utils class contains common methods used for a variety of purposes', f
     m[5] = QEpiKit.Utils.getMatcherString(QEpiKit.Utils.ltEq);
     m[6] = QEpiKit.Utils.getMatcherString(QEpiKit.Utils.hasProp);
     m[7] = QEpiKit.Utils.getMatcherString(function(){});
+  
     expect(m[0]).toBe("equal to");
     t = 0;
     m.forEach(function(d){

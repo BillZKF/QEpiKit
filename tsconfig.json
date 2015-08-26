@@ -19,6 +19,7 @@
     "src/epi.ts",
     "src/geoPatch.ts",
     "src/ha.ts",
-    "src/htn.ts"
+    "src/htn.ts",
+    "src/USys.ts"
   ]
 }

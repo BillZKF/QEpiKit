@@ -2,19 +2,34 @@
 Epi Typescript / Javascript library
 
 ## What is it?
-This library is a collection of tools for compartmental (differential equation) (CDE) and agent based (AB) modeling of communicable (and noncommunicable!) disease. Although developed with the public health / epidemiology / biomedical domains in mind, the tools themselves are domain neutral, and may be useful in other areas. The library also integrates concepts from hybrid dynamic systems and reinforcement learning.
+This library is a collection of tools for agent based modeling (ABM), specializing in models of communicable (and noncommunicable!) disease. QEpiKit also integrates concepts from equation based epidemiological modeling (EBM) and reinforcement learning. Although developed with the public health / epidemiology / biomedical domains in mind, this library may be useful in other fields.
 
 ## Why?
-I started working on this library because I was trying to learn more about epidemiological modeling. In the process of writing code, I experimented with a number of different methods that are not frequently applied to epidemiology.
-I chose Typescript / Javascript as the main language because they: 1) enable interactive browser based examples on most devices 2) can also be run on a server 3) will allow migration to ES6.
+This library came out of an attempt to develop an agent based modeling library that could function as a whiteboarding / thought experiment tool for health workers. I chose Typescript / Javascript as the main language because they: 1) enable interactive browser (mobile too) based examples without plugins 2) are great for rapid prototyping and integration with web based data sources 3) can also be run on a server.
 
-*Still very much a work in progresss*
+## Dependencies
+QEpiKit doesn't have any required dependencies for basic use, but most models use at least one of the following:
+- Random.js (or Chance.js) for better pseudo random numbers.
+- jStat.js for distributions and descriptive statistics.
+- D3.js (or Three.js or Pixi.js) for rendering. * Renderer is separate. See examples.*
+
+For development, you will need:
+- Typescript compiler
+- tsDoc (for building documentation)
+- check package.json and gulp.file for testing setup.
+
+
+
 ## Features
-- Descriptives
-- Compartment Models
-- Agent Based Models
-  - Hybrid Automata
+*Still very much a work in progresss*
+- Agent Based Modeling Techniques
+  - Hybrid Automata / State Machines
   - Behavior Trees
-- Planning / decision-making components
   - Hierarchal Task Networks
-  - Belief Desire Intention Model with Simple Reinforcement Learning
+  - Belief Desire Intention
+  - Utility-based Planning
+- Other Features
+  - Contact matrices (Who Infects Whom)
+  - Read, write csv files (write via data URIs).
+  - QLearners
+  - Compartmental / differential equation models

@@ -1,0 +1,194 @@
+<script src="../qepikit.min.js"></script>
+<script src="../bower_components/d3/d3.min.js"></script>
+<div id="main">
+  <h3>Using Utility Functions in Decision Making</h3>
+  <div id="svg-cntr"></div>
+</div>
+<script>
+  var Sys, cHealth, cMoney, cFreeTime, oSurgery, oExAndDiet;
+
+  cAvailability = {
+    name: 'available',
+    x: function(subject, optionParams) {
+      var t = subject.freeTime - optionParams.timeCommitment;
+      if (t < this.extents[0]) t = 0;
+      else if (t > this.extents[1]) t = this.extents[1];
+      return t / this.extents[1];
+    },
+    extents: [0, 200],
+    f: QEpiKit.linear,
+    m: 2 / 4,
+    b: 0.25,
+    k: 0
+  };
+  cAffordability = {
+    name: 'affordable',
+    x: function(subject, optionParams) {
+      var a = subject.wealth - optionParams.cost;
+      if (a < this.extents[0]) a = 0;
+      else if (a > this.extents[1]) a = this.extents[1];
+      return a / this.extents[1];
+    },
+    extents: [0, 10000],
+    f: QEpiKit.logistic,
+    m: 0,
+    b: 1,
+    k: 5
+  };
+  cEffective = {
+    name: 'effective',
+    x: function(subject, optionParams) {
+      var b = (subject.bmi - subject.bmiGoal);
+      var a = b - optionParams.bmiLoss;
+      if (a < this.extents[0]) a = 0;
+      else if (a > this.extents[1]) a = this.extents[1];
+      return a / this.extents[1];
+    },
+    extents: [0, 10],
+    f: QEpiKit.exponential,
+    m: 0,
+    b: 0,
+    k: 2
+  };
+  people = [{
+    bmiGoal: 29,
+    wealth: 15000,
+    freeTime: 20,
+    bmi: 36
+  }, {
+    bmiGoal: 31,
+    wealth: 1000,
+    freeTime: 180,
+    bmi: 33
+  }];
+  oSurgery = {
+    name: 'gastricBypass',
+    params: {
+      bmiLoss: 5,
+      cost: 10000,
+      timeCommitment: 2
+    },
+    considerations: [cEffective, cAffordability, cAvailability],
+    action: function(person) {
+      person.bmi = person.bmi - oSurgery.params.bmiLoss;
+    }
+  };
+  oExAndDiet = {
+    name: 'exerciseAndDiet',
+    params: {
+      bmiLoss: 3,
+      cost: 100,
+      timeCommitment: 200
+    },
+    considerations: [cEffective, cAffordability, cAvailability],
+    action: function(person) {
+      person.bmi = person.bmi - oExAndDiet.params.bmiLoss;
+    }
+  };
+
+  Sys = new QEpiKit.USys('weight-loss-options', [oExAndDiet, oSurgery], people);
+
+
+
+  function drawCurves(consids) {
+    var w = 720;
+    var h = 360;
+    var margin = 40;
+    var svg = d3.select('#svg-cntr').append('svg').attr('width', w).attr('height', h).append('g');
+    var curves = [],
+      res = 200,
+      y;
+    for (var i = 0; i < consids.length; i++) {
+      curves[i] = [];
+      for (var j = 0; j < res; j++) {
+        x = j / res;
+        y = consids[i].f(x, consids[i].m, consids[i].b, consids[i].k);
+        curves[i].push({
+          x: x,
+          y: y
+        })
+      }
+    }
+
+    xScale = d3.scale.linear()
+      .domain([0, 1])
+      .range([margin, w - margin]);
+
+    yScale = d3.scale.linear()
+      .domain([1, 0])
+      .range([margin, h - margin]);
+
+    var xAxis = d3.svg.axis()
+      .scale(xScale)
+      .orient("bottom");
+
+    var yAxis = d3.svg.axis()
+      .scale(yScale)
+      .orient("left");
+
+    var curveFunc = d3.svg.line()
+      .x(function(d) {
+        return xScale(d.x);
+      })
+      .y(function(d) {
+        return yScale(d.y);
+      });
+
+    for (var i in curves) {
+      svg.append('path')
+        .datum(curves[i])
+        .attr('class', 'line')
+        .style('stroke', '#' + Math.floor(Math.random() * 16777215).toString(16))
+        .style('stroke-width', 3)
+        .style('fill-opacity', 0)
+        .attr('d', curveFunc)
+        .append("svg:title")
+        .text(consids[i].name);
+    }
+
+
+    svg.append("g")
+      .attr("class", "axis")
+      .attr("transform", "translate(0," + (h - margin) + ")")
+      .call(xAxis);
+
+    svg.append("g")
+      .attr("class", "axis")
+      .attr("transform", "translate( " + margin + ",0)")
+      .call(yAxis);
+    svg.points = [];
+    return svg;
+  }
+
+  function addPoints(svg, person, option) {
+    var fill = Math.floor(Math.random() * 16777215).toString(16);
+    var stroke = Math.floor(Math.random() * 16777215).toString(16);
+    for (var k = 0; k < option.considerations.length; k++) {
+      var c = option.considerations;
+      var px = c[k].x(person, option.params);
+      var py = c[k].f(px, c[k].m, c[k].b, c[k].k);
+      svg.points.push({
+        x: px,
+        y: py
+      });
+    }
+    svg.selectAll('circle').data(svg.points).enter()
+      .append('circle')
+      .attr('cx', function(d){return xScale(d.x) + (Math.random() * 7)})
+      .attr('cy', function(d){return yScale(d.y) + (Math.random() * 7)})
+      .attr('r', 7)
+      .style('stroke', '#' + stroke)
+      .style('fill', '#' + fill)
+      .style('stroke-width', 2)
+      .append("svg:title")
+      .text(option.name);
+  }
+
+  var d = drawCurves([cAvailability, cAffordability, cEffective]);
+  addPoints(d, people[0], oSurgery);
+  addPoints(d, people[1], oSurgery);
+
+  var c = drawCurves([cAvailability, cAffordability, cEffective]);
+  addPoints(c, people[0], oExAndDiet);
+  addPoints(c, people[1], oExAndDiet);
+</script>

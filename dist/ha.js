@@ -38,16 +38,6 @@ var QEpiKit;
             }
             this.time += step;
         };
-        HybridAutomata.prototype.run = function (step, until, saveInterval) {
-            this.time = 0;
-            while (this.time <= until) {
-                this.update(step);
-                var rem = (this.time / step) % saveInterval;
-                if (rem == 0) {
-                    this.history.push(JSON.parse(JSON.stringify(this.data)));
-                }
-            }
-        };
         HybridAutomata.prototype.assess = function () {
         };
         return HybridAutomata;

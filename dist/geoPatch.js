@@ -1,11 +1,10 @@
 var QEpiKit;
 (function (QEpiKit) {
     var GeoPatch = (function () {
-        function GeoPatch(name, geoJSONurl, population) {
+        function GeoPatch(name, geoJSON) {
             this.id = QEpiKit.Utils.generateUUID();
             this.name = name;
-            this.geoJSONurl = geoJSONurl;
-            this.population = population;
+            this.geoJSON = JSON;
         }
         return GeoPatch;
     })();
