@@ -18,8 +18,6 @@ For development, you will need:
 - tsDoc (for building documentation)
 - check package.json and gulp.file for testing setup.
 
-
-
 ## Features
 *Still very much a work in progresss*
 - Agent Based Modeling Techniques
