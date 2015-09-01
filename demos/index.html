@@ -1,30 +1,164 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-    <title>QEpiKit Examples Page</title>
-    <link href="style.css" rel="stylesheet"></link>
-</head>
-<body>
-  <div>
-    <h1>QEpiKit - Javascript / Typescript Epidemiology Library</h1>
 
-    <h2>What is it?</h2>
-    <div>This library is a collection of tools for compartmental (differential equation) (CDE) and agent based (AB) modeling of communicable (and noncommunicable!) disease. Although developed with the
-      public health / epidemiology / biomedical domains in mind, the tools themselves are domain neutral, and may be useful in other areas. The library also integrates concepts from hybrid dynamic systems and reinforcement learning.
-    </div>
-    <h2>Why?</h2>
+<head>
+  <title>QEpiKit Basics Page</title>
+  <link href="../bower_components/leaflet/dist/leaflet.css" rel="stylesheet"></link>
+  <link href="../bower_components/leaflet.markercluster/dist/MarkerCluster.Default.css" rel="stylesheet"></link>
+  <link href="../bower_components/leaflet.markercluster/dist/MarkerCluster.css" rel="stylesheet"></link>
+  <link href="style.css" rel="stylesheet"></link>
+  <link href="qepikit-render-style.css" rel="stylesheet"></link>
+  <script src="../qepikit.js"></script>
+  <script src="../bower_components/d3/d3.min.js"></script>
+  <script src="../bower_components/leaflet/dist/leaflet.js"></script>
+  <script src="../bower_components/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+  <script type="text/x-mathjax-config">
+  MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+</script>
+<script src="../bower_components/mathjax/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+</head>
+
+<body>
     <div>
-      I started working on this library because I was trying to learn more about epidemiological modeling. In the process of writing code, I experimented with a number of different methods that are not frequently applied to epidemiology.
-      I chose Typescript / Javascript as the main language because they: 1) enable interactive browser based examples on most devices 2) can also be run on a server 3) will allow migration to ES6.
+      <div id="web-worker-msg"></div>
+    <h2>Table of Contents</h2>
+      <h3>Background</h3>
+      <h3>State Machines / Hybrid Automata </h3>
+      <h3>Behavior Tree</h3>
+      <h3>Hierarchal Task Network</h3>
+      <h3>Utility Planner</h3>
+      <h3>Outside the Box</h3>
+      <h3>Observers</h3>
     </div>
-    <h2>Examples</h2>
-    <ul>
-        <li><h3><a href="basic-ex.html">Background / Compartment Models / Agents</a></h3></li>
-        <li><h3><a href="behavior-tree-test.html">Behavior Trees</a></h3></li>
-        <li><h3><a href="htn-test.html">Hierarchal Task Networks</a></h3></li>
-        <li><h3><a href="">Belief Desire Intention Model with Simple Reinforcement Learning</a></h3></li>
-        <li><h2><a href="combinations-test.html">Combinations!</a></h2></li>
-    </ul>
+    <h2>Background</h2>
+    <div>
+      <h3>Intro</h3>
+      <div>
+        Over the past 30 years or so, there has been ongoing discussion of something called agent-based modeling. In some fields, articles on this topic still begin by introducing it as a new and emerging paradigm. On the other hand, if you were to look at
+        <a href="https://www.google.com/trends/explore#q=%2Fm%2F03wsfv">Google trends</a>, it looks like its on its the way out. There are a few reasons people in fields where it is said to be "emerging" might feel they don't really know what ABM is,
+        including:
+        <ul>
+          <li>canonical examples of ABM often abstract away real-world complexity to a degree people used to working with empirical data are not comfortable with (lots of examples use "grid worlds").</li>
+          <li>specific techniques / equations for modeling behavior are not always included in literature</li>
+          <li>there is a tendency to use specialized applications and software packages which do not always share compatible approaches (or data).</li>
+          <li>the dominant programming languages in those fields (*like R) are not a great fit for this method. *Although it does happen.</li>
+          <li>there are several related but distinct topics with similar names (agent / multi-agent systems as a programming paradigm or intelligent agent systems -like Siri - for example)</li>
+        </ul>
+      </div>
+      <div>
+        So what exactly is it? Here I'm going to discuss agent-based modeling as a bottoms-up approach to modeling where the interactions of individual agents are modeled to better understand system-wide behavior. Instead of starting with a total population figure
+        and moving a portion of that population between compartments, as in a traditional epidemiological model, an agent is typically used to represent an individual within the population and is assigned a set of relevant and representative properties
+        (like age, gender, body-mass, etc.). A set of agents, their behaviors and interactions is then modeled over a time period. Agent based models also frequently include models of a dynamic environment, and social contact patterns. Within the model,
+        agents (and the environment) usually behave according to some set of rules. Sometimes these rules are simple conditional / flow control statements, sometimes they are implemented using their own syntax, or they fit within a larger framework or
+        system with it's own set of rules.
+      </div>
+      <h3>Example 1 - Flu-like illness</h3>
+      <div>
+        In this example, I created a fairly basic succeptible, infectious, recovered ABM in about 100 lines of code. Within the model, 1000 agents move at random throughout the Philadelphia area. 0.2% are infected at the start. As infected individuals move, the
+        model checks an area around them corresponding to their rate of movement. If succeptible individuals are within that area, they may randomly 'contact' the infected individual. The number of contacts an infected individual makes each timestep is
+        determined by a sociability pararmeter. Contact with an infected person does not mean that an individual is infected. Instead some pathogens are shed by the infected individual and taken up by the suceptible individual. A dose response model is
+        used to get the probability that an individual will become infectious based on their pathogen load. This probability is compared against a random draw. If an individual becomes infectious their movement speed is reduced. The model is run at a
+        time step of 1 hour for 7 days. below is a map for day seven. Time series data (daily) is also below as a CSV file.
+      </div>
+    </div>
+
+    <div id="map-ex-1" style="height:260px"></div>
   </div>
+  <h4 id="data-ex-1"></h4>
+  <div>
+    While a little more developed than some grid world models, there are still a bunch of issues.
+    <ul>
+      <li>We're working with a small number of people. This is mostly because I am running this model in your web browser. For now we'll ignore this.</li>
+      <li>People in this model are moving at random. This is almost forgivable in a dense, gridded city like Philadelphia, but it would be better if there was a better model for how people move around in less dense regions, and between regions. For that we'd
+        need some kind of transportation model, and some additional expertise.</li>
+      <li>The number of contacts an infected individual makes is determined by an arbitrary sociablility pararmeter. We'll improve that soon.</li>
+      <li>The movement speed of the individual goes down once infected, but that's the only behavioral change. Additionally there is a single, unrealistic discrete edge between infected vs. succeptible which controls this change. We'll deal with next in the next section.</li>
+    </ul>
+    <script>
+      var mapEx1, baseExWorker1;
+      if (typeof Worker !== 'undefined') {
+        baseExWorker1 = new Worker('base-example1.js');
+        baseExWorker1.postMessage('start');
+        baseExWorker1.onmessage = function(event) {
+          exampleHistory1 = event.data[0];
+          locations1 = event.data[1];
+          startCenter = locations1[0].geometry.coordinates;
+          mapEx1 = L.map('map-ex-1').setView([startCenter[1], startCenter[0]], 13);
+          L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+            attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
+            maxZoom: 18,
+            id: 'wzkflynn.dace8f89',
+            accessToken: 'pk.eyJ1Ijoid3prZmx5bm4iLCJhIjoiNjk0ZGM2ZDVmYTc1OWZjZDE4ZjE5NGQxMmIxN2ZiYTMifQ.iE0_Yuq1EJXoeEL5WhD7vg'
+          }).addTo(mapEx1);
+          var markers = new L.MarkerClusterGroup();
+          var geoJSONLayer = L.geoJson(locations1, {
+            onEachFeature: function(feature, layer) {
+              layer.bindPopup(feature.properties.agentRefID);
+            }
+          });
+          markers.addLayer(geoJSONLayer);
+          mapEx1.addLayer(markers);
+          mapEx1.fitBounds(markers.getBounds());
+          var a = d3.csv.format(exampleHistory1);
+          var csvURI = "data:text/csv;charset=utf-8," + encodeURI(a);
+          var link = document.createElement("a");
+          link.setAttribute("href", csvURI);
+          link.setAttribute("download", "qepikit_example_1.csv");
+          link.innerHTML = "CSV file";
+          document.getElementById('data-ex-1').appendChild(link);
+        }
+      } else {
+        document.getElementById('web-worker-msg').innerHTML = "<h4 style='background-color:#f00'>You need to use a browser (or machine) that supports web-workers</h4>"
+      }
+    </script>
+    <h3>Example 2 - Changes in BMI over time</h3>
+    <div>
+      In this second example I created an ABM of a weight loss intervention. To do this I implemented a simple model of weight change<a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3975626/"> based on this</a>. To start, I generated 500 individuals, and randomly assign them to one of 4 groups: control, diet, exercise, diet and exercise.
+      The model runs for 360 days, and each day calculates:
+      <ul>
+        <li>Approximately how many k/calories were absorbed : $person.calIn = person.calRawIntake * person.calAbsorbPct$</li>
+        <li>The person's Basal Metabolic Rate via the Mifflin-St. Jeor equation: $person.BMR = (10 * person.mass) + (6.25 * person.height) + (5.0 * person.age) + 5$</li>
+        <li>The number of calories expended while exercising, in <a href="http://health.gov/paguidelines/guidelines/appendix1.aspx">METS</a> : $person.calExUse = (person.exerciseAmount / 60) * person.exerciseMETS * person.mass$</li>
+        <li>The balnce between the energy in and out: $person.calDifference = person.calIn - (person.calExUse + person.BMR * person.dailyActivitiesPct)$</li>
+        <li>How that might change the person's mass : $person.mass = person.mass + (0.13 * person.calDifference / 1000)$</li>
+      </ul>
+      <div>
+        There are a number of the issues with this approach -beyond what might be wrong with the weight change model itself:
+        <ul>
+          <li>You may have noticed this in the previous example, but I using a forward Euler method to solve some of the equations. With low stakes and a small timestep you might not notice, but we can do better.</li>
+          <li>One of the advantages of an ABM is that I don't have to randomly assign all of the participants to one of 4 groups. Since the individuals don't interact with each other, I could just run the model four times, assigning all participants to one of the branches each time.</li>
+          <li>I'm also missing a big opportunity by not having any sort of inter-personal or environmental interactions. That's usually why people use ABM. I'll address that in the next section.</li>
+        </ul>
+      </div>
+      <div>I've included the (monthly) data from the model above as a CSV file.</div>
+      <h4 id="data-ex-2"></h4>
+    </div>
+    <script>
+      var mapEx2, baseExWorker2;
+      if (typeof Worker !== 'undefined') {
+        baseExWorker2 = new Worker('base-example2.js');
+        baseExWorker2.postMessage('start');
+        baseExWorker2.onmessage = function(event) {
+          exampleHistory2 = event.data[0];
+          locations2 = event.data[1];
+          var a = d3.csv.format(exampleHistory2);
+          var csvURI = "data:text/csv;charset=utf-8," + encodeURI(a);
+          var link = document.createElement("a");
+          link.setAttribute("href", csvURI);
+          link.setAttribute("download", "qepikit_example_2.csv");
+          link.innerHTML = "CSV file";
+          document.getElementById('data-ex-2').appendChild(link);
+        }
+      }
+  </script>
+  </div>
+  </div>
+  <h2>Conclusion & Sources</h2>
+  <div>
+    This library is a work in progress, and not intended to be used for anything other than educational purposes (if it can be used for that!).
+  </div>
+  <iframe width="840" height="360" frameborder="0" scrolling="no" src="https://onedrive.live.com/embed?cid=2D54C2F48C7536A5&resid=2D54C2F48C7536A5%2138618&authkey=AKuWQfeI3XA_8F8&em=2&wdHideGridlines=True&wdHideHeaders=True&wdDownloadButton=True"></iframe>
 </body>
+
 </html>

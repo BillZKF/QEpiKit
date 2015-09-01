@@ -20,10 +20,10 @@ module QEpiKit{
   /**Condition to be checked against in data[key]
   */
   export interface Condition {
-    label: string;
+    label?: string;
     key: string;
     value: any;
-    data: any;
+    data?: any;
     check(): number;
   }
 

@@ -1,5 +1,5 @@
 # QEpiKit
-Epi Typescript / Javascript library
+Epi Typescript / Javascript library.
 
 ## What is it?
 This library is a collection of tools for agent based modeling (ABM), specializing in models of communicable (and noncommunicable!) disease. QEpiKit also integrates concepts from equation based epidemiological modeling (EBM) and reinforcement learning. Although developed with the public health / epidemiology / biomedical domains in mind, this library may be useful in other fields.

@@ -20,6 +20,7 @@
     "src/geoPatch.ts",
     "src/ha.ts",
     "src/htn.ts",
-    "src/USys.ts"
+    "src/USys.ts",
+    "src/stateMachine.ts"
   ]
 }
