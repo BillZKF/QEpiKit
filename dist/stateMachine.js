@@ -11,6 +11,7 @@ var QEpiKit;
             _super.call(this, name);
             this.states = states;
             this.transitions = transitions;
+            this.conditions = conditions;
             this.data = data;
         }
         StateMachine.prototype.update = function (step) {
@@ -26,6 +27,7 @@ var QEpiKit;
                     }
                 }
             }
+            this.time += step;
         };
         StateMachine.prototype.assess = function (eventName) {
         };

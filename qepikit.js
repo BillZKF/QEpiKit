@@ -541,17 +541,12 @@ var QEpiKit;
 (function (QEpiKit) {
     var ContactPatch = (function () {
         function ContactPatch(name, capacity) {
-            this.id = ContactPatch.createID();
+            this.id = QEpiKit.Utils.generateUUID();
             this.name = name;
             this.capacity = capacity;
             this.pop = 0;
             this.members = {};
         }
-        ContactPatch.createID = function () {
-            var id = ContactPatch.CID;
-            ContactPatch.CID++;
-            return id;
-        };
         ContactPatch.defaultFreqF = function (a, b) {
             var val = (50 - Math.abs(a.age - b.age)) / 100;
             return val;
@@ -569,7 +564,7 @@ var QEpiKit;
             var contactValue;
             contactValueFunc = contactValueFunc || ContactPatch.defaultFreqF;
             if (this.pop < this.capacity) {
-                this.members[agent.id] = agent;
+                this.members[agent.id] = {};
                 for (var other in this.members) {
                     other = Number(other);
                     if (other !== agent.id && !isNaN(other)) {
@@ -604,7 +599,6 @@ var QEpiKit;
                 }
             }
         };
-        ContactPatch.CID = 1;
         ContactPatch.WIWArray = [];
         return ContactPatch;
     })();
@@ -614,7 +608,8 @@ var QEpiKit;
 var QEpiKit;
 (function (QEpiKit) {
     var Environment = (function () {
-        function Environment(agents, resources, eventsQueue) {
+        function Environment(agents, resources, eventsQueue, randF) {
+            if (randF === void 0) { randF = Math.random; }
             this.time = 0;
             this.geoNetwork = [];
             this.models = [];
@@ -623,6 +618,7 @@ var QEpiKit;
             this.agents = agents;
             this.resources = resources;
             this.eventsQueue = eventsQueue;
+            this.randF = randF;
         }
         Environment.prototype.add = function (component) {
             this.models.push(component);
@@ -649,10 +645,11 @@ var QEpiKit;
                 this.update(step);
                 var rem = (this.time / step) % saveInterval;
                 if (rem === 0) {
-                    this.history.push(JSON.parse(JSON.stringify(this.resources)));
+                    this.history.push(JSON.parse(JSON.stringify(this.agents)));
                 }
                 this.time += step;
             }
+            this;
             this.publish("finished");
         };
         Environment.prototype.publish = function (eventName) {
@@ -669,6 +666,7 @@ var QEpiKit;
             else {
             }
             for (var c = 0; c < this.models.length; c++) {
+                QEpiKit.Utils.shuffle(this.agents, this.randF);
                 this.models[c].update(step);
             }
         };
@@ -948,6 +946,7 @@ var QEpiKit;
             _super.call(this, name);
             this.states = states;
             this.transitions = transitions;
+            this.conditions = conditions;
             this.data = data;
         }
         StateMachine.prototype.update = function (step) {
@@ -963,6 +962,7 @@ var QEpiKit;
                     }
                 }
             }
+            this.time += step;
         };
         StateMachine.prototype.assess = function (eventName) {
         };
@@ -988,6 +988,17 @@ var QEpiKit;
             csvContent += csvContentArray.join("\n");
             URI = encodeURI(csvContent);
             return URI;
+        };
+        Utils.shuffle = function (array, randomF) {
+            var currentIndex = array.length, temporaryValue, randomIndex;
+            while (0 !== currentIndex) {
+                randomIndex = Math.floor(randomF() * currentIndex);
+                currentIndex -= 1;
+                temporaryValue = array[currentIndex];
+                array[currentIndex] = array[randomIndex];
+                array[randomIndex] = temporaryValue;
+            }
+            return array;
         };
         Utils.generateUUID = function () {
             var chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split('');

@@ -34,7 +34,7 @@ module QEpiKit {
       var contactValue;
       contactValueFunc = contactValueFunc || ContactPatch.defaultFreqF;
       if (this.pop < this.capacity) {
-        this.members[agent.id] = agent;
+        this.members[agent.id] = {};
         for (var other in this.members) {
           other = Number(other);
           if (other !== agent.id && !isNaN(other)) {

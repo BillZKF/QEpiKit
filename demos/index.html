@@ -154,6 +154,33 @@
   </script>
   </div>
   </div>
+
+  <h2>State Machines and Automata</h2>
+  <div>
+<button onclick="runEx3()">Run Example</button>
+<h4 id="data-ex-3"></h4>
+  </div>
+  <script>
+    function runEx3(){
+      var ExWorker;
+      if (typeof Worker !== 'undefined') {
+        ExWorker = new Worker('statemachine-example1.js');
+        ExWorker.postMessage('start');
+        ExWorker.onmessage = function(event) {
+          console.log(event);
+          var history = event.data[0];
+          var locations = event.data[1];
+          var a = d3.csv.format(history);
+          var csvURI = "data:text/csv;charset=utf-8," + encodeURI(a);
+          var link = document.createElement("a");
+          link.setAttribute("href", csvURI);
+          link.setAttribute("download", "qepikit_example_3.csv");
+          link.innerHTML = "CSV file";
+          document.getElementById('data-ex-3').appendChild(link);
+        }
+      }
+    }
+</script>
   <h2>Conclusion & Sources</h2>
   <div>
     This library is a work in progress, and not intended to be used for anything other than educational purposes (if it can be used for that!).

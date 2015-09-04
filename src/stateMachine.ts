@@ -12,6 +12,7 @@ module QEpiKit{
       super(name);
       this.states = states;
       this.transitions = transitions;
+      this.conditions = conditions;
       this.data = data;
     }
 
@@ -21,6 +22,7 @@ module QEpiKit{
         for(var i = 0; i < this.transitions.length; i++){
           if(this.transitions[i].from === this.data[d].current){
             let cond = this.conditions[this.transitions[i].name];
+
             let r = cond.check(this.data[d][cond.key], cond.value);
             if(r === StateMachine.SUCCESS){
               this.data[d].current = this.transitions[i].to;
@@ -28,10 +30,11 @@ module QEpiKit{
           }
         }
       }
+      this.time += step;
     }
 
     assess(eventName:string){
-      
+
     }
   }
 }

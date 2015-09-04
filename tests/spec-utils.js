@@ -23,6 +23,15 @@ describe('Utils class contains common methods used for a variety of purposes', f
 
   });
 
+  it('should have a shuffle method to rearrange an array', function(){
+    var array = [1,2,3,4,5,6,7,8,9,10], copy = JSON.parse(JSON.stringify(array));
+    var rand = new Random(Random.engines.mt19937().seedWithArray([0x12345678, 0x90abcdef]));
+    var randF = function(){return rand.real(0,1);};
+    QEpiKit.Utils.shuffle(array, randF);
+    expect(array).not.toBe(copy);
+    expect(array[0]).toBe(7);
+  });
+
   it('should be able to produce readable matcher strings', function() {
     var m = [];
     m[0] = QEpiKit.Utils.getMatcherString(QEpiKit.Utils.equalTo);
@@ -33,7 +42,7 @@ describe('Utils class contains common methods used for a variety of purposes', f
     m[5] = QEpiKit.Utils.getMatcherString(QEpiKit.Utils.ltEq);
     m[6] = QEpiKit.Utils.getMatcherString(QEpiKit.Utils.hasProp);
     m[7] = QEpiKit.Utils.getMatcherString(function(){});
-  
+
     expect(m[0]).toBe("equal to");
     t = 0;
     m.forEach(function(d){

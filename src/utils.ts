@@ -19,6 +19,25 @@ module QEpiKit {
       return URI;
     }
 
+    public static shuffle(array: any[], randomF: () => number) {
+      var currentIndex = array.length, temporaryValue, randomIndex;
+
+      // While there remain elements to shuffle...
+      while (0 !== currentIndex) {
+
+        // Pick a remaining element...
+        randomIndex = Math.floor(randomF() * currentIndex);
+        currentIndex -= 1;
+
+        // And swap it with the current element.
+        temporaryValue = array[currentIndex];
+        array[currentIndex] = array[randomIndex];
+        array[randomIndex] = temporaryValue;
+      }
+
+      return array;
+    }
+
     public static generateUUID(): string {
       // http://www.broofa.com/Tools/Math.uuid.htm
       var chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split('');
@@ -138,9 +157,9 @@ module QEpiKit {
           string = "has the property";
           break;
         default:
-          try{
+          try {
             string = "not a defined matcher";
-          } catch (e){
+          } catch (e) {
             console.log(e);
           }
           break;
@@ -150,7 +169,7 @@ module QEpiKit {
 
     public static setMin(params, keys?) {
       for (var param in params) {
-        if (typeof(keys) !== 'undefined' && keys.indexOf(param) !== -1) {
+        if (typeof (keys) !== 'undefined' && keys.indexOf(param) !== -1) {
           params[param].current = params[param].value - params[param].error;
         } else if (typeof (keys) === 'undefined') {
           params[param].current = params[param].value - params[param].error;
@@ -160,7 +179,7 @@ module QEpiKit {
 
     public static setMax(params, keys?) {
       for (var param in params) {
-        if (typeof(keys) !== 'undefined'&& keys.indexOf(param) !== -1) {
+        if (typeof (keys) !== 'undefined' && keys.indexOf(param) !== -1) {
           params[param].current = params[param].value + params[param].error;
         } else if (typeof (keys) === 'undefined') {
           params[param].current = params[param].value + params[param].error;
@@ -170,7 +189,7 @@ module QEpiKit {
 
     public static setStandard(params, keys?) {
       for (var param in params) {
-        if (typeof(keys) !== 'undefined' && keys.indexOf(param) !== -1) {
+        if (typeof (keys) !== 'undefined' && keys.indexOf(param) !== -1) {
           params[param].current = params[param].value;
         } else if (typeof (keys) === 'undefined') {
           params[param].current = params[param].value;

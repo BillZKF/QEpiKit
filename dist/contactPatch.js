@@ -2,17 +2,12 @@ var QEpiKit;
 (function (QEpiKit) {
     var ContactPatch = (function () {
         function ContactPatch(name, capacity) {
-            this.id = ContactPatch.createID();
+            this.id = QEpiKit.Utils.generateUUID();
             this.name = name;
             this.capacity = capacity;
             this.pop = 0;
             this.members = {};
         }
-        ContactPatch.createID = function () {
-            var id = ContactPatch.CID;
-            ContactPatch.CID++;
-            return id;
-        };
         ContactPatch.defaultFreqF = function (a, b) {
             var val = (50 - Math.abs(a.age - b.age)) / 100;
             return val;
@@ -30,7 +25,7 @@ var QEpiKit;
             var contactValue;
             contactValueFunc = contactValueFunc || ContactPatch.defaultFreqF;
             if (this.pop < this.capacity) {
-                this.members[agent.id] = agent;
+                this.members[agent.id] = {};
                 for (var other in this.members) {
                     other = Number(other);
                     if (other !== agent.id && !isNaN(other)) {
@@ -65,7 +60,6 @@ var QEpiKit;
                 }
             }
         };
-        ContactPatch.CID = 1;
         ContactPatch.WIWArray = [];
         return ContactPatch;
     })();

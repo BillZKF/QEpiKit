@@ -16,7 +16,8 @@ module.exports = function(config) {
     // list of files / patterns to load in the browser
     files: [
       'dist/*.js',
-      'tests/*.js'
+      'tests/*.js',
+      'bower_components/random/lib/random.min.js'
     ],
 
 

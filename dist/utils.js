@@ -16,6 +16,17 @@ var QEpiKit;
             URI = encodeURI(csvContent);
             return URI;
         };
+        Utils.shuffle = function (array, randomF) {
+            var currentIndex = array.length, temporaryValue, randomIndex;
+            while (0 !== currentIndex) {
+                randomIndex = Math.floor(randomF() * currentIndex);
+                currentIndex -= 1;
+                temporaryValue = array[currentIndex];
+                array[currentIndex] = array[randomIndex];
+                array[randomIndex] = temporaryValue;
+            }
+            return array;
+        };
         Utils.generateUUID = function () {
             var chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split('');
             var uuid = new Array(36);

@@ -40,8 +40,13 @@ module QEpiKit {
     * The agents in the simulation
     */
     public agents: any;
+    /**
+    * Randomness function for shuffling
+    */
+    public randF: () => number;
 
-    constructor(agents, resources, eventsQueue: Event[]) {
+
+    constructor(agents, resources, eventsQueue: Event[], randF: () => number = Math.random) {
       this.time = 0;
       this.geoNetwork = [];
       this.models = [];
@@ -50,6 +55,7 @@ module QEpiKit {
       this.agents = agents;
       this.resources = resources;
       this.eventsQueue = eventsQueue;
+      this.randF = randF;
     }
 
     /** Add a model components from the environment
@@ -91,10 +97,11 @@ module QEpiKit {
         this.update(step);
         var rem = (this.time / step) % saveInterval;
         if (rem === 0) {
-          this.history.push(JSON.parse(JSON.stringify(this.resources)));
+          this.history.push(JSON.parse(JSON.stringify(this.agents)));
         }
         this.time += step;
       }
+      this
       this.publish("finished");
     }
 
@@ -116,6 +123,7 @@ module QEpiKit {
         //this.eventsQueue[eKey] = undefined;
       }
       for (var c = 0; c < this.models.length; c++) {
+        QEpiKit.Utils.shuffle(this.agents, this.randF);
         this.models[c].update(step);
       }
     }

@@ -1,7 +1,8 @@
 var QEpiKit;
 (function (QEpiKit) {
     var Environment = (function () {
-        function Environment(agents, resources, eventsQueue) {
+        function Environment(agents, resources, eventsQueue, randF) {
+            if (randF === void 0) { randF = Math.random; }
             this.time = 0;
             this.geoNetwork = [];
             this.models = [];
@@ -10,6 +11,7 @@ var QEpiKit;
             this.agents = agents;
             this.resources = resources;
             this.eventsQueue = eventsQueue;
+            this.randF = randF;
         }
         Environment.prototype.add = function (component) {
             this.models.push(component);
@@ -36,10 +38,11 @@ var QEpiKit;
                 this.update(step);
                 var rem = (this.time / step) % saveInterval;
                 if (rem === 0) {
-                    this.history.push(JSON.parse(JSON.stringify(this.resources)));
+                    this.history.push(JSON.parse(JSON.stringify(this.agents)));
                 }
                 this.time += step;
             }
+            this;
             this.publish("finished");
         };
         Environment.prototype.publish = function (eventName) {
@@ -56,6 +59,7 @@ var QEpiKit;
             else {
             }
             for (var c = 0; c < this.models.length; c++) {
+                QEpiKit.Utils.shuffle(this.agents, this.randF);
                 this.models[c].update(step);
             }
         };
