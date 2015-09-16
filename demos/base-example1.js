@@ -37,7 +37,7 @@ self.onmessage = function(initEvent) {
             var rand = random.integer(0, agentsWithinBuffer.features.length - 1);
             var randContact = agentsWithinBuffer.features[rand].properties.agentRefID;
             var contactedAgent = agents[randContact]; //works only because id is same as Array index
-            if(contactedAgent.succeptible === true){
+            if (contactedAgent.succeptible === true) {
               contactedAgent.pathogenLoad += agent.pathogenShedding * step;
               contactedAgent.responseProb = pathogen.doseResponse(contactedAgent.pathogenLoad);
               if (contactedAgent.responseProb >= random.real(0, 1)) {
@@ -86,10 +86,10 @@ self.onmessage = function(initEvent) {
         succeptible: true,
         infectious: false,
         recovered: false,
-        responseProb:0,
+        responseProb: 0,
         sociablility: random.real(0, 30), //how many potential contacts per day
         pathogenLoad: 0,
-        pathogenShedding: random.integer(1e7, 1e8),//shed per day
+        pathogenShedding: random.integer(1e7, 1e8), //shed per day
         location: locations.features[j]
       };
       agents[j].location.properties.agentRefID = agents[j].id;
@@ -102,13 +102,17 @@ self.onmessage = function(initEvent) {
       agents[r].succeptible = false;
       agents[r].pathogenLoad = 10000;
     }
-    var t = 0, hist = [];
+    var t = 0,
+      hist = [];
     while (t <= duration) {
+      agents.sort(function() {
+        return (Math.round(Math.random()) - 0.5);
+      });
       for (var k = 0; k < agents.length; k++) {
         modelOfAgent.update(step, agents[k]);
       }
       var rem = Math.round(t * 1000);
-      if(rem % 1000 === 0){
+      if (rem % 1000 === 0) {
         var copy = JSON.parse(JSON.stringify(agents));
         hist = hist.concat(copy);
       }

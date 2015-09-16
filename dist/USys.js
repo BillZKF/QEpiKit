@@ -14,8 +14,7 @@ var QEpiKit;
             this.data = data;
         }
         USys.prototype.update = function (step) {
-            var tmp = [], max = [], avg, top;
-            var dataLen = this.data.length;
+            var tmp = [], max = [], avg, top, dataLen = this.data.length;
             for (var d = 0; d < dataLen; d++) {
                 max[d] = 0;
                 for (var i = 0; i < this.options.length; i++) {

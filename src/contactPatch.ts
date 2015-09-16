@@ -34,11 +34,11 @@ module QEpiKit {
       var contactValue;
       contactValueFunc = contactValueFunc || ContactPatch.defaultFreqF;
       if (this.pop < this.capacity) {
-        this.members[agent.id] = {};
+        this.members[agent.id] = {properties:agent};
         for (var other in this.members) {
           other = Number(other);
           if (other !== agent.id && !isNaN(other)) {
-            contactValue = contactValueFunc(this.members[other], agent);
+            contactValue = contactValueFunc(this.members[other].properties, agent);
             this.members[agent.id][other] = contactValue;
             this.members[other][agent.id] = contactValue;
           }
@@ -53,19 +53,23 @@ module QEpiKit {
     encounters(agent: any, precondition: any, contactFunc: Function, resultKey: string) {
       contactFunc = contactFunc || ContactPatch.defaultContactF;
       for (var contact in this.members) {
-        if (precondition.check(this.members[contact][precondition.key], precondition.value) && Number(contact) !== agent.id) {
-          this.members[agent.id][resultKey] = contactFunc(this.members[contact], agent);
-          ContactPatch.WIWArray.push({
-            patchID: this.id,
-            name: this.name,
-            infected: contact,
-            infectedAge: this.members[contact].age,
-            result: this.members[agent.id][resultKey],
-            resultKey: resultKey,
-            by: agent.id,
-            byAge: agent.age,
-            time: agent.time
-          });
+        if (precondition.check(this.members[contact].properties[precondition.key], precondition.value) && Number(contact) !== agent.id) {
+          var oldVal = this.members[contact].properties[resultKey];
+          var newVal = contactFunc(this.members[contact], agent);
+          if(oldVal !== newVal){
+            this.members[contact].properties[resultKey] = newVal;
+            ContactPatch.WIWArray.push({
+              patchID: this.id,
+              name: this.name,
+              infected: contact,
+              infectedAge: this.members[contact].properties.age,
+              result: this.members[contact].properties[resultKey],
+              resultKey: resultKey,
+              by: agent.id,
+              byAge: agent.age,
+              time: agent.time
+            });
+          }
         }
       }
     }

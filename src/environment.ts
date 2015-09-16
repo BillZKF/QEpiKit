@@ -13,6 +13,10 @@ module QEpiKit {
     */
     public time: number;
     /**
+    * time of day
+    */
+    public timeOfDay: number;
+    /**
     * The models array contains runnable model components
     */
     public models: any[];
@@ -95,13 +99,14 @@ module QEpiKit {
     run(step: number, until: number, saveInterval: number) {
       while (this.time <= until) {
         this.update(step);
-        var rem = (this.time / step) % saveInterval;
-        if (rem === 0) {
-          this.history.push(JSON.parse(JSON.stringify(this.agents)));
+        let rem = (this.time % saveInterval);
+        if (rem < step) {
+          let copy = JSON.parse(JSON.stringify(this.agents));
+          this.history = this.history.concat(copy);
         }
         this.time += step;
+        this.formatTime();
       }
-      this
       this.publish("finished");
     }
 
@@ -126,6 +131,10 @@ module QEpiKit {
         QEpiKit.Utils.shuffle(this.agents, this.randF);
         this.models[c].update(step);
       }
+    }
+
+    formatTime(){
+      this.timeOfDay = this.time % 1;
     }
   }
 }

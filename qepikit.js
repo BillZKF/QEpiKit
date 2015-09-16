@@ -115,8 +115,7 @@ var QEpiKit;
             this.data = data;
         }
         USys.prototype.update = function (step) {
-            var tmp = [], max = [], avg, top;
-            var dataLen = this.data.length;
+            var tmp = [], max = [], avg, top, dataLen = this.data.length;
             for (var d = 0; d < dataLen; d++) {
                 max[d] = 0;
                 for (var i = 0; i < this.options.length; i++) {
@@ -564,11 +563,11 @@ var QEpiKit;
             var contactValue;
             contactValueFunc = contactValueFunc || ContactPatch.defaultFreqF;
             if (this.pop < this.capacity) {
-                this.members[agent.id] = {};
+                this.members[agent.id] = { properties: agent };
                 for (var other in this.members) {
                     other = Number(other);
                     if (other !== agent.id && !isNaN(other)) {
-                        contactValue = contactValueFunc(this.members[other], agent);
+                        contactValue = contactValueFunc(this.members[other].properties, agent);
                         this.members[agent.id][other] = contactValue;
                         this.members[other][agent.id] = contactValue;
                     }
@@ -583,19 +582,23 @@ var QEpiKit;
         ContactPatch.prototype.encounters = function (agent, precondition, contactFunc, resultKey) {
             contactFunc = contactFunc || ContactPatch.defaultContactF;
             for (var contact in this.members) {
-                if (precondition.check(this.members[contact][precondition.key], precondition.value) && Number(contact) !== agent.id) {
-                    this.members[agent.id][resultKey] = contactFunc(this.members[contact], agent);
-                    ContactPatch.WIWArray.push({
-                        patchID: this.id,
-                        name: this.name,
-                        infected: contact,
-                        infectedAge: this.members[contact].age,
-                        result: this.members[agent.id][resultKey],
-                        resultKey: resultKey,
-                        by: agent.id,
-                        byAge: agent.age,
-                        time: agent.time
-                    });
+                if (precondition.check(this.members[contact].properties[precondition.key], precondition.value) && Number(contact) !== agent.id) {
+                    var oldVal = this.members[contact].properties[resultKey];
+                    var newVal = contactFunc(this.members[contact], agent);
+                    if (oldVal !== newVal) {
+                        this.members[contact].properties[resultKey] = newVal;
+                        ContactPatch.WIWArray.push({
+                            patchID: this.id,
+                            name: this.name,
+                            infected: contact,
+                            infectedAge: this.members[contact].properties.age,
+                            result: this.members[contact].properties[resultKey],
+                            resultKey: resultKey,
+                            by: agent.id,
+                            byAge: agent.age,
+                            time: agent.time
+                        });
+                    }
                 }
             }
         };
@@ -643,13 +646,14 @@ var QEpiKit;
         Environment.prototype.run = function (step, until, saveInterval) {
             while (this.time <= until) {
                 this.update(step);
-                var rem = (this.time / step) % saveInterval;
-                if (rem === 0) {
-                    this.history.push(JSON.parse(JSON.stringify(this.agents)));
+                var rem = (this.time % saveInterval);
+                if (rem < step) {
+                    var copy = JSON.parse(JSON.stringify(this.agents));
+                    this.history = this.history.concat(copy);
                 }
                 this.time += step;
+                this.formatTime();
             }
-            this;
             this.publish("finished");
         };
         Environment.prototype.publish = function (eventName) {
@@ -669,6 +673,9 @@ var QEpiKit;
                 QEpiKit.Utils.shuffle(this.agents, this.randF);
                 this.models[c].update(step);
             }
+        };
+        Environment.prototype.formatTime = function () {
+            this.timeOfDay = this.time % 1;
         };
         return Environment;
     })();
@@ -945,24 +952,46 @@ var QEpiKit;
         function StateMachine(name, states, transitions, conditions, data) {
             _super.call(this, name);
             this.states = states;
-            this.transitions = transitions;
+            this.transitions = this.checkTransitions(transitions);
             this.conditions = conditions;
             this.data = data;
         }
         StateMachine.prototype.update = function (step) {
             for (var d = 0; d < this.data.length; d++) {
-                this.states[this.data[d].current](step, this.data[d]);
-                for (var i = 0; i < this.transitions.length; i++) {
-                    if (this.transitions[i].from === this.data[d].current) {
-                        var cond = this.conditions[this.transitions[i].name];
-                        var r = cond.check(this.data[d][cond.key], cond.value);
-                        if (r === StateMachine.SUCCESS) {
-                            this.data[d].current = this.transitions[i].to;
+                for (var s in this.data[d].states) {
+                    var state = this.data[d].states[s];
+                    this.states[state](step, this.data[d]);
+                    for (var i = 0; i < this.transitions.length; i++) {
+                        for (var j = 0; j < this.transitions[i].from.length; j++) {
+                            var trans = this.transitions[i].from[j];
+                            if (trans === this.data[d].states[s]) {
+                                var cond = this.conditions[this.transitions[i].name];
+                                var value = void 0;
+                                if (typeof (cond.value) === 'function') {
+                                    value = cond.value();
+                                }
+                                else {
+                                    value = cond.value;
+                                }
+                                var r = cond.check(this.data[d][cond.key], value);
+                                if (r === StateMachine.SUCCESS) {
+                                    this.data[d].states[s] = this.transitions[i].to;
+                                }
+                            }
                         }
                     }
                 }
+                this.data[d].time += step;
             }
             this.time += step;
+        };
+        StateMachine.prototype.checkTransitions = function (transitions) {
+            for (var t = 0; t < transitions.length; t++) {
+                if (typeof transitions[t].from === 'string') {
+                    transitions[t].from = [transitions[t].from];
+                }
+            }
+            return transitions;
         };
         StateMachine.prototype.assess = function (eventName) {
         };
@@ -1038,12 +1067,26 @@ var QEpiKit;
             }
         };
         Utils.equalTo = function (a, b) {
+            if (typeof a === 'object' && typeof b === 'object') {
+                a = JSON.stringify(a);
+                b = JSON.stringify(b);
+            }
             if (a === b) {
                 return Utils.SUCCESS;
             }
             else {
                 return Utils.FAILED;
             }
+        };
+        Utils.not = function (result) {
+            var newResult;
+            if (result === Utils.SUCCESS) {
+                newResult = Utils.FAILED;
+            }
+            else if (result === Utils.FAILED) {
+                newResult = Utils.SUCCESS;
+            }
+            return newResult;
         };
         Utils.notEqualTo = function (a, b) {
             if (a !== b) {
@@ -1092,6 +1135,22 @@ var QEpiKit;
             }
             else {
                 return Utils.FAILED;
+            }
+        };
+        Utils.inRange = function (a, b) {
+            if (b >= a[0] && b <= a[1]) {
+                return Utils.SUCCESS;
+            }
+            else {
+                return Utils.FAILED;
+            }
+        };
+        Utils.notInRange = function (a, b) {
+            if (b >= a[0] && b <= a[1]) {
+                return Utils.FAILED;
+            }
+            else {
+                return Utils.SUCCESS;
             }
         };
         Utils.getMatcherString = function (check) {

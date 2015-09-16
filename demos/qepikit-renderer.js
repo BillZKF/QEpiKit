@@ -26,7 +26,7 @@ var QEpiKit = (function(Q, d3) {
           for (var t = 0; t < resources.length; t++) {
 
             var time = new Date();
-            time = time.addDays( t * timeInt);
+            time = time.addDays(t * timeInt);
             if (resources[t][res][datatype] > max) {
               max = resources[t][res][datatype];
             }
@@ -94,8 +94,8 @@ var QEpiKit = (function(Q, d3) {
         .attr("transform", "translate( " + margin + ",0)")
         .call(yAxis);
 
-        d3.selectAll(".tick > text")
-          .style("font-size",6);
+      d3.selectAll(".tick > text")
+        .style("font-size", 6);
 
       return this;
     },
@@ -121,20 +121,20 @@ var QEpiKit = (function(Q, d3) {
       this.curveDatas = [];
 
       for (var i = 0; i < history[0].facilities[type].length; i++) {
-          this.curveDatas[i] = [];
-          for (var t = 0; t < history.length; t++) {
-            var fac = history[t].facilities[type][i];
-            var time = new Date();
-            time = time.addDays( t * timeInt);
-              if (fac.capacity > max) {
-                max = fac.capacity;
-              }
-              this.curveDatas[i].push({
-                x: time,
-                y: fac.status
-              });
-            }
+        this.curveDatas[i] = [];
+        for (var t = 0; t < history.length; t++) {
+          var fac = history[t].facilities[type][i];
+          var time = new Date();
+          time = time.addDays(t * timeInt);
+          if (fac.capacity > max) {
+            max = fac.capacity;
           }
+          this.curveDatas[i].push({
+            x: time,
+            y: fac.status
+          });
+        }
+      }
 
       var dateFormat = d3.time.format("%x");
 
@@ -188,8 +188,8 @@ var QEpiKit = (function(Q, d3) {
         .attr("transform", "translate( " + margin + ",0)")
         .call(yAxis);
 
-        d3.selectAll(".tick > text")
-          .style("font-size",10);
+      d3.selectAll(".tick > text")
+        .style("font-size", 10);
 
       return this;
     },
@@ -414,12 +414,59 @@ var QEpiKit = (function(Q, d3) {
     },
     contactAgeMat: function(WIW, el) {
       var margin = 50,
-        dH = 400 - margin - margin,
-        dW = 400 - margin - margin,
-        container = document.createElement("div");
+        dH = 600 - margin - margin,
+        dW = 600 - margin - margin,
+        range = document.createElement("input"),
+        container = document.createElement("div"),
+        currentTime = document.createElement("label");
+
+      this.heatData = WIW;
+      var xExt = d3.extent(this.heatData, function(d) {
+        return d.byAge;
+      });
+      var yExt = d3.extent(this.heatData, function(d) {
+        return d.infectedAge;
+      });
+      var tExt = d3.extent(this.heatData, function(d) {
+        return d.time;
+      });
+      var cExt = d3.extent(this.heatData, function(d) {
+        return d.result;
+      });
       container.id = WIW[0].by + "contact-mat";
       this.info = document.createElement("span");
       this.info.id = WIW[0].by + "-info-box";
+      range.id = 'time-input-range';
+      range.type = "range";
+      range.min = 0;
+      range.max = tExt[1] * 24;
+      range.value = tExt[1] * 24;
+      range.style.width = "600px";
+      range.style.display = "block";
+      range.step = 1;
+      range.onchange = function(event) {
+        var r = event.target;
+        for (var i = 0; i <= Math.round(r.max); i++) {
+          var elList;
+          if (i != Math.round(r.value)) {
+            elList = document.querySelectorAll('.time-' + i);
+            for (var e = 0; e < elList.length; e++) {
+              elList[e].style.visibility = 'hidden';
+            }
+          } else {
+            elList = document.querySelectorAll('.time-' + i);
+            for (var ee = 0; ee < elList.length; ee++) {
+              elList[ee].style.visibility = 'visible';
+            }
+          }
+        document.querySelector('#contact-mat-current').innerHTML = "Time (days / hrs) = " + Math.floor(r.value / 24) + " / " + Math.round(r.value % 24) + ":00";
+        }
+      };
+      currentTime.id = 'contact-mat-current';
+      currentTime.innerHTML = 'Time (hrs) = ' + range.max;
+      currentTime.for = 'time-input-range';
+      this.info.appendChild(range);
+      this.info.insertBefore(currentTime, range);
       container.appendChild(this.info);
       document.getElementById(el).appendChild(container);
       this.container = container;
@@ -428,17 +475,7 @@ var QEpiKit = (function(Q, d3) {
         .attr("height", dH + margin + margin)
         .append("g")
         .attr("transform", "translate(" + margin + ", " + margin + ")");
-      this.heatData = WIW;
-      var xExt = d3.extent(this.heatData, function(d) {
-        return d.byAge;
-      });
-      var yExt = d3.extent(this.heatData, function(d) {
-        return d.infectedAge;
-      });
 
-      var cExt = d3.extent(this.heatData, function(d) {
-        return d.result;
-      });
 
       var x = d3.scale.linear().domain(xExt).range([0, dW]);
       var y = d3.scale.linear().domain(yExt).range([dH, 0]);
@@ -477,11 +514,11 @@ var QEpiKit = (function(Q, d3) {
           return y(d.infectedAge);
         })
         .attr("r", 5)
+        .attr("class", function(d) {
+          return d.name + " time-" + Math.round(d.time * 24);
+        })
         .style("fill-opacity", function(d) {
           return d.result / cExt[1];
-        })
-        .attr("class", function(d) {
-          return "point " + d.id;
         });
     },
     infectionNetwork: function(agents, WIW, el) {

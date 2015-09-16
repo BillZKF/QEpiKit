@@ -36,13 +36,14 @@ var QEpiKit;
         Environment.prototype.run = function (step, until, saveInterval) {
             while (this.time <= until) {
                 this.update(step);
-                var rem = (this.time / step) % saveInterval;
-                if (rem === 0) {
-                    this.history.push(JSON.parse(JSON.stringify(this.agents)));
+                var rem = (this.time % saveInterval);
+                if (rem < step) {
+                    var copy = JSON.parse(JSON.stringify(this.agents));
+                    this.history = this.history.concat(copy);
                 }
                 this.time += step;
+                this.formatTime();
             }
-            this;
             this.publish("finished");
         };
         Environment.prototype.publish = function (eventName) {
@@ -62,6 +63,9 @@ var QEpiKit;
                 QEpiKit.Utils.shuffle(this.agents, this.randF);
                 this.models[c].update(step);
             }
+        };
+        Environment.prototype.formatTime = function () {
+            this.timeOfDay = this.time % 1;
         };
         return Environment;
     })();

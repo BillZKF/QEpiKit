@@ -1,14 +1,14 @@
 var schools = {"type": "FeatureCollection",
   "features":[{
   "type": "Feature",
-  "properties": {name:'south-philadelphia', capacity:600},
+  "properties": {name:'south-school', capacity:600},
   "geometry": {
     "type": "Point",
     "coordinates": [39.92122, -75.16923]
   }
 }, {
   "type": "Feature",
-  "properties": {name:'north-philadelphia', capacity:400},
+  "properties": {name:'north-school', capacity:400},
   "geometry": {
     "type": "Point",
     "coordinates": [39.99797, -75.1606]

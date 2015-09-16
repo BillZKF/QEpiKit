@@ -65,12 +65,26 @@ var QEpiKit;
             }
         };
         Utils.equalTo = function (a, b) {
+            if (typeof a === 'object' && typeof b === 'object') {
+                a = JSON.stringify(a);
+                b = JSON.stringify(b);
+            }
             if (a === b) {
                 return Utils.SUCCESS;
             }
             else {
                 return Utils.FAILED;
             }
+        };
+        Utils.not = function (result) {
+            var newResult;
+            if (result === Utils.SUCCESS) {
+                newResult = Utils.FAILED;
+            }
+            else if (result === Utils.FAILED) {
+                newResult = Utils.SUCCESS;
+            }
+            return newResult;
         };
         Utils.notEqualTo = function (a, b) {
             if (a !== b) {
@@ -119,6 +133,22 @@ var QEpiKit;
             }
             else {
                 return Utils.FAILED;
+            }
+        };
+        Utils.inRange = function (a, b) {
+            if (b >= a[0] && b <= a[1]) {
+                return Utils.SUCCESS;
+            }
+            else {
+                return Utils.FAILED;
+            }
+        };
+        Utils.notInRange = function (a, b) {
+            if (b >= a[0] && b <= a[1]) {
+                return Utils.FAILED;
+            }
+            else {
+                return Utils.SUCCESS;
             }
         };
         Utils.getMatcherString = function (check) {

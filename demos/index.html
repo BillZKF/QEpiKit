@@ -8,8 +8,9 @@
   <link href="../bower_components/leaflet.markercluster/dist/MarkerCluster.css" rel="stylesheet"></link>
   <link href="style.css" rel="stylesheet"></link>
   <link href="qepikit-render-style.css" rel="stylesheet"></link>
-  <script src="../qepikit.js"></script>
   <script src="../bower_components/d3/d3.min.js"></script>
+  <script src="../qepikit.js"></script>
+  <script src="qepikit-renderer.js"></script>
   <script src="../bower_components/leaflet/dist/leaflet.js"></script>
   <script src="../bower_components/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
   <script type="text/x-mathjax-config">
@@ -159,6 +160,7 @@
   <div>
 <button onclick="runEx3()">Run Example</button>
 <h4 id="data-ex-3"></h4>
+<div id="ex3-contact-mat"></div>
   </div>
   <script>
     function runEx3(){
@@ -167,9 +169,17 @@
         ExWorker = new Worker('statemachine-example1.js');
         ExWorker.postMessage('start');
         ExWorker.onmessage = function(event) {
-          console.log(event);
+
           var history = event.data[0];
-          var locations = event.data[1];
+          var contactMat = event.data[1];
+          history.map(function(d){
+            d.statesActivity = d.states.activity;
+            d.statesIllness = d.states.illness;
+            d.location = d.location.geometry.coordinates.join(",");
+            d.activitySchedule = d.activitySchedule.join(",");
+            d.sleepSchedule = d.sleepSchedule.join(",");
+            delete d.states;
+          })
           var a = d3.csv.format(history);
           var csvURI = "data:text/csv;charset=utf-8," + encodeURI(a);
           var link = document.createElement("a");
@@ -177,6 +187,7 @@
           link.setAttribute("download", "qepikit_example_3.csv");
           link.innerHTML = "CSV file";
           document.getElementById('data-ex-3').appendChild(link);
+          var diagram = new QEpiKit.renderer.contactAgeMat(contactMat, 'ex3-contact-mat');
         }
       }
     }

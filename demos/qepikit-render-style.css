@@ -161,14 +161,37 @@ circle{
 	stroke: darkblue
 }
 
-.workplace {
+.comcat{
+	stroke-opacity: 0.3;
 	stroke: orange;
+	fill: pink;
 }
 
-.community {
+.ibex{
+	stroke-opacity: 0.3;
+	stroke: orange;
+	fill: pink;
+}
+
+.north-philadelphia {
+	stroke-opacity: 0.3;
 	stroke: purple;
+	fill: lightgreen;
 }
 
-.school {
-	stroke: gold;
+.south-philadelphia {
+	stroke-opacity: 0.3;
+	stroke: purple;
+	fill: lightgreen;
+}
+
+.south-school{
+	stroke-opacity: 0.3;
+	stroke: steelblue;
+	fill: lightblue;
+}
+.north-school{
+	stroke-opacity: 0.3;
+	stroke: steelblue;
+	fill: lightblue;
 }

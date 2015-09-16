@@ -76,11 +76,25 @@ module QEpiKit {
     }
 
     public static equalTo(a, b) {
+      if(typeof a === 'object' && typeof b === 'object'){
+        a = JSON.stringify(a);
+        b = JSON.stringify(b);
+      }
       if (a === b) {
         return Utils.SUCCESS;
       } else {
         return Utils.FAILED;
       }
+    }
+
+    public static not(result){
+      var newResult;
+      if(result === Utils.SUCCESS){
+        newResult = Utils.FAILED;
+      } else if (result === Utils.FAILED) {
+        newResult = Utils.SUCCESS;
+      }
+      return newResult;
     }
 
     public static notEqualTo(a, b) {
@@ -129,6 +143,22 @@ module QEpiKit {
         return Utils.SUCCESS;
       } else {
         return Utils.FAILED;
+      }
+    }
+
+    public static inRange(a, b){
+      if(b >= a[0] && b <= a[1]){
+        return Utils.SUCCESS;
+      } else {
+        return Utils.FAILED;
+      }
+    }
+
+    public static notInRange(a, b){
+      if(b >= a[0] && b <= a[1]){
+        return Utils.FAILED;
+      } else {
+        return Utils.SUCCESS;
       }
     }
 
