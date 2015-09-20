@@ -11,6 +11,7 @@
     "src/utils.ts",
     "src/QComponent.ts",
     "src/environment.ts",
+    "src/experiment.ts",
     "src/QLearner.ts",
     "src/bdi.ts",
     "src/behaviorTree.ts",
