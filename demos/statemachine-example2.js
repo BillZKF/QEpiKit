@@ -74,7 +74,7 @@ var prepFunction = function(run) {
       case 'control':
         person.exerciseAmount = random.integer(0, 120);
         person.exerciseMETS = random.integer(2, 3);
-        person.calRawIntake = random.integer(1200, 4000);
+        person.calRawIntake = random.integer(1800, 4000);
         break;
       case 'diet':
         person.exerciseAmount = random.integer(0, 120);
@@ -83,12 +83,12 @@ var prepFunction = function(run) {
         break;
       case 'exercise':
         person.exerciseAmount = random.integer(30, 120);
-        person.exerciseMETS = random.integer(3, 6);
-        person.calRawIntake = random.integer(1200, 4000);
+        person.exerciseMETS = random.integer(4, 6);
+        person.calRawIntake = random.integer(1800, 4000);
         break;
       case 'dietExercise':
         person.exerciseAmount = random.integer(30, 120);
-        person.exerciseMETS = random.integer(3, 6);
+        person.exerciseMETS = random.integer(4, 6);
         person.calRawIntake = random.integer(1200, 2500);
         break;
       default:

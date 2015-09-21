@@ -50,13 +50,19 @@ module QEpiKit {
       }
     }
 
-    encounters(agent: any, precondition: any, contactFunc: Function, resultKey: string) {
+    encounters(agent: any, precondition: any, contactFunc: Function, resultKey: string, save:boolean = false) {
       contactFunc = contactFunc || ContactPatch.defaultContactF;
+      let contactVal;
       for (var contact in this.members) {
+        if(precondition.key === 'states'){
+          contactVal = JSON.stringify(this.members[contact].properties[precondition.key]);
+        } else {
+          contactVal = this.members[contact].properties[precondition.key];
+        }
         if (precondition.check(this.members[contact].properties[precondition.key], precondition.value) && Number(contact) !== agent.id) {
           var oldVal = this.members[contact].properties[resultKey];
           var newVal = contactFunc(this.members[contact], agent);
-          if(oldVal !== newVal){
+          if(oldVal !== newVal && save === true){
             this.members[contact].properties[resultKey] = newVal;
             ContactPatch.WIWArray.push({
               patchID: this.id,

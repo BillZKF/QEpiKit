@@ -65,10 +65,6 @@ var QEpiKit;
             }
         };
         Utils.equalTo = function (a, b) {
-            if (typeof a === 'object' && typeof b === 'object') {
-                a = JSON.stringify(a);
-                b = JSON.stringify(b);
-            }
             if (a === b) {
                 return Utils.SUCCESS;
             }
