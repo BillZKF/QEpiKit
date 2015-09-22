@@ -162,6 +162,7 @@
     <h3>Flu-like</h3>
     <button onclick="runEx3()">Run Example 3</button>
     <h4 id="data-ex-3"></h4>
+    <div id="ex3-d"></div>
     <div id="ex3-contact-mat"></div>
   </div>
   <script>
@@ -170,23 +171,32 @@
       if (typeof Worker !== 'undefined') {
         ExWorker = new Worker('statemachine-example1.js');
         ExWorker.postMessage('start');
+        var lines = [];
+        var d = new QEpiKit.renderer.trendLines('ex3-d', lines);
         ExWorker.onmessage = function(event) {
-          var log = event.data[0];
-          var contactMat = event.data[1];
-          var WIWsummary = [];
-          log.map(function(d,i) {
-            WIWsummary[i] = d.WIW;
-            delete d.WIW;
-          });
-          console.log(WIWsummary);
-          var a = d3.csv.format(log);
-          var csvURI = "data:text/csv;charset=utf-8," + encodeURI(a);
-          var link = document.createElement("a");
-          link.setAttribute("href", csvURI);
-          link.setAttribute("download", "qepikit_example_3.csv");
-          link.innerHTML = "CSV file";
-          document.getElementById('data-ex-3').appendChild(link);
-          var diagram = new QEpiKit.renderer.contactAgeMat(contactMat, 'ex3-contact-mat');
+          if (event.data[0] === 'progress') {
+            lines.push(event.data[1]);
+            var progress = lines.length / 50;
+            var d = new QEpiKit.renderer.trendLines('ex3-d', lines, event.data[2]);
+          }
+          if (event.data[0] === 'complete') {
+            var log = event.data[1];
+            var contactMat = event.data[2];
+            var WIWsummary = [];
+            log.map(function(d, i) {
+              WIWsummary[i] = d.WIW;
+              delete d.WIW;
+            });
+
+            var a = d3.csv.format(log);
+            var csvURI = "data:text/csv;charset=utf-8," + encodeURI(a);
+            var link = document.createElement("a");
+            link.setAttribute("href", csvURI);
+            link.setAttribute("download", "qepikit_example_3.csv");
+            link.innerHTML = "CSV file";
+            document.getElementById('data-ex-3').appendChild(link);
+            var diagram = new QEpiKit.renderer.contactAgeMat(contactMat, 'ex3-contact-mat');
+          }
         }
       }
     }

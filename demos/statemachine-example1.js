@@ -138,7 +138,7 @@ var distUnits = 'miles',
   seed = startSeed, rate = 0;
 var prepFunction = function() {
   seed += 1;
-  rate = 0.01;
+  rate = 0.01885;
   random = new Random(Random.engines.mt19937().seedWithArray([seed, 0x90abcdef]));
   numAgents = 300;
   infectAtStartProp = 0.01;
@@ -326,19 +326,29 @@ recordFunction = function() {
     }
   });
   record.WIW = {};
-  QEpiKit.ContactPatch.WIWArray.map(function(d){
-    record.WIW[d.name] = record.WIW[d.name] || {};
-    record.WIW[d.name].total = record.WIW[d.name].total + 1 || 0;
-    record.WIW[d.name][Math.floor(d.time)] = record.WIW[d.name][Math.floor(d.time)] + 1 || 0;
+
+  QEpiKit.ContactPatch.WIWArray.forEach(function(dat){
+    if(typeof record.WIW[dat.name] === 'undefined'){
+      record.WIW[dat.name] = {};
+      record.WIW[dat.name].total = 0;
+      for(var ii = 0; ii < duration; ii++){
+        record.WIW[dat.name][ii] = 0;
+      }
+    }
+  });
+  QEpiKit.ContactPatch.WIWArray.forEach(function(d){
+    record.WIW[d.name][Math.floor(d.time)] += 1;
+    record.WIW[d.name].total = record.WIW[d.name].total + 1;
   });
   record.meanPathLoad = totPathLoad / environment.agents.length;
   record.numberOfEncouters = QEpiKit.ContactPatch.WIWArray.length;
   record.infectionsPerEncounter = (record.exposed + record.infectious + record.hospitalized + record.recovered - (infectAtStartProp * environment.agents.length))/ record.numberOfEncouters;
+  self.postMessage(['progress', record.WIW, record.infectionsPerEncounter]);
   return record;
 };
 
 self.onmessage = function(initEvent) {
-  runs = 50; //total experiment runs
+  runs = 100; //total experiment runs
   step = 1 / 24; //do each hour
   duration = 30; //days
   environment = new QEpiKit.Environment(agents, [], [], function() {
@@ -348,5 +358,5 @@ self.onmessage = function(initEvent) {
   environment.add(fluStateMachine);
   experimentRunner = new QEpiKit.Experiment(environment, prepFunction, recordFunction);
   experimentRunner.start(runs, step, duration);
-  self.postMessage([experimentRunner.experimentLog, QEpiKit.ContactPatch.WIWArray]);
+  self.postMessage(['complete',experimentRunner.experimentLog, QEpiKit.ContactPatch.WIWArray]);
 };
