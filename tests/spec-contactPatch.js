@@ -8,7 +8,7 @@ describe("A Contact Patch", function(){
 
   it("should create a new patch with an incremented id", function(){
     Work = new QEpiKit.ContactPatch("work", 2);
-    expect(Work.id).toEqual(2);
+    expect(Work.id.length).toEqual(36);
   });
 
   it("assign method should accept new agent if not full, and return patch id", function(){
@@ -19,7 +19,7 @@ describe("A Contact Patch", function(){
     expect(Work.pop).toEqual(1);
 
     person2.work = Work.assign(person2);
-    expect(person2.work).toEqual(2);
+    expect(person2.work).toEqual(Work.id);
 
     Work.assign({id:3, age:40});
     expect(Work.pop).toEqual(2);
@@ -34,7 +34,7 @@ describe("A Contact Patch", function(){
     var isWell = {key:"sick", value:false, check:QEpiKit.Utils.equalTo, data:null};
     Work.encounters(person2, isWell, function(a, t){
       return true;
-    },"sick");
+    },"sick", true);
 
     expect(QEpiKit.ContactPatch.WIWArray.length).toBeGreaterThan(0);
     expect(QEpiKit.ContactPatch.WIWArray[0].name).toBe("work");
