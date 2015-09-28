@@ -1,47 +1,63 @@
-// You can use either `new PIXI.WebGLRenderer`, `new PIXI.CanvasRenderer`, or `PIXI.autoDetectRenderer`
-// which will try to choose the best renderer for the environment you are in.
-var renderer = PIXI.autoDetectRenderer(1024, 768,{backgroundColor : 0xffffff});
+var QEpiKit = (function(Q, PIXI) {
+  Q.GLRenderer = {
+  ScatterXY: function(xyData, options) {
+    // create an new instance of a pixi stage
+    var domain = [],
+      pixMargins = [],
+      pXmargin, pYmargin;
+    this.xyData = xyData;
+    this.stage = new PIXI.Container();
+    this.renderer = PIXI.autoDetectRenderer(options.width, options.height, {
+      backgroundColor: options.bgColor
+    });
+    this.scales = [options.extents.x, options.extents.y];
 
-// The renderer will create a canvas element for you that you can then insert into the DOM.
-document.body.appendChild(renderer.view);
-function addHexColor(c1, c2) {
-  var hexStr = (parseInt(c1, 16) + parseInt(c2, 16)).toString(16);
-  while (hexStr.length < 6) { hexStr = '0' + hexStr; } // Zero pad.
-  return hexStr;
+    domain = [];
+    domain[0] = Math.abs(this.scales[0].min - this.scales[0].max);
+    domain[1] = Math.abs(this.scales[1].min - this.scales[1].max);
+
+    pixMargins = [];
+    pixMargins[0] = options.marginsX || this.renderer.width * 0.05;
+    pixMargins[1] = options.marginsY || this.renderer.height * 0.05;
+    range = {
+      x: {},
+      y: {}
+    };
+    range.x.min = 0 + pixMargins[0];
+    range.x.max = this.renderer.width - pixMargins[0];
+    range.y.max = 0 + pixMargins[1];
+    range.y.min = this.renderer.height - pixMargins[1];
+
+    pW = Math.abs(range.x.min - range.x.max);
+    pH = Math.abs(range.y.min - range.y.max)
+
+    var xLabel = new PIXI.Text('X Axis');
+    var yLabel = new PIXI.Text('Y Axis');
+    xLabel.x = range.x.min;
+    xLabel.y = range.y.min;
+
+    yLabel.x = range.x.min - 30;
+    yLabel.y = range.y.min;
+    yLabel.rotation = -90 * (Math.PI / 180);
+    this.stage.addChild(xLabel);
+    this.stage.addChild(yLabel);
+    this.container = document.body.appendChild(this.renderer.view);
+    this.axes = Q.GLRenderer.XYAxes();
+    scatterPlot = new PIXI.Graphics();
+    this.xyData.forEach(function(point) {
+      var scaled = {
+        x: 0,
+        y: 0
+      };
+      scaled.x = point.x * (pW / domain[0]) + pixMargins[0];
+      scaled.y = range.y.min - (point.y * (pH / domain[1]));
+      scatterPlot.beginFill(0x4488ff, 0.7).drawCircle(scaled.x, scaled.y, 2);
+    })
+    this.scatterPlot = scatterPlot;
+    this.stage.addChild(scatterPlot);
+    this.renderer.render(this.stage);
+    return this;
+  }
 }
-// You need to create a root container that will hold the scene you want to draw.
-var stage = new PIXI.Container();
-var bunny = new PIXI.Graphics();
-bunny.pivot = {x:300,y:400};
-var color = Math.floor(Math.random() * 16777215).toString(16);
-// This creates a texture from a 'bunny.png' image.
-for(var i =0 ; i < 5000; i++){
-  color = addHexColor(color,'000001');
-  bunny.beginFill('0x' + color,0.5)
-  .drawCircle(Math.random() * 1024,Math.random() * 768, 8);
-}
-
-// Setup the position and scale of the bunny
-bunny.position.x = 1024/2;
-bunny.position.y = 768/2;
-
-bunny.scale.x = 1;
-bunny.scale.y = 1;
-
-// Add the bunny to the scene we are building.
-stage.addChild(bunny);
-
-// kick off the animation loop (defined below)
-animate();
-
-function animate() {
-    // start the timer for the next animation loop
-    requestAnimationFrame(animate);
-
-    // each frame we spin the bunny around a bit
-    bunny.scale.x += 0.0005;
-    bunny.scale.y += 0.0005;
-    bunny.rotation += 0.0005;
-    // this is the main render call that makes pixi draw your container and its children.
-    renderer.render(stage);
-}
+return Q;
+})(QEpiKit || {}, PIXI);

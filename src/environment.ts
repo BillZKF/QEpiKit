@@ -17,7 +17,7 @@ module QEpiKit {
     */
     public timeOfDay: number;
     /**
-    * The models array contains runnable model components
+    * The model's array contains runnable model components
     */
     public models: any[];
     /**
@@ -52,7 +52,6 @@ module QEpiKit {
 
     constructor(agents, resources, eventsQueue: Event[], randF: () => number = Math.random) {
       this.time = 0;
-      this.geoNetwork = [];
       this.models = [];
       this.observers = [];
       this.history = [];
@@ -133,6 +132,9 @@ module QEpiKit {
       }
     }
 
+    /** Format a time of day. Current time % 1.
+    *
+    */
     formatTime(){
       this.timeOfDay = this.time % 1;
     }
