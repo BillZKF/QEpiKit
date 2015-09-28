@@ -19,6 +19,16 @@ module QEpiKit {
       return URI;
     }
 
+    static arrayFromRange(start, end, step) {
+      var range = [];
+      var i = start;
+      while (i < end) {
+        range.push(i);
+        i += step;
+      }
+      return range;
+    }
+
     public static shuffle(array: any[], randomF: () => number) {
       var currentIndex = array.length, temporaryValue, randomIndex;
 
@@ -76,7 +86,7 @@ module QEpiKit {
     }
 
     public static equalTo(a, b) {
-      if(typeof a === 'object' && typeof b === 'object'){
+      if (typeof a === 'object' && typeof b === 'object') {
         a = JSON.stringify(a);
         b = JSON.stringify(b);
       }
@@ -87,9 +97,9 @@ module QEpiKit {
       }
     }
 
-    public static not(result){
+    public static not(result) {
       var newResult;
-      if(result === Utils.SUCCESS){
+      if (result === Utils.SUCCESS) {
         newResult = Utils.FAILED;
       } else if (result === Utils.FAILED) {
         newResult = Utils.SUCCESS;
@@ -146,16 +156,16 @@ module QEpiKit {
       }
     }
 
-    public static inRange(a, b){
-      if(b >= a[0] && b <= a[1]){
+    public static inRange(a, b) {
+      if (b >= a[0] && b <= a[1]) {
         return Utils.SUCCESS;
       } else {
         return Utils.FAILED;
       }
     }
 
-    public static notInRange(a, b){
-      if(b >= a[0] && b <= a[1]){
+    public static notInRange(a, b) {
+      if (b >= a[0] && b <= a[1]) {
         return Utils.FAILED;
       } else {
         return Utils.SUCCESS;
