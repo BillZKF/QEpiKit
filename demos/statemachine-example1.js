@@ -4,10 +4,10 @@ var schoolEncProb = function(a, b) {
   return (15 - Math.abs(a.age - b.age)) / 15 * 0.08;
 };
 var workEncProb = function(a, b) {
-  return (23 - Math.abs(a.age - b.age)) / 23 * 0.05;
+  return (44 - Math.abs(a.age - b.age)) / 44 * 0.025;
 };
 var neighborhoodEncProb = function(a, b) {
-  return (31 - Math.abs(a.age - 31)) / 31 * 0.015;
+  return (31 - Math.abs(a.age - 31)) / 31 * 0.005;
 };
 
 var transitionMap = [{
@@ -64,13 +64,15 @@ states = {
     } else {
       patch = wpPatches[person.occupationPatch];
     }
-    actions.goTo(step, patch, person);
+    //actions.goTo(step, patch, person);
   },
   'atHome': function(step, person) {
-    actions.goTo(step, nhPatches[person.homePatch], person);
+    //actions.goTo(step, nhPatches[person.homePatch], person);
   },
   'sleeping': function(step, person) {},
-  'succeptible': function(step, person) {},
+  'succeptible': function(step, person) {
+    person.pathogenLoad -= person.pathogenLoad * 0.025 * step;
+  },
   'exposed': function(step, person) {
     person.pathogenLoad = pathogen.productionFunction(person.pathogenLoad);
     if (person.states.activity === 'atHome') {
@@ -138,9 +140,9 @@ var distUnits = 'miles',
   seed = startSeed, rate = 0;
 var prepFunction = function() {
   seed += 1;
-  rate = 0.01885;
   random = new Random(Random.engines.mt19937().seedWithArray([seed, 0x90abcdef]));
-  numAgents = 300;
+  rate = random.real(0.01, 0.02);
+  numAgents = 1000;
   infectAtStartProp = 0.01;
   locations = turf.random('points', numAgents, {
     bbox: [-75.1867, 39.9900, -75.1467, 39.9200]
@@ -325,8 +327,9 @@ recordFunction = function() {
         break;
     }
   });
+  record.numberOfEncouters = QEpiKit.ContactPatch.WIWArray.length;
   record.WIW = {};
-
+  record.infectionsPerEncounter = (record.exposed + record.infectious + record.hospitalized + record.recovered - (infectAtStartProp * environment.agents.length))/ record.numberOfEncouters;
   QEpiKit.ContactPatch.WIWArray.forEach(function(dat){
     if(typeof record.WIW[dat.name] === 'undefined'){
       record.WIW[dat.name] = {};
@@ -339,16 +342,15 @@ recordFunction = function() {
   QEpiKit.ContactPatch.WIWArray.forEach(function(d){
     record.WIW[d.name][Math.floor(d.time)] += 1;
     record.WIW[d.name].total = record.WIW[d.name].total + 1;
+    record.WIW[d.name].infectionsPerEncounter = record.infectionsPerEncounter;
   });
   record.meanPathLoad = totPathLoad / environment.agents.length;
-  record.numberOfEncouters = QEpiKit.ContactPatch.WIWArray.length;
-  record.infectionsPerEncounter = (record.exposed + record.infectious + record.hospitalized + record.recovered - (infectAtStartProp * environment.agents.length))/ record.numberOfEncouters;
-  self.postMessage(['progress', record.WIW, record.infectionsPerEncounter]);
+  self.postMessage(['progress', record.WIW]);
   return record;
 };
 
 self.onmessage = function(initEvent) {
-  runs = 100; //total experiment runs
+  runs = 10; //total experiment runs
   step = 1 / 24; //do each hour
   duration = 30; //days
   environment = new QEpiKit.Environment(agents, [], [], function() {

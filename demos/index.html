@@ -177,7 +177,7 @@
           if (event.data[0] === 'progress') {
             lines.push(event.data[1]);
             var progress = lines.length / 50;
-            var d = new QEpiKit.renderer.trendLines('ex3-d', lines, event.data[2]);
+            d.update(lines);
           }
           if (event.data[0] === 'complete') {
             var log = event.data[1];

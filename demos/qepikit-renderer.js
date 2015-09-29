@@ -521,7 +521,7 @@ var QEpiKit = (function(Q, d3) {
           return d.result / cExt[1];
         });
     },
-    trendLines: function(el, lines, perEncounter) {
+    trendLines: function(el) {
       var margin = 50,
         dH = 600 - margin - margin,
         dW = 840 - margin - margin,
@@ -535,101 +535,98 @@ var QEpiKit = (function(Q, d3) {
         .append("g")
         .attr("transform", "translate(" + margin + ", " + margin + ")");
 
-      this.curveDatas = {};
-      var last = -10,
-        max = -1000;
 
-      for (var line in lines) {
+      this.update = function(lines) {
+        this.trendSVG.selectAll("g").remove();
+        this.trendSVG.selectAll("path").remove();
+        this.curveDatas = {};
+        last = -30;
+        max = -50;
 
+        for (var line in lines) {
           this.curveDatas[line] = {};
           for (var patch in lines[line]) {
             this.curveDatas[line][patch] = [];
             for (var time in lines[line][patch]) {
-              if (time !== 'total') {
-                var t = parseInt(time);
-                if(typeof t !== 'number'){
-
-                } else if(lines[line][patch][time] * perEncounter > 0){
+              var t = parseInt(time);
+              if (!isNaN(t)) {
+                var perEncounter = lines[line][patch].infectionsPerEncounter;
+                if (isNaN(lines[line][patch][time] * perEncounter)) {
+                  this.curveDatas[line][patch].push({
+                    x: t,
+                    y: 0,
+                    label: line
+                  });
+                } else if (lines[line][patch][time] * perEncounter > 0) {
                   this.curveDatas[line][patch].push({
                     x: t,
                     y: lines[line][patch][time] * perEncounter,
                     label: line
                   });
-                }
 
-                if (lines[line][patch][time] * perEncounter > max) {
-                  max = lines[line][patch][time] * perEncounter;
-                }
-                if (parseInt(time) > last){
-                  last = parseInt(time);
+                  if (lines[line][patch][time] * perEncounter * 1.5 > max) {
+                    max = lines[line][patch][time] * perEncounter * 1.5;
+                  }
+                  if (parseInt(time) > last) {
+                    last = parseInt(time);
+                  }
                 }
               }
             }
           }
+        }
 
-      }
+        var x = d3.scale.linear()
+          .domain([0, last])
+          .range([margin, dW - margin]);
 
+        var y = d3.scale.linear()
+          .domain([max, 0])
+          .range([margin, dH - margin]);
 
+        var xAxis = d3.svg.axis()
+          .scale(x)
+          .orient("bottom");
 
-      var dateFormat = d3.time.format("%x");
-      var start = new Date();
-      start.setDate(start.getDate());
-      var end = new Date();
-      end.setDate(start.getDate() + last);
+        var yAxis = d3.svg.axis()
+          .scale(y)
+          .orient("left");
 
-      var x = d3.scale.linear()
-        .domain([0, last])
-        .range([margin, dW - margin]);
+        var curveFunc = d3.svg.line()
+          .x(function(d) {
+            return x(d.x);
+          })
+          .y(function(d) {
+            return y(d.y);
+          });
 
-      var y = d3.scale.linear()
-        .domain([max, 0])
-        .range([margin, dH - margin]);
-
-      var xAxis = d3.svg.axis()
-        .scale(x)
-        .orient("bottom");
-
-      var yAxis = d3.svg.axis()
-        .scale(y)
-        .orient("left");
-
-      var curveFunc = d3.svg.line()
-        .x(function(d) {
-          return x(d.x);
-        })
-        .y(function(d) {
-          return y(d.y);
-        });
-
-      for (var lin in this.curveDatas) {
-        if(Object.keys(this.curveDatas[lin]).length > 0){
-          for(var pat in this.curveDatas[lin]){
+        for (var lin in this.curveDatas) {
+          for (var pat in this.curveDatas[lin]) {
             this.trendSVG.append('path')
               .datum(this.curveDatas[lin][pat])
               .attr('class', 'line')
-              .style('stroke', '#faa')
               .style('stroke-width', 2)
               .style('stroke-opacity', 0.7)
               .attr('d', curveFunc)
+              .attr('class', pat)
               .append("svg:title")
               .text(pat);
           }
         }
-      }
 
+        this.trendSVG.append("g")
+          .attr("class", "axis")
+          .attr("transform", "translate(0," + (dH - margin) + ")")
+          .call(xAxis);
 
-      this.trendSVG.append("g")
-        .attr("class", "axis")
-        .attr("transform", "translate(0," + (dH - margin) + ")")
-        .call(xAxis);
+        this.trendSVG.append("g")
+          .attr("class", "axis")
+          .attr("transform", "translate( " + margin + ",0)")
+          .call(yAxis);
 
-      this.trendSVG.append("g")
-        .attr("class", "axis")
-        .attr("transform", "translate( " + margin + ",0)")
-        .call(yAxis);
-
-      d3.selectAll(".tick > text")
-        .style("font-size", 10);
+        d3.selectAll(".tick > text")
+          .style("font-size", 10);
+      };
     },
     infectionNetwork: function(agents, WIW, el) {
       var margin = 50,

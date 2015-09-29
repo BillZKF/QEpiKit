@@ -162,36 +162,53 @@ circle{
 }
 
 .comcat{
-	stroke-opacity: 0.3;
+	stroke-opacity: 0.7;
 	stroke: orange;
-	fill: pink;
 }
 
 .ibex{
-	stroke-opacity: 0.3;
+	stroke-opacity: 0.7;
 	stroke: orange;
-	fill: pink;
 }
 
 .north-philadelphia {
-	stroke-opacity: 0.3;
+	stroke-opacity: 0.7;
 	stroke: purple;
-	fill: lightgreen;
 }
 
 .south-philadelphia {
-	stroke-opacity: 0.3;
+	stroke-opacity: 0.7;
 	stroke: purple;
-	fill: lightgreen;
 }
 
 .south-school{
-	stroke-opacity: 0.3;
+	stroke-opacity: 0.7;
 	stroke: steelblue;
-	fill: lightblue;
 }
 .north-school{
-	stroke-opacity: 0.3;
+	stroke-opacity: 0.7;
 	stroke: steelblue;
+}
+
+.comcat circle{
+	fill: pink;
+}
+
+.ibex circle{
+	fill: pink;
+}
+
+.north-philadelphia circle{
+	fill: lightgreen;
+}
+
+.south-philadelphia circle{
+	fill: lightgreen;
+}
+
+.south-school circle{
+	fill: lightblue;
+}
+.north-school circle{
 	fill: lightblue;
 }
