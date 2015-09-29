@@ -4,7 +4,7 @@ var QEpiKit;
         function Environment(agents, resources, eventsQueue, randF) {
             if (randF === void 0) { randF = Math.random; }
             this.time = 0;
-            this.geoNetwork = [];
+            this.timeOfDay = 0;
             this.models = [];
             this.observers = [];
             this.history = [];
@@ -52,12 +52,14 @@ var QEpiKit;
             }
         };
         Environment.prototype.update = function (step) {
-            var eKey = this.time.toString();
-            if (this.eventsQueue.hasOwnProperty(eKey)) {
-                this.eventsQueue[eKey].trigger(this.agents);
-                this.eventsQueue[eKey].triggered = true;
-            }
-            else {
+            var index = 0;
+            while (index < this.eventsQueue.length && this.eventsQueue[index].at <= this.time) {
+                this.eventsQueue[index].trigger();
+                this.eventsQueue[index].triggered = true;
+                if (this.eventsQueue[index].until <= this.time) {
+                    this.eventsQueue.splice(index, 1);
+                }
+                index++;
             }
             for (var c = 0; c < this.models.length; c++) {
                 QEpiKit.Utils.shuffle(this.agents, this.randF);

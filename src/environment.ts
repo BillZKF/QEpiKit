@@ -17,7 +17,7 @@ module QEpiKit {
     */
     public timeOfDay: number;
     /**
-    * The models array contains runnable model components
+    * The model's array contains runnable model components
     */
     public models: any[];
     /**
@@ -27,7 +27,7 @@ module QEpiKit {
     /**
     * The eventsQueue is an array of Event objects
     */
-    public eventsQueue: Event[];
+    public eventsQueue: QEvent[];
     /**
     * The history of the environment
     */
@@ -50,9 +50,9 @@ module QEpiKit {
     public randF: () => number;
 
 
-    constructor(agents, resources, eventsQueue: Event[], randF: () => number = Math.random) {
+    constructor(agents, resources, eventsQueue: QEvent[], randF: () => number = Math.random) {
       this.time = 0;
-      this.geoNetwork = [];
+      this.timeOfDay = 0;
       this.models = [];
       this.observers = [];
       this.history = [];
@@ -120,12 +120,14 @@ module QEpiKit {
     * @param step the step size
     */
     update(step: number) {
-      var eKey = this.time.toString();
-      if (this.eventsQueue.hasOwnProperty(eKey)) {
-        this.eventsQueue[eKey].trigger(this.agents);
-        this.eventsQueue[eKey].triggered = true;
-      } else {
-        //this.eventsQueue[eKey] = undefined;
+      var index = 0;
+      while(index < this.eventsQueue.length && this.eventsQueue[index].at <= this.time){
+        this.eventsQueue[index].trigger();
+        this.eventsQueue[index].triggered = true;
+        if(this.eventsQueue[index].until <= this.time){
+          this.eventsQueue.splice(index, 1);
+        }
+        index++;
       }
       for (var c = 0; c < this.models.length; c++) {
         QEpiKit.Utils.shuffle(this.agents, this.randF);
@@ -133,6 +135,9 @@ module QEpiKit {
       }
     }
 
+    /** Format a time of day. Current time % 1.
+    *
+    */
     formatTime(){
       this.timeOfDay = this.time % 1;
     }

@@ -17,6 +17,7 @@
     "src/behaviorTree.ts",
     "src/compartment.ts",
     "src/contactPatch.ts",
+    "src/events.ts",
     "src/epi.ts",
     "src/geoPatch.ts",
     "src/ha.ts",

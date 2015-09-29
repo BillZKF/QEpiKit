@@ -622,7 +622,6 @@ var QEpiKit;
         function Environment(agents, resources, eventsQueue, randF) {
             if (randF === void 0) { randF = Math.random; }
             this.time = 0;
-            this.geoNetwork = [];
             this.models = [];
             this.observers = [];
             this.history = [];
