@@ -44,19 +44,4 @@ module QEpiKit{
     amount: number;
     unit: string;
   }
-
-  /**
-  *QEvents are events which occur in an Environment at a specified time
-  */
-  export interface QEvent {
-    name:string;
-    /**
-    * trigged false until trigger function is called for event, then set true
-    */
-    triggered: boolean;
-    /**
-    * trigger called at time /event specified by event
-    */
-    trigger():void;
-  }
 }
