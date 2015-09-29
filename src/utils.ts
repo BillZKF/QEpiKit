@@ -13,7 +13,6 @@ module QEpiKit {
         dataString = infoArray.join(",");
         csvContentArray.push(dataString);
       });
-
       csvContent += csvContentArray.join("\n");
       URI = encodeURI(csvContent);
       return URI;

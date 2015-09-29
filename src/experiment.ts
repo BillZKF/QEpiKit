@@ -1,4 +1,7 @@
 module QEpiKit {
+  /**Batch run environments
+  *
+  */
   export class Experiment {
     public environment: Environment;
     public prepFunction: Function;
@@ -20,7 +23,7 @@ module QEpiKit {
         this.prepFunction(r);
         this.environment.time = 0;
         this.environment.run(step, until, 0);
-        this.experimentLog[r] = this.recordFunction();
+        this.experimentLog[r] = this.recordFunction(r);
         r++;
       }
     }

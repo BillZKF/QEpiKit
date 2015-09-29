@@ -619,14 +619,16 @@ var QEpiKit;
 var QEpiKit;
 (function (QEpiKit) {
     var Environment = (function () {
-        function Environment(agents, resources, eventsQueue, randF) {
+        function Environment(agents, resources, facilities, eventsQueue, randF) {
             if (randF === void 0) { randF = Math.random; }
             this.time = 0;
+            this.timeOfDay = 0;
             this.models = [];
             this.observers = [];
             this.history = [];
             this.agents = agents;
             this.resources = resources;
+            this.facilities = facilities;
             this.eventsQueue = eventsQueue;
             this.randF = randF;
         }
@@ -669,12 +671,14 @@ var QEpiKit;
             }
         };
         Environment.prototype.update = function (step) {
-            var eKey = this.time.toString();
-            if (this.eventsQueue.hasOwnProperty(eKey)) {
-                this.eventsQueue[eKey].trigger(this.agents);
-                this.eventsQueue[eKey].triggered = true;
-            }
-            else {
+            var index = 0;
+            while (index < this.eventsQueue.length && this.eventsQueue[index].at <= this.time) {
+                this.eventsQueue[index].trigger();
+                this.eventsQueue[index].triggered = true;
+                if (this.eventsQueue[index].until <= this.time) {
+                    this.eventsQueue.splice(index, 1);
+                }
+                index++;
             }
             for (var c = 0; c < this.models.length; c++) {
                 QEpiKit.Utils.shuffle(this.agents, this.randF);
@@ -717,12 +721,69 @@ var QEpiKit;
 //# sourceMappingURL=epi.js.map
 var QEpiKit;
 (function (QEpiKit) {
+    var Events = (function () {
+        function Events(events) {
+            this.queue = [];
+            this.schedule(events);
+        }
+        Events.prototype.scheduleRecurring = function (qevent, every, end) {
+            var recur = [];
+            var duration = end - qevent.at;
+            var occurences = Math.floor(duration / every);
+            if (!qevent.until) {
+                qevent.until = qevent.at;
+            }
+            for (var i = 0; i <= occurences; i++) {
+                recur.push({ name: qevent.name + i, at: qevent.at + (i * every), until: qevent.until + (i * every), trigger: qevent.trigger, triggered: false });
+            }
+            this.schedule(recur);
+        };
+        Events.prototype.schedule = function (qevents) {
+            qevents.forEach(function (d) {
+                d.until = d.until || d.at;
+            });
+            this.queue = this.queue.concat(qevents);
+            this.queue = this.organize(this.queue, 0, this.queue.length);
+        };
+        Events.prototype.partition = function (array, left, right) {
+            var cmp = array[right - 1].at, minEnd = left, maxEnd;
+            for (maxEnd = left; maxEnd < right - 1; maxEnd += 1) {
+                if (array[maxEnd].at <= cmp) {
+                    this.swap(array, maxEnd, minEnd);
+                    minEnd += 1;
+                }
+            }
+            this.swap(array, minEnd, right - 1);
+            return minEnd;
+        };
+        Events.prototype.swap = function (array, i, j) {
+            var temp = array[i];
+            array[i] = array[j];
+            array[j] = temp;
+            return array;
+        };
+        Events.prototype.organize = function (events, left, right) {
+            if (left < right) {
+                var p = this.partition(events, left, right);
+                this.organize(events, left, p);
+                this.organize(events, p + 1, right);
+            }
+            return events;
+        };
+        return Events;
+    })();
+    QEpiKit.Events = Events;
+})(QEpiKit || (QEpiKit = {}));
+//# sourceMappingURL=events.js.map
+var QEpiKit;
+(function (QEpiKit) {
     var Experiment = (function () {
         function Experiment(environment, prepFunction, recordFunction) {
             this.environment = environment;
             this.prepFunction = prepFunction;
             this.recordFunction = recordFunction;
             this.experimentLog = [];
+            this.plans = [];
         }
         Experiment.prototype.start = function (runs, step, until) {
             var r = 0;
@@ -730,9 +791,24 @@ var QEpiKit;
                 this.prepFunction(r);
                 this.environment.time = 0;
                 this.environment.run(step, until, 0);
-                this.experimentLog[r] = this.recordFunction();
+                this.experimentLog[r] = this.recordFunction(r);
                 r++;
             }
+        };
+        Experiment.prototype.sweep = function (params, runsPer) {
+            var expPlan = [];
+            for (var prop in params) {
+                for (var i = 0; i < params[prop].length; i++) {
+                    for (var k = 0; k < runsPer; k++) {
+                        expPlan.push({
+                            param: prop,
+                            value: params[prop][i],
+                            run: k
+                        });
+                    }
+                }
+            }
+            this.plans = expPlan;
         };
         return Experiment;
     })();
@@ -1048,6 +1124,15 @@ var QEpiKit;
             csvContent += csvContentArray.join("\n");
             URI = encodeURI(csvContent);
             return URI;
+        };
+        Utils.arrayFromRange = function (start, end, step) {
+            var range = [];
+            var i = start;
+            while (i < end) {
+                range.push(i);
+                i += step;
+            }
+            return range;
         };
         Utils.shuffle = function (array, randomF) {
             var currentIndex = array.length, temporaryValue, randomIndex;

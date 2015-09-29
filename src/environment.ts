@@ -41,6 +41,10 @@ module QEpiKit {
     */
     public resources: any;
     /**
+    * Assets (like bathrooms, garbage cans, water tanks) that can be in or out of operation, that can be filled or depleted to and from capacity.
+    */
+    public facilities: any;
+    /**
     * The agents in the simulation
     */
     public agents: any;
@@ -50,7 +54,7 @@ module QEpiKit {
     public randF: () => number;
 
 
-    constructor(agents, resources, eventsQueue: QEvent[], randF: () => number = Math.random) {
+    constructor(agents, resources, facilities, eventsQueue: QEvent[], randF: () => number = Math.random) {
       this.time = 0;
       this.timeOfDay = 0;
       this.models = [];
@@ -58,6 +62,7 @@ module QEpiKit {
       this.history = [];
       this.agents = agents;
       this.resources = resources;
+      this.facilities = facilities;
       this.eventsQueue = eventsQueue;
       this.randF = randF;
     }

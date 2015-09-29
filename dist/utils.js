@@ -16,6 +16,15 @@ var QEpiKit;
             URI = encodeURI(csvContent);
             return URI;
         };
+        Utils.arrayFromRange = function (start, end, step) {
+            var range = [];
+            var i = start;
+            while (i < end) {
+                range.push(i);
+                i += step;
+            }
+            return range;
+        };
         Utils.shuffle = function (array, randomF) {
             var currentIndex = array.length, temporaryValue, randomIndex;
             while (0 !== currentIndex) {

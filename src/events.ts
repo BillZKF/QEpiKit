@@ -23,6 +23,9 @@ module QEpiKit {
   }
 
 
+  /** Events class includes methods for organizing events.
+  *
+  */
   export class Events {
     public queue: QEvent[];
 

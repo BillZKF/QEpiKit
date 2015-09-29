@@ -97,7 +97,7 @@ describe("A Belief Desire Intent Agent", function() {
   });
 
   it("should also be able to act as an observer",function(){
-    var env = new QEpiKit.Environment('ob',environment,{});
+    var env = new QEpiKit.Environment([],environment,[],[]);
     var obsBDI = new QEpiKit.BDIAgent('test-decider', goals, plans, environment, QEpiKit.BDIAgent.lazyPolicySelection);
     env.addObserver(obsBDI);
     env.run(1,2,1);

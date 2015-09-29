@@ -30,7 +30,7 @@ describe('An events list', function() {
       },
       triggered: false
     }];
-    environment = new QEpiKit.Environment([], [], [], []);
+    environment = new QEpiKit.Environment([], [], [], [], []);
   });
   it('should take an array of events, and organize them', function() {
     var orderedEvents = new QEpiKit.Events(randomEvents);

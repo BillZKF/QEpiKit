@@ -6,6 +6,7 @@ var QEpiKit;
             this.prepFunction = prepFunction;
             this.recordFunction = recordFunction;
             this.experimentLog = [];
+            this.plans = [];
         }
         Experiment.prototype.start = function (runs, step, until) {
             var r = 0;
@@ -13,9 +14,24 @@ var QEpiKit;
                 this.prepFunction(r);
                 this.environment.time = 0;
                 this.environment.run(step, until, 0);
-                this.experimentLog[r] = this.recordFunction();
+                this.experimentLog[r] = this.recordFunction(r);
                 r++;
             }
+        };
+        Experiment.prototype.sweep = function (params, runsPer) {
+            var expPlan = [];
+            for (var prop in params) {
+                for (var i = 0; i < params[prop].length; i++) {
+                    for (var k = 0; k < runsPer; k++) {
+                        expPlan.push({
+                            param: prop,
+                            value: params[prop][i],
+                            run: k
+                        });
+                    }
+                }
+            }
+            this.plans = expPlan;
         };
         return Experiment;
     })();

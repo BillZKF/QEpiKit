@@ -66,7 +66,7 @@ describe('An environment contains resources, a population, and model components'
                 }
               }
             };
-            env = new QEpiKit.Environment(agents, resources, events);
+            env = new QEpiKit.Environment(agents, resources, facilties, events);
             env.add(model);
           });
 
@@ -75,7 +75,7 @@ describe('An environment contains resources, a population, and model components'
           env.add(newModel);
           expect(env.models.length).toBe(2);
           //now remove it
-          env.remove('3n6k');   
+          env.remove('3n6k');
         });
 
         it('should start at time 0', function() {

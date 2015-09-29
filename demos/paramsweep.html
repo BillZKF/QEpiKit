@@ -1,0 +1,48 @@
+<link href="style.css" rel="stylesheet"></link>
+<link href="qepikit-render-style.css" rel="stylesheet"></link>
+<script src="../bower_components/d3/d3.min.js"></script>
+<script src="../qepikit.js"></script>
+<script src="qepikit-renderer.js"></script>
+<div>
+  <h3>Param Sweep</h3>
+  <button onclick="runEx3()">Run Example</button>
+  <h4 id="data-ex-3"></h4>
+  <div id="ex3-d"></div>
+  <div id="ex3-contact-mat"></div>
+</div>
+<script>
+function runEx3() {
+  var ExWorker;
+  if (typeof Worker !== 'undefined') {
+    ExWorker = new Worker('sm-paramsweep.js');
+    ExWorker.postMessage('start');
+    var lines = [];
+    var d = new QEpiKit.renderer.trendLines('ex3-d', lines);
+    ExWorker.onmessage = function(event) {
+      if (event.data[0] === 'progress') {
+        lines.push(event.data[1]);
+        var progress = lines.length / 50;
+        d.update(lines);
+      }
+      if (event.data[0] === 'complete') {
+        var log = event.data[1];
+        var contactMat = event.data[2];
+        var WIWsummary = [];
+        log.map(function(d, i) {
+          WIWsummary[i] = d.WIW;
+          delete d.WIW;
+        });
+
+        var a = d3.csv.format(log);
+        var csvURI = "data:text/csv;charset=utf-8," + encodeURI(a);
+        var link = document.createElement("a");
+        link.setAttribute("href", csvURI);
+        link.setAttribute("download", "qepikit_example_3.csv");
+        link.innerHTML = "CSV file";
+        document.getElementById('data-ex-3').appendChild(link);
+        var diagram = new QEpiKit.renderer.contactAgeMat(contactMat, 'ex3-contact-mat');
+      }
+    }
+  }
+}
+</script>

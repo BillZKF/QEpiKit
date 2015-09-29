@@ -1,7 +1,7 @@
 var QEpiKit;
 (function (QEpiKit) {
     var Environment = (function () {
-        function Environment(agents, resources, eventsQueue, randF) {
+        function Environment(agents, resources, facilities, eventsQueue, randF) {
             if (randF === void 0) { randF = Math.random; }
             this.time = 0;
             this.timeOfDay = 0;
@@ -10,6 +10,7 @@ var QEpiKit;
             this.history = [];
             this.agents = agents;
             this.resources = resources;
+            this.facilities = facilities;
             this.eventsQueue = eventsQueue;
             this.randF = randF;
         }
