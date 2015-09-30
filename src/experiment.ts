@@ -28,8 +28,11 @@ module QEpiKit {
       }
     }
 
-    sweep(params:any, runsPer:number) {
+    sweep(params:any, runsPer:number, baseline = true) {
       var expPlan = [];
+      if(baseline === true){
+        params.baseline = [true];
+      }
       for (var prop in params) {
         for (var i = 0; i < params[prop].length; i++) {
           for (var k = 0; k < runsPer; k++) {

@@ -24,7 +24,7 @@ var prepare = function(run) {
     peak: 9.45e4,
     shedRate: 0.015,
     recoveryRate : 0.25,
-    numberOfAgents: 100,
+    numberOfAgents: 1000,
     infectAtStart: 0.01
   };
   //then set the value you're testing for this run
@@ -155,7 +155,7 @@ var prepare = function(run) {
 var report = function(run) {
   var record = {
     run: run,
-    experiment: experiment.plans[run].param + " " + experiment.plans[run].value,
+    experiment: experiment.plans[run].param + "-" + experiment.plans[run].value,
     seed: seed,
     succeptible: 0,
     exposed: 0,
@@ -206,7 +206,7 @@ var report = function(run) {
   });
 
   record.meanPathLoad = totPathLoad / environment.agents.length;
-  self.postMessage(['progress', record.WIW]);
+  self.postMessage(['progress', record.WIW, record]);
   //add more stuff
   return record;
 };

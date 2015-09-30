@@ -7,7 +7,9 @@
   <h3>Param Sweep</h3>
   <button onclick="runEx3()">Run Example</button>
   <h4 id="data-ex-3"></h4>
-  <div id="ex3-d"></div>
+  <div id="ex3-d">
+    <div id="baseline-true"></div>
+  </div>
   <div id="ex3-contact-mat"></div>
 </div>
 <script>
@@ -17,12 +19,24 @@ function runEx3() {
     ExWorker = new Worker('sm-paramsweep.js');
     ExWorker.postMessage('start');
     var lines = [];
-    var d = new QEpiKit.renderer.trendLines('ex3-d', lines);
+    var set = 'start';
+
     ExWorker.onmessage = function(event) {
       if (event.data[0] === 'progress') {
-        lines.push(event.data[1]);
-        var progress = lines.length / 50;
-        d.update(lines);
+        if(event.data[2].experiment === set){
+          lines.push(event.data[1]);
+          var progress = lines.length / 50;
+          d.update(lines);
+        } else {
+          set = event.data[2].experiment;
+          var el = document.createElement('div');
+          el.id = event.data[2].experiment;
+          document.querySelector('#ex3-d').innerHTML += "<h2>" + set + "</h2>";
+          document.querySelector('#ex3-d').appendChild(el);
+          lines = [event.data[1]];
+          d = new QEpiKit.renderer.trendLines(el.id);
+          d.update(lines);
+        }
       }
       if (event.data[0] === 'complete') {
         var log = event.data[1];

@@ -18,8 +18,12 @@ var QEpiKit;
                 r++;
             }
         };
-        Experiment.prototype.sweep = function (params, runsPer) {
+        Experiment.prototype.sweep = function (params, runsPer, baseline) {
+            if (baseline === void 0) { baseline = true; }
             var expPlan = [];
+            if (baseline === true) {
+                params.baseline = [true];
+            }
             for (var prop in params) {
                 for (var i = 0; i < params[prop].length; i++) {
                     for (var k = 0; k < runsPer; k++) {
