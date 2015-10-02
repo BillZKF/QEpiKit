@@ -213,7 +213,7 @@ var report = function(run) {
 var step = 1/24;
 var duration = 30;
 var model = Model;//define this in a seperate file. This is how the agents behave.
-var environment = new QEpiKit.Environment(agents, resources, events, function() {
+var environment = new QEpiKit.Environment(agents, resources, events, facilities, function() {
   return random.real(0, 1);
 });
 environment.add(model);
