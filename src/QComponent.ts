@@ -10,6 +10,8 @@ module QEpiKit {
     public id: string;
     public name: string;
     public time: number;
+    public data: any[];
+    public results: any[];
     public history: any[];
 
     constructor(name: string) {
@@ -31,13 +33,9 @@ module QEpiKit {
     * @param until the end time
     * @param saveInterval save every 'x' steps
     */
-    run(step: number, until: number, saveInterval: number) {
+    run(step: number, until: number) {
       this.time = 0;
       while (this.time <= until) {
-        let rem = (this.time / step) % saveInterval;
-        if (rem == 0) {
-          this.history.push(JSON.parse(JSON.stringify(this)));
-        }
         this.update(step);
       }
     }

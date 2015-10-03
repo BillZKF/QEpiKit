@@ -48,10 +48,11 @@ var QEpiKit;
                 if (typeof transitions[t].from === 'string') {
                     transitions[t].from = [transitions[t].from];
                 }
+                else {
+                    return;
+                }
             }
             return transitions;
-        };
-        StateMachine.prototype.assess = function (eventName) {
         };
         return StateMachine;
     })(QEpiKit.QComponent);

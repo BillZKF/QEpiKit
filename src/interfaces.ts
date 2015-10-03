@@ -1,13 +1,5 @@
 module QEpiKit{
 
-  /**Observer interface adds the ability to assess the outcome of a model environement run.
-  */
-  export interface Observer {
-    assess(eventName): void;
-    data: any[];
-    results: any[];
-  }
-
   /**Action to be performed by a QComponent by calling operate
   */
   export interface Action {

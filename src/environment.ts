@@ -21,10 +21,6 @@ module QEpiKit {
     */
     public models: any[];
     /**
-    * The observers for this environment
-    */
-    public observers: any[];
-    /**
     * The eventsQueue is an array of Event objects
     */
     public eventsQueue: QEvent[];
@@ -58,7 +54,6 @@ module QEpiKit {
       this.time = 0;
       this.timeOfDay = 0;
       this.models = [];
-      this.observers = [];
       this.history = [];
       this.agents = agents;
       this.resources = resources;
@@ -83,19 +78,6 @@ module QEpiKit {
       this.models.splice(deleteIndex, 1)
     }
 
-    /** Add an observer to this environment
-    * @param observer agent to be called on change
-    */
-    addObserver(observer) {
-      this.observers.push(observer);
-    }
-
-    removeObserver(id) {
-      var deleteIndex;
-      this.observers.forEach(function(c, index) { if (c.id === id) { deleteIndex = index; } });
-      this.observers.splice(deleteIndex, 1);
-    }
-
     /** Run all environment model components from t=0 until t=until using time step = step
     * @param step the step size
     * @param until the end time
@@ -112,14 +94,8 @@ module QEpiKit {
         this.time += step;
         this.formatTime();
       }
-      this.publish("finished");
     }
 
-    publish(eventName) {
-      for (var o = 0; o < this.observers.length; o++) {
-        this.observers[o].assess(eventName);
-      }
-    }
 
     /** Update each model compenent one time step forward
     * @param step the step size
@@ -135,7 +111,7 @@ module QEpiKit {
         index++;
       }
       for (var c = 0; c < this.models.length; c++) {
-        QEpiKit.Utils.shuffle(this.agents, this.randF);
+        QEpiKit.Utils.shuffle(this.models[c].data, this.randF);
         this.models[c].update(step);
       }
     }

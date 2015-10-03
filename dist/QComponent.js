@@ -10,13 +10,9 @@ var QEpiKit;
         QComponent.prototype.update = function (step) {
             this.time += step;
         };
-        QComponent.prototype.run = function (step, until, saveInterval) {
+        QComponent.prototype.run = function (step, until) {
             this.time = 0;
             while (this.time <= until) {
-                var rem = (this.time / step) % saveInterval;
-                if (rem == 0) {
-                    this.history.push(JSON.parse(JSON.stringify(this)));
-                }
                 this.update(step);
             }
         };

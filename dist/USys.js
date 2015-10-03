@@ -36,8 +36,6 @@ var QEpiKit;
             }
             this.time += step;
         };
-        USys.prototype.assess = function (eventName) {
-        };
         return USys;
     })(QEpiKit.QComponent);
     QEpiKit.USys = USys;
@@ -52,7 +50,7 @@ var QEpiKit;
     }
     QEpiKit.logit = logit;
     function linear(x, m, b, k) {
-        var y = m * x + b;
+        var y = 1 / (m * x + b);
         return y;
     }
     QEpiKit.linear = linear;

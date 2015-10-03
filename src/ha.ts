@@ -1,5 +1,5 @@
 module QEpiKit {
-  export class HybridAutomata extends QComponent implements Observer {
+  export class HybridAutomata extends QComponent {
     public flowSet;
     public flowMap;
     public jumpSet;
@@ -40,10 +40,6 @@ module QEpiKit {
         }
       }
       this.time += step;
-    }
-
-    assess() {
-
     }
   }
 }

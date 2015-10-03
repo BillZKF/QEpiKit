@@ -64,7 +64,9 @@ describe('An environment contains resources, a population, and model components'
                     agents.splice(a, 1);
                   }
                 }
-              }
+              },
+              data : agents
+
             };
             env = new QEpiKit.Environment(agents, resources, facilties, events);
             env.add(model);
@@ -87,25 +89,7 @@ describe('An environment contains resources, a population, and model components'
           env.run(1, 20, 1);
           //the time should now be 21 - so the next run starts at 21
           expect(env.time).toBe(21);
+          console.log(env.agents);
           expect(env.agents.length).toBeLessThan(4);
-        });
-
-        it('should take, and remove observers', function() {
-          var observer = {
-            id: "34nkg",
-            data:[],
-            results:[],
-            assess: function(name){
-              this.results.push(name);
-            }
-          };
-          env.addObserver(observer);
-          env.run(1, 5, 1);
-          //the time should now be 6 - so the next run starts at 6
-          expect(env.time).toBe(6);
-          expect(observer.results[0]).toBe("finished");
-          //remove an observer
-          env.removeObserver("34nkg");
-          expect(env.observers.length).toBe(0);
         });
       });

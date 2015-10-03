@@ -94,6 +94,6 @@ describe('A Utility System', function() {
     Sys.update(1);
     //person 0 should have selected gastric Bypass
     expect(people[0].top.name).toBe("gastericBypass");
-    expect(people[1].top.name).toBe("exerciseAndDiet");
+    expect(people[1].top.name).toBe("gastericBypass");
   });
 });

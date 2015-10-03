@@ -120,32 +120,4 @@ describe("Behavior Trees are control structures for reactive agents", function()
       expect(BHTree.start(agents[0])).toBe(QEpiKit.BehaviorTree.FAILED);
     });
   });
-
-  describe("Methods for BT class", function() {
-    it("should run and create 'history' array that can be output to a csv.", function() {
-      var ActionA = new QEpiKit.BTAction("action-a", {
-        key: "state",
-        value: "a",
-        check: QEpiKit.Utils.equalTo
-      }, function(person) {
-        person.state = "b";
-      });
-      var ActionB = new QEpiKit.BTAction("action-b", {
-        key: "state",
-        value: "b",
-        check: QEpiKit.Utils.equalTo
-      }, function(person) {
-        person.state = "a";
-      });
-      var SelectorTest = new QEpiKit.BTSelector("selector-test", [ActionA]);
-      Root.children = [SelectorTest];
-      BHTree.run(1, 10, 1);
-
-      expect(BHTree.history[0][0].state).toEqual("a");
-      expect(BHTree.history[6][0].state).toEqual("b");
-
-      BHTree.assess("post");
-      expect(BHTree.results.post.length).toBe(2);
-    });
-  });
 });

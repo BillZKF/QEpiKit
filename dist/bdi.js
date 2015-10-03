@@ -1,24 +1,22 @@
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
 var QEpiKit;
 (function (QEpiKit) {
-    var BDIAgent = (function () {
+    var BDIAgent = (function (_super) {
+        __extends(BDIAgent, _super);
         function BDIAgent(name, goals, plans, data, policySelector) {
-            this.id = QEpiKit.Utils.generateUUID();
-            this.name = name;
+            _super.call(this, name);
             this.goals = goals;
             this.plans = plans;
             this.data = data;
             this.policySelector = policySelector || BDIAgent.stochasticSelection;
-            this.time = 0;
             this.beliefHistory = [];
             this.planHistory = [];
         }
-        BDIAgent.prototype.update = function (step, events) {
-            try {
-                events[this.time](this.data);
-            }
-            catch (e) {
-                events[this.time] = null;
-            }
+        BDIAgent.prototype.update = function (step) {
             var c, matcher, policy, intent, achievements = [], barriers = [], belief = this.data, successes = 0;
             policy = this.policySelector(this.plans, this.planHistory);
             intent = this.plans[policy];
@@ -43,39 +41,6 @@ var QEpiKit;
             this.planHistory.push({ time: this.time, intention: policy, goals: achievements, barriers: barriers, r: successes / this.goals.length });
             this.time += step;
         };
-        BDIAgent.prototype.assess = function (eventName, agents, resources) {
-            var c, matcher, policy, intent, achievements = [], barriers = [], belief = [agents, resources], successes = 0;
-            policy = this.policySelector(this.plans, this.planHistory);
-            intent = this.plans[policy];
-            intent(belief);
-            for (var i = 0; i < this.goals.length; i++) {
-                c = this.goals[i].condition;
-                achievements[i] = this.goals[i].temporal(c.check(c.data[c.key], c.value));
-                if (achievements[i] === BDIAgent.SUCCESS) {
-                    successes += 1;
-                }
-                else {
-                    matcher = QEpiKit.Utils.getMatcherString(c.check);
-                    barriers.push({
-                        label: c.label,
-                        key: c.key,
-                        check: matcher,
-                        actual: c.data[c.key],
-                        expected: c.value
-                    });
-                }
-            }
-            this.planHistory.push({ event: eventName, intention: policy, goals: achievements, barriers: barriers, r: successes / this.goals.length });
-        };
-        BDIAgent.prototype.run = function (step, limit, recordInt, events) {
-            while (this.time <= limit) {
-                this.update(step, events);
-                var rem = this.time % recordInt;
-                if (rem === 0) {
-                    this.beliefHistory.push(JSON.parse(JSON.stringify(this.data)));
-                }
-            }
-        };
         BDIAgent.stochasticSelection = function (plans, planHistory) {
             var policy, score, max = 0;
             for (var plan in plans) {
@@ -87,9 +52,6 @@ var QEpiKit;
             }
             return policy;
         };
-        BDIAgent.SUCCESS = 1;
-        BDIAgent.FAILED = 2;
-        BDIAgent.RUNNING = 3;
         BDIAgent.lazyPolicySelection = function (plans, planHistory) {
             var options, selection;
             if (this.time > 0) {
@@ -104,7 +66,7 @@ var QEpiKit;
             return options[selection];
         };
         return BDIAgent;
-    })();
+    })(QEpiKit.QComponent);
     QEpiKit.BDIAgent = BDIAgent;
 })(QEpiKit || (QEpiKit = {}));
 //# sourceMappingURL=bdi.js.map

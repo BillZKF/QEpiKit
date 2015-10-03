@@ -42,16 +42,6 @@ var QEpiKit;
             }
             this.time += step;
         };
-        HTNPlanner.prototype.run = function (step, until, saveInterval) {
-            this.time = 0;
-            while (this.time <= until) {
-                var rem = (this.time / step) % saveInterval;
-                if (rem == 0) {
-                    this.history.push(JSON.parse(JSON.stringify(this.data)));
-                }
-                this.update(step);
-            }
-        };
         HTNPlanner.prototype.assess = function (eventName) {
             for (var i = 0; i < this.data.length; i++) {
                 this.data[i].active = true;

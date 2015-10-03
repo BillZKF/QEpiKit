@@ -37,9 +37,9 @@ describe("Hierarchal Task Network module: ", function() {
     });
 
     it("start method should take a Task and return an array of summary results", function() {
-      TestPlanner.run(1,4,1);
-      expect(TestPlanner.history.length).toBe(5);
-      expect(TestPlanner.history[4][1].active).toBe(false);
+      TestPlanner.run(1,4);
+      expect(TestPlanner.summary.length).toBe(2);
+      expect(TestPlanner.summary[1]).toBe(false);
     });
   });
 
@@ -72,15 +72,15 @@ describe("Hierarchal Task Network module: ", function() {
     });
 
     it("should check a precondition, if succeeds, test effect, then evaluate goal", function() {
-      TestPlanner.run(1,20,2);
-      expect(TestPlanner.history[9][0].successList.length).not.toBe(0);
-      expect(TestPlanner.history[9][1].successList.length).toBe(0);
+      TestPlanner.run(1,20);
+      expect(TestPlanner.summary[0].length).not.toBe(0);
+      expect(TestPlanner.summary[1]).toBe(false);
     });
 
     it("should check a precondition, if fails, return failed", function() {
       //bad test
       TestSuccessOperator.preconditions.push(fail);
-      TestPlanner.run(1,20,2);
+      TestPlanner.run(1,20);
       expect(TestPlanner.summary[0]).toBe(false);
       expect(TestPlanner.summary[1]).toBe(false);
     });

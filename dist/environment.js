@@ -6,7 +6,6 @@ var QEpiKit;
             this.time = 0;
             this.timeOfDay = 0;
             this.models = [];
-            this.observers = [];
             this.history = [];
             this.agents = agents;
             this.resources = resources;
@@ -24,16 +23,6 @@ var QEpiKit;
             } });
             this.models.splice(deleteIndex, 1);
         };
-        Environment.prototype.addObserver = function (observer) {
-            this.observers.push(observer);
-        };
-        Environment.prototype.removeObserver = function (id) {
-            var deleteIndex;
-            this.observers.forEach(function (c, index) { if (c.id === id) {
-                deleteIndex = index;
-            } });
-            this.observers.splice(deleteIndex, 1);
-        };
         Environment.prototype.run = function (step, until, saveInterval) {
             while (this.time <= until) {
                 this.update(step);
@@ -44,12 +33,6 @@ var QEpiKit;
                 }
                 this.time += step;
                 this.formatTime();
-            }
-            this.publish("finished");
-        };
-        Environment.prototype.publish = function (eventName) {
-            for (var o = 0; o < this.observers.length; o++) {
-                this.observers[o].assess(eventName);
             }
         };
         Environment.prototype.update = function (step) {
@@ -63,7 +46,7 @@ var QEpiKit;
                 index++;
             }
             for (var c = 0; c < this.models.length; c++) {
-                QEpiKit.Utils.shuffle(this.agents, this.randF);
+                QEpiKit.Utils.shuffle(this.models[c].data, this.randF);
                 this.models[c].update(step);
             }
         };

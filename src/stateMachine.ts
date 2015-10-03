@@ -1,6 +1,6 @@
 module QEpiKit {
 
-  export class StateMachine extends QComponent implements Observer {
+  export class StateMachine extends QComponent {
     public states: any;
     public actions: any;
     public transitions: any[];
@@ -49,13 +49,11 @@ module QEpiKit {
       for (var t = 0; t < transitions.length; t++) {
         if (typeof transitions[t].from === 'string') {
           transitions[t].from = [transitions[t].from];
+        } else {
+          return;
         }
       }
       return transitions;
-    }
-
-    assess(eventName: string) {
-
     }
   }
 }

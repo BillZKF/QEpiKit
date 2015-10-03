@@ -1,5 +1,5 @@
 module QEpiKit {
-  export class USys extends QComponent implements Observer {
+  export class USys extends QComponent {
     public options: UtilityGroup[];
     public results: any[];
     public data: any[];
@@ -35,11 +35,6 @@ module QEpiKit {
       }
       this.time += step;
     }
-
-    assess(eventName:string){
-      //TODO add body
-    }
-
   }
 
   interface UtilityGroup {
@@ -64,12 +59,12 @@ module QEpiKit {
   }
 
   export function logit(x: number, m: number, b: number, k: number) {
-    var y =1 / Math.log(x / (1 - x));
+    var y = 1 / Math.log(x / (1 - x));
     return y;
   }
 
   export function linear(x: number, m: number, b: number, k: number) {
-    var y = m * x + b;
+    var y =  1 / (m * x + b);
     return y;
   }
 

@@ -38,8 +38,6 @@ var QEpiKit;
             }
             this.time += step;
         };
-        HybridAutomata.prototype.assess = function () {
-        };
         return HybridAutomata;
     })(QEpiKit.QComponent);
     QEpiKit.HybridAutomata = HybridAutomata;
