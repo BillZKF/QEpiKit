@@ -1,25 +1,19 @@
 var QEpiKit;
 (function (QEpiKit) {
     var Environment = (function () {
-        function Environment(agents, resources, facilities, eventsQueue, randF) {
+        function Environment(resources, facilities, eventsQueue, randF) {
             if (randF === void 0) { randF = Math.random; }
             this.time = 0;
             this.timeOfDay = 0;
             this.models = [];
             this.history = [];
-            this.agents = agents;
+            this.agents = [];
             this.resources = resources;
             this.facilities = facilities;
             this.eventsQueue = eventsQueue;
             this.randF = randF;
         }
         Environment.prototype.add = function (component) {
-            var comID = this.models.length;
-            component.data.forEach(function (d) {
-                d.model = component.name;
-                d.modelIndex = comID;
-            });
-            this.agents = this.agents.concat(component.data);
             this.models.push(component);
         };
         Environment.prototype.remove = function (id) {
@@ -30,6 +24,13 @@ var QEpiKit;
             this.models.splice(deleteIndex, 1);
         };
         Environment.prototype.run = function (step, until, saveInterval) {
+            for (var c = 0; c < this.models.length; c++) {
+                for (var d = 0; d < this.models[c].data.length; d++) {
+                    this.models[c].data[d].model = this.models[c].name;
+                    this.models[c].data[d].modelIndex = c;
+                }
+                this.agents = this.agents.concat(this.models[c].data);
+            }
             while (this.time <= until) {
                 this.update(step);
                 var rem = (this.time % saveInterval);

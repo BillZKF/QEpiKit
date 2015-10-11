@@ -50,12 +50,12 @@ module QEpiKit {
     public randF: () => number;
 
 
-    constructor(agents, resources, facilities, eventsQueue: QEvent[], randF: () => number = Math.random) {
+    constructor(resources, facilities, eventsQueue: QEvent[], randF: () => number = Math.random) {
       this.time = 0;
       this.timeOfDay = 0;
       this.models = [];
       this.history = [];
-      this.agents = agents;
+      this.agents = [];
       this.resources = resources;
       this.facilities = facilities;
       this.eventsQueue = eventsQueue;
@@ -66,12 +66,6 @@ module QEpiKit {
     * @param component the model component object to be added to the environment.
     */
     add(component) {
-      var comID = this.models.length;
-      component.data.forEach(function(d){
-        d.model = component.name;
-        d.modelIndex = comID;
-      });
-      this.agents = this.agents.concat(component.data);
       this.models.push(component);
     }
 
@@ -90,6 +84,13 @@ module QEpiKit {
     * @param saveInterval save every 'x' steps
     */
     run(step: number, until: number, saveInterval: number) {
+      for (var c = 0; c < this.models.length; c++) {
+        for (var d = 0; d < this.models[c].data.length; d++) {
+          this.models[c].data[d].model = this.models[c].name;
+          this.models[c].data[d].modelIndex = c;
+        }
+        this.agents = this.agents.concat(this.models[c].data);
+      }
       while (this.time <= until) {
         this.update(step);
         let rem = (this.time % saveInterval);
@@ -108,17 +109,17 @@ module QEpiKit {
     */
     update(step: number) {
       var index = 0;
-      while(index < this.eventsQueue.length && this.eventsQueue[index].at <= this.time){
+      while (index < this.eventsQueue.length && this.eventsQueue[index].at <= this.time) {
         this.eventsQueue[index].trigger();
         this.eventsQueue[index].triggered = true;
-        if(this.eventsQueue[index].until <= this.time){
+        if (this.eventsQueue[index].until <= this.time) {
           this.eventsQueue.splice(index, 1);
         }
         index++;
       }
       QEpiKit.Utils.shuffle(this.agents, this.randF);
 
-      for(let a = 0; a < this.agents.length; a++){
+      for (let a = 0; a < this.agents.length; a++) {
         this.models[this.agents[a].modelIndex].update(this.agents[a], step);
       }
       /*for (var c = 0; c < this.models.length; c++) {
@@ -130,7 +131,7 @@ module QEpiKit {
     /** Format a time of day. Current time % 1.
     *
     */
-    formatTime(){
+    formatTime() {
       this.timeOfDay = this.time % 1;
     }
   }

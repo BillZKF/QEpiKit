@@ -125,7 +125,7 @@ describe('An Experiment', function() {
       return record;
     };
 
-    environment = new QEpiKit.Environment([], resources, [], []);
+    environment = new QEpiKit.Environment(resources, [], []);
     environment.add(agentModel);
     ex = new QEpiKit.Experiment(environment, prepFunction, recordFunction);
   });
