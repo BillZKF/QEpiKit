@@ -56,24 +56,27 @@ describe('An environment contains resources, a population, and model components'
             };
 
             model = {
-              update: function(step) {
-                for (var a in agents) {
-                  agents[a].viralLoad = agents[a].viralLoad || 0;
-                  agents[a].viralLoad += Math.random();
-                  if (agents[a].viralLoad >= 5) {
-                    agents.splice(a, 1);
+              update: function(person, step) {
+                  person.viralLoad = person.viralLoad || 0;
+                  person.viralLoad += Math.random();
+                  if (person.viralLoad >= 5) {
+                    env.agents.forEach(function(d, i){
+                      if (d.id === person.id){
+                        a = i;
+                      }
+                    });
+                    env.agents.splice(a, 1);
                   }
-                }
               },
               data : agents
 
             };
-            env = new QEpiKit.Environment(agents, resources, facilties, events);
+            env = new QEpiKit.Environment([], resources, facilties, events);
             env.add(model);
           });
 
         it('should be able to add and remove model components', function(){
-          var newModel = {id:'3n6k',update:function(){}};
+          var newModel = {id:'3n6k', name:'walking',update:function(step){}, data:[]};
           env.add(newModel);
           expect(env.models.length).toBe(2);
           //now remove it
@@ -85,11 +88,27 @@ describe('An environment contains resources, a population, and model components'
         });
 
         it('should run for 20 days', function() {
-
           env.run(1, 20, 1);
           //the time should now be 21 - so the next run starts at 21
           expect(env.time).toBe(21);
-          console.log(env.agents);
           expect(env.agents.length).toBeLessThan(4);
+        });
+
+        it('should handle mutliple models',function(){
+          var doctors = [{
+            id: 1,
+            sex: "male",
+            age: 42,
+            treated : []
+          }];
+          var doctorModel = {id:'457', update: function(doc, step){
+              var a  = Math.floor(Math.random() * agents.length);
+              agents[a].viralLoad = 0;
+              doc.treated.push(agents[a].id);
+          }, data: doctors};
+
+          env.add(doctorModel);
+          env.run(1,10,1);
+          expect(doctors[0].treated.length).toBeGreaterThan(1);
         });
       });

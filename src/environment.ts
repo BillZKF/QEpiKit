@@ -66,6 +66,12 @@ module QEpiKit {
     * @param component the model component object to be added to the environment.
     */
     add(component) {
+      var comID = this.models.length;
+      component.data.forEach(function(d){
+        d.model = component.name;
+        d.modelIndex = comID;
+      });
+      this.agents = this.agents.concat(component.data);
       this.models.push(component);
     }
 
@@ -110,10 +116,15 @@ module QEpiKit {
         }
         index++;
       }
-      for (var c = 0; c < this.models.length; c++) {
+      QEpiKit.Utils.shuffle(this.agents, this.randF);
+
+      for(let a = 0; a < this.agents.length; a++){
+        this.models[this.agents[a].modelIndex].update(this.agents[a], step);
+      }
+      /*for (var c = 0; c < this.models.length; c++) {
         QEpiKit.Utils.shuffle(this.models[c].data, this.randF);
         this.models[c].update(step);
-      }
+      }*/
     }
 
     /** Format a time of day. Current time % 1.

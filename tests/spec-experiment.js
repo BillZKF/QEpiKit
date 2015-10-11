@@ -1,6 +1,6 @@
 describe('An Experiment', function() {
   beforeEach(function() {
-    var agents,
+    var agents = [],
       facilities,
       resources, events;
 
@@ -20,7 +20,8 @@ describe('An Experiment', function() {
           needBed: getRandom(20),
           inBed: false,
           removed: false,
-          waitedFor: 0
+          waitedFor: 0,
+          modelIndex: 0
         };
       }
 
@@ -48,15 +49,14 @@ describe('An Experiment', function() {
 
 
     agentModel = {
+      name:"regular",
       data: agents
     };
 
-    agentModel.update = function(step) {
-      for (var m = 0; m < this.data.length; m++) {
-        if(this.data[m].removed === false){
-          behavior(this.data[m]);
+    agentModel.update = function(person, step) {
+        if(person.removed === false){
+          behavior(person);
         }
-      }
     };
 
    behavior = function(person) {
@@ -125,7 +125,7 @@ describe('An Experiment', function() {
       return record;
     };
 
-    environment = new QEpiKit.Environment(agents, resources, [], []);
+    environment = new QEpiKit.Environment([], resources, [], []);
     environment.add(agentModel);
     ex = new QEpiKit.Experiment(environment, prepFunction, recordFunction);
   });
@@ -134,7 +134,7 @@ describe('An Experiment', function() {
     expect(ex).toBeDefined();
   });
 
-  it('should run for 20 runs', function() {
+  it('should run for 10 runs', function() {
     var runCounter = 0;
     ex.start(10, 1, 30);
     expect(ex.experimentLog.length).toBe(10);

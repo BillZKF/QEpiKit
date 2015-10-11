@@ -14,6 +14,12 @@ var QEpiKit;
             this.randF = randF;
         }
         Environment.prototype.add = function (component) {
+            var comID = this.models.length;
+            component.data.forEach(function (d) {
+                d.model = component.name;
+                d.modelIndex = comID;
+            });
+            this.agents = this.agents.concat(component.data);
             this.models.push(component);
         };
         Environment.prototype.remove = function (id) {
@@ -45,9 +51,9 @@ var QEpiKit;
                 }
                 index++;
             }
-            for (var c = 0; c < this.models.length; c++) {
-                QEpiKit.Utils.shuffle(this.models[c].data, this.randF);
-                this.models[c].update(step);
+            QEpiKit.Utils.shuffle(this.agents, this.randF);
+            for (var a = 0; a < this.agents.length; a++) {
+                this.models[this.agents[a].modelIndex].update(this.agents[a], step);
             }
         };
         Environment.prototype.formatTime = function () {
