@@ -122,10 +122,6 @@ module QEpiKit {
       for (let a = 0; a < this.agents.length; a++) {
         this.models[this.agents[a].modelIndex].update(this.agents[a], step);
       }
-      /*for (var c = 0; c < this.models.length; c++) {
-        QEpiKit.Utils.shuffle(this.models[c].data, this.randF);
-        this.models[c].update(step);
-      }*/
     }
 
     /** Format a time of day. Current time % 1.
