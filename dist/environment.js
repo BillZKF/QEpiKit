@@ -1,7 +1,8 @@
 var QEpiKit;
 (function (QEpiKit) {
     var Environment = (function () {
-        function Environment(resources, facilities, eventsQueue, randF) {
+        function Environment(resources, facilities, eventsQueue, activationType, randF) {
+            if (activationType === void 0) { activationType = 'random'; }
             if (randF === void 0) { randF = Math.random; }
             this.time = 0;
             this.timeOfDay = 0;
@@ -11,6 +12,7 @@ var QEpiKit;
             this.resources = resources;
             this.facilities = facilities;
             this.eventsQueue = eventsQueue;
+            this.activationType = activationType;
             this.randF = randF;
         }
         Environment.prototype.add = function (component) {
@@ -52,9 +54,20 @@ var QEpiKit;
                 }
                 index++;
             }
-            QEpiKit.Utils.shuffle(this.agents, this.randF);
-            for (var a = 0; a < this.agents.length; a++) {
-                this.models[this.agents[a].modelIndex].update(this.agents[a], step);
+            if (this.activationType === "random") {
+                QEpiKit.Utils.shuffle(this.agents, this.randF);
+                for (var a = 0; a < this.agents.length; a++) {
+                    this.models[this.agents[a].modelIndex].update(this.agents[a], step);
+                }
+            }
+            if (this.activationType === "parallel") {
+                var tempAgents = JSON.parse(JSON.stringify(this.agents));
+                for (var i = 0; i < tempAgents.length; i++) {
+                    this.models[tempAgents[i].modelIndex].update(tempAgents[i], step);
+                }
+                for (var a = 0; a < this.agents.length; a++) {
+                    this.agents[a] = this.models[this.agents[a].modelIndex].apply(this.agents[a], tempAgents[a], step);
+                }
             }
         };
         Environment.prototype.formatTime = function () {

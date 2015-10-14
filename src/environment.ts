@@ -29,10 +29,6 @@ module QEpiKit {
     */
     public history: any;
     /**
-    * The geographic network
-    */
-    public geoNetwork: any;
-    /**
     * The finite resources of the environment
     */
     public resources: any;
@@ -45,12 +41,16 @@ module QEpiKit {
     */
     public agents: any;
     /**
+    * The activationType, 'random' (default) or 'parrallel'. 'parrallel' activation requires an additional apply function within each model.
+    */
+    public activationType: string;
+    /**
     * Randomness function for shuffling
     */
     public randF: () => number;
 
 
-    constructor(resources, facilities, eventsQueue: QEvent[], randF: () => number = Math.random) {
+    constructor(resources, facilities, eventsQueue: QEvent[], activationType: string = 'random', randF: () => number = Math.random) {
       this.time = 0;
       this.timeOfDay = 0;
       this.models = [];
@@ -59,6 +59,7 @@ module QEpiKit {
       this.resources = resources;
       this.facilities = facilities;
       this.eventsQueue = eventsQueue;
+      this.activationType = activationType;
       this.randF = randF;
     }
 
@@ -117,10 +118,23 @@ module QEpiKit {
         }
         index++;
       }
-      QEpiKit.Utils.shuffle(this.agents, this.randF);
 
-      for (let a = 0; a < this.agents.length; a++) {
-        this.models[this.agents[a].modelIndex].update(this.agents[a], step);
+      if (this.activationType === "random") {
+        QEpiKit.Utils.shuffle(this.agents, this.randF);
+        for (let a = 0; a < this.agents.length; a++) {
+          this.models[this.agents[a].modelIndex].update(this.agents[a], step);
+        }
+      }
+
+      if (this.activationType === "parallel") {
+        let tempAgents = JSON.parse(JSON.stringify(this.agents));
+        for (let i = 0; i < tempAgents.length; i++) {
+          this.models[tempAgents[i].modelIndex].update(tempAgents[i], step);
+        }
+
+        for (let a = 0; a < this.agents.length; a++) {
+          this.agents[a] = this.models[this.agents[a].modelIndex].apply(this.agents[a], tempAgents[a], step);
+        }
       }
     }
 

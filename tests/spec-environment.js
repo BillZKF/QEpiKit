@@ -5,19 +5,23 @@ describe('An environment contains resources, a population, and model components'
     agents = [{
       id: 1,
       sex: "male",
-      age: 42
+      age: 42,
+      hasShot : false
     }, {
       id: 2,
-      sex: "male",
-      age: 32
+      sex: "female",
+      age: 32,
+      hasShot : false
     }, {
       id: 3,
       sex: "female",
-      age: 45
+      age: 45,
+      hasShot : false
     }, {
       id: 4,
       sex: "female",
-      age: 36
+      age: 36,
+      hasShot : false
     }];
     resources = [{
       label: "Tamiflu",
@@ -69,6 +73,7 @@ describe('An environment contains resources, a population, and model components'
           env.agents.splice(a, 1);
         }
       },
+      name: 'sick',
       data: agents
 
     };
@@ -103,7 +108,7 @@ describe('An environment contains resources, a population, and model components'
   it('should handle mutliple models', function() {
     var doctors = [{
       id: 1,
-      sex: "male",
+      sex: "female",
       age: 42,
       treated: []
     }];
@@ -120,5 +125,45 @@ describe('An environment contains resources, a population, and model components'
     env.add(doctorModel);
     env.run(1, 10, 1);
     expect(doctors[0].treated.length).toBeGreaterThan(1);
+  });
+
+  it('should be able to activate agents in parallel', function() {
+    var shotsWanted = 0;
+    model.update = function(person, step) {
+      //everyone who is not sick wants to get a flu shot, but only three available
+      if (person.hasShot === false) {
+        person.wantsShot = true;
+      } else {
+        person.wantsShot = false;
+      }
+      getShotsWanted();
+    };
+
+    model.apply = function(oldVals, newVals, step) {
+      //give preference to age
+      if(newVals.wantsShot){
+        if(shotsWanted > env.resources[0].amount){
+          if(newVals.age > 35){
+            newVals.hasShot = true;
+            newVals.wantsShot = false;
+            env.resources[0].amount--;
+            shotsWanted -= 1;
+          }
+        }
+      }
+      return newVals;
+    };
+
+    getShotsWanted = function(){
+      shotsWanted = 0;
+      env.agents.forEach(function(d){
+        shotsWanted = d.hasShot === false ? shotsWanted + 1 : shotsWanted;
+      });
+    };
+
+    env = new QEpiKit.Environment(resources, facilties, events, 'parallel');
+    env.add(model);
+    env.run(1, 1, 1);
+    expect(shotsWanted).toBe(1);
   });
 });
