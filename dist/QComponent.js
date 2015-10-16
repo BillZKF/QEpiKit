@@ -7,8 +7,7 @@ var QEpiKit;
             this.time = 0;
             this.history = [];
         }
-        QComponent.prototype.update = function (agents, step) {
-            this.time += step;
+        QComponent.prototype.update = function (agent, step) {
         };
         QComponent.SUCCESS = 1;
         QComponent.FAILED = 2;

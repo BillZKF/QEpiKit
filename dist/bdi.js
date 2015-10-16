@@ -16,11 +16,16 @@ var QEpiKit;
             this.beliefHistory = [];
             this.planHistory = [];
         }
-        BDIAgent.prototype.update = function (step) {
-            var c, matcher, policy, intent, achievements = [], barriers = [], belief = this.data, successes = 0;
+        BDIAgent.prototype.update = function (agent, step) {
+            var policy, intent, evaluation;
             policy = this.policySelector(this.plans, this.planHistory);
             intent = this.plans[policy];
-            intent(belief);
+            intent(agent, step);
+            evaluation = this.evaluateGoals();
+            this.planHistory.push({ time: this.time, id: agent.id, intention: policy, goals: evaluation.achievements, barriers: evaluation.barriers, r: evaluation.successes / this.goals.length });
+        };
+        BDIAgent.prototype.evaluateGoals = function () {
+            var achievements = [], barriers = [], successes = 0, c, matcher;
             for (var i = 0; i < this.goals.length; i++) {
                 c = this.goals[i].condition;
                 achievements[i] = this.goals[i].temporal(c.check(c.data[c.key], c.value));
@@ -38,8 +43,7 @@ var QEpiKit;
                     });
                 }
             }
-            this.planHistory.push({ time: this.time, intention: policy, goals: achievements, barriers: barriers, r: successes / this.goals.length });
-            this.time += step;
+            return { successes: successes, barriers: barriers, achievements: achievements };
         };
         BDIAgent.stochasticSelection = function (plans, planHistory) {
             var policy, score, max = 0;

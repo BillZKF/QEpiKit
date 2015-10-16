@@ -28,33 +28,16 @@ var QEpiKit;
             var state = node.visit(agent, task);
             return state;
         };
-        HTNPlanner.prototype.update = function (step) {
-            for (var i = 0; i < this.data.length; i++) {
-                this.data[i].active = true;
-                HTNPlanner.tick(this.root, this.task, this.data[i]);
-                if (this.data[i].successList.length > 0) {
-                    this.summary[i] = this.data[i].successList;
-                }
-                else {
-                    this.summary[i] = false;
-                }
-                this.data[i].active = false;
+        HTNPlanner.prototype.update = function (agent, step) {
+            agent.active = true;
+            HTNPlanner.tick(this.root, this.task, agent);
+            if (agent.successList.length > 0) {
+                agent.succeed = true;
             }
-            this.time += step;
-        };
-        HTNPlanner.prototype.assess = function (eventName) {
-            for (var i = 0; i < this.data.length; i++) {
-                this.data[i].active = true;
-                HTNPlanner.tick(this.root, this.task, this.data[i]);
-                if (this.data[i].successList.length > 0) {
-                    this.summary[i] = this.data[i].successList;
-                }
-                else {
-                    this.summary[i] = false;
-                }
-                this.data[i].active = false;
+            else {
+                agent.succeed = false;
             }
-            this.results[eventName] = this.summary;
+            agent.active = false;
         };
         return HTNPlanner;
     })(QEpiKit.QComponent);

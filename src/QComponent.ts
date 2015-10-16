@@ -24,8 +24,8 @@ module QEpiKit {
     /** Take one time step forward (most subclasses override the base method)
     * @param step size of time step (in days by convention)
     */
-    update(agents:any, step: number) {
-      this.time += step;
+    update(agent:any, step: number) {
+      //this.time += step;
     }
   }
 }

@@ -45,21 +45,18 @@ describe("A Belief Desire Intent Agent", function() {
       }
     }];
     plans = {
-      "useVacc": function() {
-        var r = Math.floor(Math.random() * agents.length);
-        if(agents[r].state === 'succeptible'){
-          agents[r].state = 'removed';
+      "useVacc": function(agent, step) {
+        if(agents.state === 'succeptible'){
+          agents.state = 'removed';
         }
       },
-      "openSchool": function() {
-        facilities.schools[0].working = open;
-        var r = Math.floor(Math.random() * agents.length);
-        if(agents[r].state === 'succeptible'){
-          agents[r].state = 'infectious';
+      "goToSchool": function(agent, step) {
+        if(agent.state === 'succeptible'){
+          agents.state = 'infectious';
         }
       },
-      "closeSchool": function() {
-        facilities.schools[0].working = false;
+      "stayHome": function(agent, step) {
+        //no change
       }
     };
     TestDecider = new QEpiKit.BDIAgent('test-decider', goals, plans, agents);
@@ -73,9 +70,9 @@ describe("A Belief Desire Intent Agent", function() {
     });
   });
 
-  it("should take the current state of the data, create a new belief", function() {
-    TestDecider.update(1);
-    expect(TestDecider.time).not.toBe(0); //step,
-    TestDecider.run(1,10);
+  it("should take the current state of the data, create a new plan history", function() {
+    TestDecider.update(TestDecider.data[0], 1);
+    TestDecider.update(TestDecider.data[1], 1);
+    expect(TestDecider.planHistory.length).not.toBe(0); //step,
   });
 });

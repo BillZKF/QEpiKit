@@ -21,7 +21,7 @@ module QEpiKit {
       return state;
     }
 
-    constructor(name: string, root: HTNNode, task:HTNRootTask, data: any[]) {
+    constructor(name: string, root: HTNNode, task: HTNRootTask, data: any[]) {
       super(name);
       this.root = root;
       this.data = data;
@@ -30,34 +30,16 @@ module QEpiKit {
       this.task = task;
     }
 
-    update(step:number) {
-      //iterate each piece of data through the task network
-      for (var i = 0; i < this.data.length; i++) {
-        this.data[i].active = true;
-        HTNPlanner.tick(this.root, this.task, this.data[i]);
-        if (this.data[i].successList.length > 0) {
-          this.summary[i] = this.data[i].successList;
-        } else {
-          this.summary[i] = false;
-        }
-        this.data[i].active = false;
+    update(agent: any, step: number) {
+      //iterate an agent(data) through the task network
+      agent.active = true;
+      HTNPlanner.tick(this.root, this.task, agent);
+      if(agent.successList.length > 0){
+        agent.succeed = true;
+      } else {
+        agent.succeed = false;
       }
-      this.time += step;
-    }
-
-    assess(eventName:string){
-      //iterate each piece of data through the task network
-      for (var i = 0; i < this.data.length; i++) {
-        this.data[i].active = true;
-        HTNPlanner.tick(this.root, this.task, this.data[i]);
-        if (this.data[i].successList.length > 0) {
-          this.summary[i] = this.data[i].successList;
-        } else {
-          this.summary[i] = false;
-        }
-        this.data[i].active = false;
-      }
-      this.results[eventName] = this.summary;
+      agent.active = false;
     }
   }
 
@@ -74,9 +56,9 @@ module QEpiKit {
       var result, g;
       for (var p = 0; p < this.goals.length; p++) {
         g = this.goals[p];
-        if(g.data){
+        if (g.data) {
           result = g.check(g.data[g.key], g.value);
-        } else{
+        } else {
           result = g.check(agent[g.key], g.value);
         }
         return result;
@@ -130,7 +112,7 @@ module QEpiKit {
             return HTNPlanner.RUNNING;
           }
         } else {
-          agent.barrierList.unshift({name: this.name, conditions: this.preconditions});
+          agent.barrierList.unshift({ name: this.name, conditions: this.preconditions });
           return HTNPlanner.FAILED;
         }
       }
@@ -157,7 +139,7 @@ module QEpiKit {
             }
           }
         } else {
-          agent.barrierList.unshift({name: this.name, conditions: this.preconditions});
+          agent.barrierList.unshift({ name: this.name, conditions: this.preconditions });
         }
         return HTNPlanner.FAILED;
       }

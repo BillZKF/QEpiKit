@@ -25,11 +25,17 @@ module QEpiKit {
     /** Take one time step forward, take in beliefs, deliberate, implement policy
     * @param step size of time step (in days by convention)
     */
-    update(step: number) {
-      var c, matcher, policy, intent, achievements = [], barriers = [], belief = this.data, successes = 0;
+    update(agent: any, step: number) {
+      var policy, intent, evaluation;
       policy = this.policySelector(this.plans, this.planHistory);
       intent = this.plans[policy];
-      intent(belief);
+      intent(agent, step);
+      evaluation = this.evaluateGoals();
+      this.planHistory.push({ time: this.time, id: agent.id, intention: policy, goals: evaluation.achievements, barriers: evaluation.barriers, r: evaluation.successes / this.goals.length });
+    }
+
+    evaluateGoals() {
+      let achievements = [], barriers = [], successes = 0, c, matcher;
       for (var i = 0; i < this.goals.length; i++) {
         c = this.goals[i].condition;
         achievements[i] = this.goals[i].temporal(c.check(c.data[c.key], c.value));
@@ -46,8 +52,7 @@ module QEpiKit {
           });
         }
       }
-      this.planHistory.push({ time: this.time, intention: policy, goals: achievements, barriers: barriers, r: successes / this.goals.length });
-      this.time += step;
+      return { successes: successes, barriers: barriers, achievements: achievements }
     }
 
     public static stochasticSelection(plans, planHistory) {
