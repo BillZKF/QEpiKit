@@ -11,29 +11,25 @@ module QEpiKit {
       this.data = data;
     }
 
-    update(step: number) {
-      var tmp = [], max = [], avg, top, dataLen = this.data.length;
-      for (var d = 0; d < dataLen; d++) {
-        max[d] = 0;
+    update(agent:any,step: number) {
+      var tmp = [], max = 0, avg, top;
         for (var i = 0; i < this.options.length; i++) {
           tmp[i] = 0;
           for (var j = 0; j < this.options[i].considerations.length; j++) {
             let c = this.options[i].considerations[j];
-            let x = c.x(this.data[d], this.options[i].params);
+            let x = c.x(agent, this.options[i].params);
             tmp[i] += c.f(x, c.m, c.b, c.k);
           }
           avg = tmp[i] / this.options[i].considerations.length;
 
-          this.results.push({point:d, opt: this.options[i].name, result: avg });
-          if (avg > max[d]) {
-            this.data[d].top = {name: this.options[i].name, util:avg};
+          this.results.push({point:agent.id, opt: this.options[i].name, result: avg });
+          if (avg > max) {
+            agent.top = {name: this.options[i].name, util:avg};
             top = i;
-            max[d] = avg;
+            max = avg;
           }
         }
-        this.options[top].action(this.data[d]);
-      }
-      this.time += step;
+        this.options[top].action(agent);
     }
   }
 
