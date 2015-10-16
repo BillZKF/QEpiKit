@@ -1,104 +1,3 @@
-var QEpiKit;
-(function (QEpiKit) {
-    var QComponent = (function () {
-        function QComponent(name) {
-            this.id = QEpiKit.Utils.generateUUID();
-            this.name = name;
-            this.time = 0;
-            this.history = [];
-        }
-        QComponent.prototype.update = function (step) {
-            this.time += step;
-        };
-        QComponent.prototype.run = function (step, until, saveInterval) {
-            this.time = 0;
-            while (this.time <= until) {
-                var rem = (this.time / step) % saveInterval;
-                if (rem == 0) {
-                    this.history.push(JSON.parse(JSON.stringify(this)));
-                }
-                this.update(step);
-            }
-        };
-        QComponent.SUCCESS = 1;
-        QComponent.FAILED = 2;
-        QComponent.RUNNING = 3;
-        return QComponent;
-    })();
-    QEpiKit.QComponent = QComponent;
-})(QEpiKit || (QEpiKit = {}));
-//# sourceMappingURL=QComponent.js.map
-var QEpiKit;
-(function (QEpiKit) {
-    var QLearner = (function () {
-        function QLearner(R, gamma, goal) {
-            this.rawMax = 1;
-            this.R = R;
-            this.gamma = gamma;
-            this.goal = goal;
-            this.Q = {};
-            for (var state in R) {
-                this.Q[state] = {};
-                for (var action in R[state]) {
-                    this.Q[state][action] = 0;
-                }
-            }
-            this.gamma = gamma;
-        }
-        QLearner.prototype.transition = function (state, action) {
-            var bestAction = this.max(action);
-            this.Q[state][action] = this.R[state][action] + (this.gamma * this.Q[action][bestAction]);
-        };
-        QLearner.prototype.max = function (state) {
-            var max = 0, maxAction = null;
-            for (var action in this.Q[state]) {
-                if (!maxAction) {
-                    max = this.Q[state][action];
-                    maxAction = action;
-                }
-                else if (this.Q[state][action] === max && (Math.random() > 0.5)) {
-                    max = this.Q[state][action];
-                    maxAction = action;
-                }
-                else if (this.Q[state][action] > max) {
-                    max = this.Q[state][action];
-                    maxAction = action;
-                }
-            }
-            return maxAction;
-        };
-        QLearner.prototype.possible = function (state) {
-            var possible = [];
-            for (var action in this.R[state]) {
-                if (this.R[state][action] > -1) {
-                    possible.push(action);
-                }
-            }
-            return possible[Math.floor(Math.random() * possible.length)];
-        };
-        QLearner.prototype.episode = function (state) {
-            this.transition(state, this.possible(state));
-            return this.Q;
-        };
-        QLearner.prototype.normalize = function () {
-            for (var state in this.Q) {
-                for (var action in this.Q[state]) {
-                    if (this.Q[action][state] >= this.rawMax) {
-                        this.rawMax = this.Q[action][state];
-                    }
-                }
-            }
-            for (var state in this.Q) {
-                for (var action in this.Q[state]) {
-                    this.Q[action][state] = Math.round(this.Q[action][state] / this.rawMax * 100);
-                }
-            }
-        };
-        return QLearner;
-    })();
-    QEpiKit.QLearner = QLearner;
-})(QEpiKit || (QEpiKit = {}));
-//# sourceMappingURL=QLearner.js.map
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -106,85 +5,18 @@ var __extends = (this && this.__extends) || function (d, b) {
 };
 var QEpiKit;
 (function (QEpiKit) {
-    var USys = (function (_super) {
-        __extends(USys, _super);
-        function USys(name, options, data) {
-            _super.call(this, name);
-            this.options = options;
-            this.results = [];
-            this.data = data;
-        }
-        USys.prototype.update = function (step) {
-            var tmp = [], max = [], avg, top, dataLen = this.data.length;
-            for (var d = 0; d < dataLen; d++) {
-                max[d] = 0;
-                for (var i = 0; i < this.options.length; i++) {
-                    tmp[i] = 0;
-                    for (var j = 0; j < this.options[i].considerations.length; j++) {
-                        var c = this.options[i].considerations[j];
-                        var x = c.x(this.data[d], this.options[i].params);
-                        tmp[i] += c.f(x, c.m, c.b, c.k);
-                    }
-                    avg = tmp[i] / this.options[i].considerations.length;
-                    this.results.push({ point: d, opt: this.options[i].name, result: avg });
-                    if (avg > max[d]) {
-                        this.data[d].top = { name: this.options[i].name, util: avg };
-                        top = i;
-                        max[d] = avg;
-                    }
-                }
-                this.options[top].action(this.data[d]);
-            }
-            this.time += step;
-        };
-        USys.prototype.assess = function (eventName) {
-        };
-        return USys;
-    })(QEpiKit.QComponent);
-    QEpiKit.USys = USys;
-    function logistic(x, m, b, k) {
-        var y = 1 / (m + Math.exp(-k * (x - b)));
-        return y;
-    }
-    QEpiKit.logistic = logistic;
-    function logit(x, m, b, k) {
-        var y = 1 / Math.log(x / (1 - x));
-        return y;
-    }
-    QEpiKit.logit = logit;
-    function linear(x, m, b, k) {
-        var y = m * x + b;
-        return y;
-    }
-    QEpiKit.linear = linear;
-    function exponential(x, m, b, k) {
-        var y = 1 - (Math.pow(x, k) / Math.pow(1, k));
-        return y;
-    }
-    QEpiKit.exponential = exponential;
-})(QEpiKit || (QEpiKit = {}));
-//# sourceMappingURL=USys.js.map
-var QEpiKit;
-(function (QEpiKit) {
-    var BDIAgent = (function () {
+    var BDIAgent = (function (_super) {
+        __extends(BDIAgent, _super);
         function BDIAgent(name, goals, plans, data, policySelector) {
-            this.id = QEpiKit.Utils.generateUUID();
-            this.name = name;
+            _super.call(this, name);
             this.goals = goals;
             this.plans = plans;
             this.data = data;
             this.policySelector = policySelector || BDIAgent.stochasticSelection;
-            this.time = 0;
             this.beliefHistory = [];
             this.planHistory = [];
         }
-        BDIAgent.prototype.update = function (step, events) {
-            try {
-                events[this.time](this.data);
-            }
-            catch (e) {
-                events[this.time] = null;
-            }
+        BDIAgent.prototype.update = function (step) {
             var c, matcher, policy, intent, achievements = [], barriers = [], belief = this.data, successes = 0;
             policy = this.policySelector(this.plans, this.planHistory);
             intent = this.plans[policy];
@@ -209,39 +41,6 @@ var QEpiKit;
             this.planHistory.push({ time: this.time, intention: policy, goals: achievements, barriers: barriers, r: successes / this.goals.length });
             this.time += step;
         };
-        BDIAgent.prototype.assess = function (eventName, agents, resources) {
-            var c, matcher, policy, intent, achievements = [], barriers = [], belief = [agents, resources], successes = 0;
-            policy = this.policySelector(this.plans, this.planHistory);
-            intent = this.plans[policy];
-            intent(belief);
-            for (var i = 0; i < this.goals.length; i++) {
-                c = this.goals[i].condition;
-                achievements[i] = this.goals[i].temporal(c.check(c.data[c.key], c.value));
-                if (achievements[i] === BDIAgent.SUCCESS) {
-                    successes += 1;
-                }
-                else {
-                    matcher = QEpiKit.Utils.getMatcherString(c.check);
-                    barriers.push({
-                        label: c.label,
-                        key: c.key,
-                        check: matcher,
-                        actual: c.data[c.key],
-                        expected: c.value
-                    });
-                }
-            }
-            this.planHistory.push({ event: eventName, intention: policy, goals: achievements, barriers: barriers, r: successes / this.goals.length });
-        };
-        BDIAgent.prototype.run = function (step, limit, recordInt, events) {
-            while (this.time <= limit) {
-                this.update(step, events);
-                var rem = this.time % recordInt;
-                if (rem === 0) {
-                    this.beliefHistory.push(JSON.parse(JSON.stringify(this.data)));
-                }
-            }
-        };
         BDIAgent.stochasticSelection = function (plans, planHistory) {
             var policy, score, max = 0;
             for (var plan in plans) {
@@ -253,9 +52,6 @@ var QEpiKit;
             }
             return policy;
         };
-        BDIAgent.SUCCESS = 1;
-        BDIAgent.FAILED = 2;
-        BDIAgent.RUNNING = 3;
         BDIAgent.lazyPolicySelection = function (plans, planHistory) {
             var options, selection;
             if (this.time > 0) {
@@ -270,7 +66,7 @@ var QEpiKit;
             return options[selection];
         };
         return BDIAgent;
-    })();
+    })(QEpiKit.QComponent);
     QEpiKit.BDIAgent = BDIAgent;
 })(QEpiKit || (QEpiKit = {}));
 //# sourceMappingURL=bdi.js.map
@@ -293,7 +89,7 @@ var QEpiKit;
             var state = node.operate(agent);
             return state;
         };
-        BehaviorTree.prototype.start = function (agent, step) {
+        BehaviorTree.prototype.update = function (agent, step) {
             var state;
             agent.active = true;
             while (agent.active === true) {
@@ -302,30 +98,6 @@ var QEpiKit;
                 agent.active = false;
             }
             return state;
-        };
-        BehaviorTree.prototype.update = function (step) {
-            var dataLen = this.data.length;
-            for (var d = 0; d < dataLen; d++) {
-                this.start(this.data[d], step);
-            }
-            this.time += step;
-        };
-        BehaviorTree.prototype.run = function (step, until, saveInterval) {
-            this.time = 0;
-            while (this.time <= until) {
-                var rem = (this.time / step) % saveInterval;
-                if (rem == 0) {
-                    this.history.push(JSON.parse(JSON.stringify(this.data)));
-                }
-                this.update(step);
-            }
-        };
-        BehaviorTree.prototype.assess = function (eventName) {
-            var dataLen = this.data.length;
-            for (var d = 0; d < dataLen; d++) {
-                this.start(this.data[d], 0);
-            }
-            this.results[eventName] = JSON.parse(JSON.stringify(this.data));
         };
         return BehaviorTree;
     })(QEpiKit.QComponent);
@@ -619,17 +391,19 @@ var QEpiKit;
 var QEpiKit;
 (function (QEpiKit) {
     var Environment = (function () {
-        function Environment(agents, resources, facilities, eventsQueue, randF) {
+        function Environment(resources, facilities, eventsQueue, activationType, randF) {
+            if (eventsQueue === void 0) { eventsQueue = []; }
+            if (activationType === void 0) { activationType = 'random'; }
             if (randF === void 0) { randF = Math.random; }
             this.time = 0;
             this.timeOfDay = 0;
             this.models = [];
-            this.observers = [];
             this.history = [];
-            this.agents = agents;
+            this.agents = [];
             this.resources = resources;
             this.facilities = facilities;
             this.eventsQueue = eventsQueue;
+            this.activationType = activationType;
             this.randF = randF;
         }
         Environment.prototype.add = function (component) {
@@ -642,17 +416,14 @@ var QEpiKit;
             } });
             this.models.splice(deleteIndex, 1);
         };
-        Environment.prototype.addObserver = function (observer) {
-            this.observers.push(observer);
-        };
-        Environment.prototype.removeObserver = function (id) {
-            var deleteIndex;
-            this.observers.forEach(function (c, index) { if (c.id === id) {
-                deleteIndex = index;
-            } });
-            this.observers.splice(deleteIndex, 1);
-        };
         Environment.prototype.run = function (step, until, saveInterval) {
+            for (var c = 0; c < this.models.length; c++) {
+                for (var d = 0; d < this.models[c].data.length; d++) {
+                    this.models[c].data[d].model = this.models[c].name;
+                    this.models[c].data[d].modelIndex = c;
+                }
+                this.agents = this.agents.concat(this.models[c].data);
+            }
             while (this.time <= until) {
                 this.update(step);
                 var rem = (this.time % saveInterval);
@@ -662,12 +433,6 @@ var QEpiKit;
                 }
                 this.time += step;
                 this.formatTime();
-            }
-            this.publish("finished");
-        };
-        Environment.prototype.publish = function (eventName) {
-            for (var o = 0; o < this.observers.length; o++) {
-                this.observers[o].assess(eventName);
             }
         };
         Environment.prototype.update = function (step) {
@@ -680,9 +445,20 @@ var QEpiKit;
                 }
                 index++;
             }
-            for (var c = 0; c < this.models.length; c++) {
+            if (this.activationType === "random") {
                 QEpiKit.Utils.shuffle(this.agents, this.randF);
-                this.models[c].update(step);
+                for (var a = 0; a < this.agents.length; a++) {
+                    this.models[this.agents[a].modelIndex].update(this.agents[a], step);
+                }
+            }
+            if (this.activationType === "parallel") {
+                var tempAgents = JSON.parse(JSON.stringify(this.agents));
+                for (var i = 0; i < tempAgents.length; i++) {
+                    this.models[tempAgents[i].modelIndex].update(tempAgents[i], step);
+                }
+                for (var a = 0; a < this.agents.length; a++) {
+                    this.agents[a] = this.models[this.agents[a].modelIndex].apply(this.agents[a], tempAgents[a], step);
+                }
             }
         };
         Environment.prototype.formatTime = function () {
@@ -872,8 +648,6 @@ var QEpiKit;
             }
             this.time += step;
         };
-        HybridAutomata.prototype.assess = function () {
-        };
         return HybridAutomata;
     })(QEpiKit.QComponent);
     QEpiKit.HybridAutomata = HybridAutomata;
@@ -922,16 +696,6 @@ var QEpiKit;
                 this.data[i].active = false;
             }
             this.time += step;
-        };
-        HTNPlanner.prototype.run = function (step, until, saveInterval) {
-            this.time = 0;
-            while (this.time <= until) {
-                var rem = (this.time / step) % saveInterval;
-                if (rem == 0) {
-                    this.history.push(JSON.parse(JSON.stringify(this.data)));
-                }
-                this.update(step);
-            }
         };
         HTNPlanner.prototype.assess = function (eventName) {
             for (var i = 0; i < this.data.length; i++) {
@@ -1051,6 +815,97 @@ var QEpiKit;
 })(QEpiKit || (QEpiKit = {}));
 //# sourceMappingURL=htn.js.map
 //# sourceMappingURL=interfaces.js.map
+var QEpiKit;
+(function (QEpiKit) {
+    var QComponent = (function () {
+        function QComponent(name) {
+            this.id = QEpiKit.Utils.generateUUID();
+            this.name = name;
+            this.time = 0;
+            this.history = [];
+        }
+        QComponent.prototype.update = function (agents, step) {
+            this.time += step;
+        };
+        QComponent.SUCCESS = 1;
+        QComponent.FAILED = 2;
+        QComponent.RUNNING = 3;
+        return QComponent;
+    })();
+    QEpiKit.QComponent = QComponent;
+})(QEpiKit || (QEpiKit = {}));
+//# sourceMappingURL=QComponent.js.map
+var QEpiKit;
+(function (QEpiKit) {
+    var QLearner = (function () {
+        function QLearner(R, gamma, goal) {
+            this.rawMax = 1;
+            this.R = R;
+            this.gamma = gamma;
+            this.goal = goal;
+            this.Q = {};
+            for (var state in R) {
+                this.Q[state] = {};
+                for (var action in R[state]) {
+                    this.Q[state][action] = 0;
+                }
+            }
+            this.gamma = gamma;
+        }
+        QLearner.prototype.transition = function (state, action) {
+            var bestAction = this.max(action);
+            this.Q[state][action] = this.R[state][action] + (this.gamma * this.Q[action][bestAction]);
+        };
+        QLearner.prototype.max = function (state) {
+            var max = 0, maxAction = null;
+            for (var action in this.Q[state]) {
+                if (!maxAction) {
+                    max = this.Q[state][action];
+                    maxAction = action;
+                }
+                else if (this.Q[state][action] === max && (Math.random() > 0.5)) {
+                    max = this.Q[state][action];
+                    maxAction = action;
+                }
+                else if (this.Q[state][action] > max) {
+                    max = this.Q[state][action];
+                    maxAction = action;
+                }
+            }
+            return maxAction;
+        };
+        QLearner.prototype.possible = function (state) {
+            var possible = [];
+            for (var action in this.R[state]) {
+                if (this.R[state][action] > -1) {
+                    possible.push(action);
+                }
+            }
+            return possible[Math.floor(Math.random() * possible.length)];
+        };
+        QLearner.prototype.episode = function (state) {
+            this.transition(state, this.possible(state));
+            return this.Q;
+        };
+        QLearner.prototype.normalize = function () {
+            for (var state in this.Q) {
+                for (var action in this.Q[state]) {
+                    if (this.Q[action][state] >= this.rawMax) {
+                        this.rawMax = this.Q[action][state];
+                    }
+                }
+            }
+            for (var state in this.Q) {
+                for (var action in this.Q[state]) {
+                    this.Q[action][state] = Math.round(this.Q[action][state] / this.rawMax * 100);
+                }
+            }
+        };
+        return QLearner;
+    })();
+    QEpiKit.QLearner = QLearner;
+})(QEpiKit || (QEpiKit = {}));
+//# sourceMappingURL=QLearner.js.map
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -1101,16 +956,80 @@ var QEpiKit;
                 if (typeof transitions[t].from === 'string') {
                     transitions[t].from = [transitions[t].from];
                 }
+                else {
+                    return;
+                }
             }
             return transitions;
-        };
-        StateMachine.prototype.assess = function (eventName) {
         };
         return StateMachine;
     })(QEpiKit.QComponent);
     QEpiKit.StateMachine = StateMachine;
 })(QEpiKit || (QEpiKit = {}));
 //# sourceMappingURL=stateMachine.js.map
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+var QEpiKit;
+(function (QEpiKit) {
+    var USys = (function (_super) {
+        __extends(USys, _super);
+        function USys(name, options, data) {
+            _super.call(this, name);
+            this.options = options;
+            this.results = [];
+            this.data = data;
+        }
+        USys.prototype.update = function (step) {
+            var tmp = [], max = [], avg, top, dataLen = this.data.length;
+            for (var d = 0; d < dataLen; d++) {
+                max[d] = 0;
+                for (var i = 0; i < this.options.length; i++) {
+                    tmp[i] = 0;
+                    for (var j = 0; j < this.options[i].considerations.length; j++) {
+                        var c = this.options[i].considerations[j];
+                        var x = c.x(this.data[d], this.options[i].params);
+                        tmp[i] += c.f(x, c.m, c.b, c.k);
+                    }
+                    avg = tmp[i] / this.options[i].considerations.length;
+                    this.results.push({ point: d, opt: this.options[i].name, result: avg });
+                    if (avg > max[d]) {
+                        this.data[d].top = { name: this.options[i].name, util: avg };
+                        top = i;
+                        max[d] = avg;
+                    }
+                }
+                this.options[top].action(this.data[d]);
+            }
+            this.time += step;
+        };
+        return USys;
+    })(QEpiKit.QComponent);
+    QEpiKit.USys = USys;
+    function logistic(x, m, b, k) {
+        var y = 1 / (m + Math.exp(-k * (x - b)));
+        return y;
+    }
+    QEpiKit.logistic = logistic;
+    function logit(x, m, b, k) {
+        var y = 1 / Math.log(x / (1 - x));
+        return y;
+    }
+    QEpiKit.logit = logit;
+    function linear(x, m, b, k) {
+        var y = 1 / (m * x + b);
+        return y;
+    }
+    QEpiKit.linear = linear;
+    function exponential(x, m, b, k) {
+        var y = 1 - (Math.pow(x, k) / Math.pow(1, k));
+        return y;
+    }
+    QEpiKit.exponential = exponential;
+})(QEpiKit || (QEpiKit = {}));
+//# sourceMappingURL=USys.js.map
 var QEpiKit;
 (function (QEpiKit) {
     var Utils = (function () {

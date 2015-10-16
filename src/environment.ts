@@ -50,7 +50,7 @@ module QEpiKit {
     public randF: () => number;
 
 
-    constructor(resources, facilities, eventsQueue: QEvent[], activationType: string = 'random', randF: () => number = Math.random) {
+    constructor(resources, facilities, eventsQueue: QEvent[] = [], activationType: string = 'random', randF: () => number = Math.random) {
       this.time = 0;
       this.timeOfDay = 0;
       this.models = [];

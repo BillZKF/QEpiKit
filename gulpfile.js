@@ -5,15 +5,15 @@ var rename = require('gulp-rename');
 var connect = require('gulp-connect');
 var Server = require('karma').Server;
 
+
 /**
  * Watch for file changes and re-run tests on each change
  */
-gulp.task('tdd', function (done) {
-  new Server({
-    configFile: __dirname + '/karma.conf.js',
-    runOnce: true
-  }, done).start();
-});
+ gulp.task('tdd', function (done) {
+   new Server({
+     configFile: __dirname + '/karma.conf.js'
+   }, done).start();
+ });
 
 // Concatenate & Minify JS
 gulp.task('scripts', function() {

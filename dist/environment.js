@@ -2,6 +2,7 @@ var QEpiKit;
 (function (QEpiKit) {
     var Environment = (function () {
         function Environment(resources, facilities, eventsQueue, activationType, randF) {
+            if (eventsQueue === void 0) { eventsQueue = []; }
             if (activationType === void 0) { activationType = 'random'; }
             if (randF === void 0) { randF = Math.random; }
             this.time = 0;

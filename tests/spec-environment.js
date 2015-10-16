@@ -6,23 +6,24 @@ describe('An environment contains resources, a population, and model components'
       id: 1,
       sex: "male",
       age: 42,
-      hasShot : false
+      hasShot: false
     }, {
       id: 2,
       sex: "female",
       age: 32,
-      hasShot : false
+      hasShot: false
     }, {
       id: 3,
       sex: "female",
       age: 45,
-      hasShot : false
+      hasShot: false
     }, {
       id: 4,
       sex: "female",
       age: 36,
-      hasShot : false
+      hasShot: false
     }];
+
     resources = [{
       label: "Tamiflu",
       amount: 3,
@@ -34,6 +35,7 @@ describe('An environment contains resources, a population, and model components'
       distributed: 0,
       units: "doses"
     }];
+
     facilities = [{
       label: "Primary care office",
       capacity: 2,
@@ -49,16 +51,6 @@ describe('An environment contains resources, a population, and model components'
       working: true,
       type: "pharmacy"
     }];
-
-    var closeDoctorsOffice = {
-      trigger: function() {
-        facilities[0].working = false;
-      },
-      triggered: false
-    };
-    events = {
-      5: closeDoctorsOffice
-    };
 
     model = {
       update: function(person, step) {
@@ -77,7 +69,14 @@ describe('An environment contains resources, a population, and model components'
       data: agents
 
     };
-    env = new QEpiKit.Environment(resources, facilties, events);
+    events = new QEpiKit.Events([{
+      name: 'deliver-shots',
+      at: 3,
+      trigger: function() {
+        env.resources[1].amount += 1
+      }, triggered : false
+    }]);
+    env = new QEpiKit.Environment(resources, facilties, events.queue);
     env.add(model);
   });
 
@@ -141,27 +140,32 @@ describe('An environment contains resources, a population, and model components'
 
     model.apply = function(oldVals, newVals, step) {
       //give preference to age
-      if(newVals.wantsShot){
-        if(shotsWanted > env.resources[0].amount){
-          if(newVals.age > 35){
+      if (newVals.wantsShot) {
+        if (shotsWanted > env.resources[1].amount) {
+          if (newVals.age > 35) {
             newVals.hasShot = true;
             newVals.wantsShot = false;
-            env.resources[0].amount--;
+            env.resources[1].amount--;
             shotsWanted -= 1;
           }
+        } else {
+          newVals.hasShot = true;
+          newVals.wantsShot = false;
+          env.resources[1].amount--;
+          shotsWanted -= 1;
         }
       }
       return newVals;
     };
 
-    getShotsWanted = function(){
+    getShotsWanted = function() {
       shotsWanted = 0;
-      env.agents.forEach(function(d){
+      env.agents.forEach(function(d) {
         shotsWanted = d.hasShot === false ? shotsWanted + 1 : shotsWanted;
       });
     };
 
-    env = new QEpiKit.Environment(resources, facilties, events, 'parallel');
+    env = new QEpiKit.Environment(resources, facilties, events.queue, 'parallel');
     env.add(model);
     env.run(1, 1, 1);
     expect(shotsWanted).toBe(1);

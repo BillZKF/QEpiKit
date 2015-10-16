@@ -24,20 +24,8 @@ module QEpiKit {
     /** Take one time step forward (most subclasses override the base method)
     * @param step size of time step (in days by convention)
     */
-    update(step: number) {
+    update(agents:any, step: number) {
       this.time += step;
-    }
-
-    /** Run QComponent from t = 0 until t = until using time step = step
-    * @param step size of time step (in days by convention)
-    * @param until the end time
-    * @param saveInterval save every 'x' steps
-    */
-    run(step: number, until: number) {
-      this.time = 0;
-      while (this.time <= until) {
-        this.update(step);
-      }
     }
   }
 }
