@@ -91,9 +91,10 @@ describe('A Utility System', function() {
   });
 
   it('should have an update method', function() {
-    Sys.update(1);
+    Sys.update(Sys.data[0],1);
+    Sys.update(Sys.data[1],1);
     //person 0 should have selected gastric Bypass
     expect(people[0].top.name).toBe("gastericBypass");
-    expect(people[1].top.name).toBe("exerciseAndDiet");
+    expect(people[1].top.name).toBe("gastericBypass");
   });
 });

@@ -2,7 +2,7 @@ module QEpiKit {
   /**
   * Behavior Tree
   **/
-  export class BehaviorTree extends QComponent implements Observer{
+  export class BehaviorTree extends QComponent {
 
     public data: any[];
     public results: any[];
@@ -20,7 +20,7 @@ module QEpiKit {
       this.results = [];
     }
 
-    start(agent, step: number) {
+    update(agent, step: number) {
       var state;
       agent.active = true;
       while (agent.active === true) {
@@ -30,37 +30,7 @@ module QEpiKit {
       }
       return state;
     }
-
-    update(step:number) {
-      var dataLen = this.data.length;
-      for (var d = 0; d < dataLen; d++) {
-        this.start(this.data[d], step);
-      }
-      this.time += step;
-    }
-
-    run(step: number, until: number, saveInterval: number) {
-      this.time = 0;
-      while (this.time <= until) {
-        let rem = (this.time / step) % saveInterval;
-        if (rem == 0) {
-          this.history.push(JSON.parse(JSON.stringify(this.data)));
-        }
-        this.update(step);
-      }
-    }
-
-    /** Assess the current state of the data under observation by evaluating the behavior tree.
-    * @param eventName name of the event
-    */
-    assess(eventName){
-      var dataLen = this.data.length;
-      for (var d = 0; d < dataLen; d++) {
-        this.start(this.data[d], 0);
-      }
-      this.results[eventName] = JSON.parse(JSON.stringify(this.data));
-    }
-  }
+}
 
   export class BTNode {
     public id: string;

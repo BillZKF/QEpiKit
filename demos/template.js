@@ -21,11 +21,7 @@ var prepare = function(run) {
   };
   //then set the value you're testing for this run
   experimentVars[experiment.plans[run].param] = experiment.plans[run].value;
-
-
   agents = genPop(experimentVars.numberOfAgents);
-
-
   environment.agents = agents;
   model.data = agents;
 

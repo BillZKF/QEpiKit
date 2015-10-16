@@ -11,10 +11,10 @@ describe("Hybrid Automata and Dynamic System common utils", function() {
     flowMap = {
       x: {
         "ON": function(x) {
-          return 65 - x;
+          return 75 - x;
         },
         "OFF": function(x) {
-          return 95 - x;
+          return 85 - x;
         }
       }
     };
@@ -40,12 +40,12 @@ describe("Hybrid Automata and Dynamic System common utils", function() {
       },
       "OFF": {
         key: "x",
-        value: 73,
+        value: 72,
         check: QEpiKit.Utils.ltEq
       }
     };
     ac = {
-      x: 95,
+      x: 86,
       currentMode: "OFF",
       modes: modes
     };
@@ -54,7 +54,9 @@ describe("Hybrid Automata and Dynamic System common utils", function() {
   });
   it("should change to off", function() {
     //run for 10 minutes
-    acHA.run(1, 10, 1);
-    expect(acHA.time).toBe(11);
+    for(var i = 0; i < 100; i++){
+      acHA.update(acHA.data[0], 1 / 10);
+    }
+    expect(acHA.data[0].x).toBe(75);
   });
 });

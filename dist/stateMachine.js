@@ -14,44 +14,41 @@ var QEpiKit;
             this.conditions = conditions;
             this.data = data;
         }
-        StateMachine.prototype.update = function (step) {
-            for (var d = 0; d < this.data.length; d++) {
-                for (var s in this.data[d].states) {
-                    var state = this.data[d].states[s];
-                    this.states[state](step, this.data[d]);
-                    for (var i = 0; i < this.transitions.length; i++) {
-                        for (var j = 0; j < this.transitions[i].from.length; j++) {
-                            var trans = this.transitions[i].from[j];
-                            if (trans === this.data[d].states[s]) {
-                                var cond = this.conditions[this.transitions[i].name];
-                                var value = void 0;
-                                if (typeof (cond.value) === 'function') {
-                                    value = cond.value();
-                                }
-                                else {
-                                    value = cond.value;
-                                }
-                                var r = cond.check(this.data[d][cond.key], value);
-                                if (r === StateMachine.SUCCESS) {
-                                    this.data[d].states[s] = this.transitions[i].to;
-                                }
+        StateMachine.prototype.update = function (agent, step) {
+            for (var s in agent.states) {
+                var state = agent.states[s];
+                this.states[state](step, agent);
+                for (var i = 0; i < this.transitions.length; i++) {
+                    for (var j = 0; j < this.transitions[i].from.length; j++) {
+                        var trans = this.transitions[i].from[j];
+                        if (trans === agent.states[s]) {
+                            var cond = this.conditions[this.transitions[i].name];
+                            var value = void 0;
+                            if (typeof (cond.value) === 'function') {
+                                value = cond.value();
+                            }
+                            else {
+                                value = cond.value;
+                            }
+                            var r = cond.check(agent[cond.key], value);
+                            if (r === StateMachine.SUCCESS) {
+                                agent.states[s] = this.transitions[i].to;
                             }
                         }
                     }
                 }
-                this.data[d].time += step;
             }
-            this.time += step;
         };
         StateMachine.prototype.checkTransitions = function (transitions) {
             for (var t = 0; t < transitions.length; t++) {
                 if (typeof transitions[t].from === 'string') {
                     transitions[t].from = [transitions[t].from];
                 }
+                else {
+                    return;
+                }
             }
             return transitions;
-        };
-        StateMachine.prototype.assess = function (eventName) {
         };
         return StateMachine;
     })(QEpiKit.QComponent);

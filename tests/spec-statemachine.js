@@ -95,17 +95,19 @@ describe('State machines', function() {
       }
     };
 
-    SEIRMachine = new QEpiKit.StateMachine('SEIRMachine', people, events);
+    SEIRMachine = new QEpiKit.StateMachine('SEIRMachine', states, transitionMap, conditions, people);
+    });
+
     it('should create a state machine', function(){
       expect(SEIRMachine.id.length).toBe(36);
     });
 
-    it('should update one time step', function(){
-      console.log('hello');
-      SEIRMachine.update(1);
-      expect(SEIRMachine.time).toBe(1);
-      expect(person[3].curent).toBe('asdfasdfase');
+    it('should update an agent', function(){
+      SEIRMachine.update(SEIRMachine.data[0],1);
+      SEIRMachine.update(SEIRMachine.data[1],1);
+      SEIRMachine.update(SEIRMachine.data[2],1);
+      SEIRMachine.update(SEIRMachine.data[3],1);
+      expect(SEIRMachine.data[0].current).toBe('exposed');
     });
 
-  });
 });

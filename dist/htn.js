@@ -28,43 +28,16 @@ var QEpiKit;
             var state = node.visit(agent, task);
             return state;
         };
-        HTNPlanner.prototype.update = function (step) {
-            for (var i = 0; i < this.data.length; i++) {
-                this.data[i].active = true;
-                HTNPlanner.tick(this.root, this.task, this.data[i]);
-                if (this.data[i].successList.length > 0) {
-                    this.summary[i] = this.data[i].successList;
-                }
-                else {
-                    this.summary[i] = false;
-                }
-                this.data[i].active = false;
+        HTNPlanner.prototype.update = function (agent, step) {
+            agent.active = true;
+            HTNPlanner.tick(this.root, this.task, agent);
+            if (agent.successList.length > 0) {
+                agent.succeed = true;
             }
-            this.time += step;
-        };
-        HTNPlanner.prototype.run = function (step, until, saveInterval) {
-            this.time = 0;
-            while (this.time <= until) {
-                var rem = (this.time / step) % saveInterval;
-                if (rem == 0) {
-                    this.history.push(JSON.parse(JSON.stringify(this.data)));
-                }
-                this.update(step);
+            else {
+                agent.succeed = false;
             }
-        };
-        HTNPlanner.prototype.assess = function (eventName) {
-            for (var i = 0; i < this.data.length; i++) {
-                this.data[i].active = true;
-                HTNPlanner.tick(this.root, this.task, this.data[i]);
-                if (this.data[i].successList.length > 0) {
-                    this.summary[i] = this.data[i].successList;
-                }
-                else {
-                    this.summary[i] = false;
-                }
-                this.data[i].active = false;
-            }
-            this.results[eventName] = this.summary;
+            agent.active = false;
         };
         return HTNPlanner;
     })(QEpiKit.QComponent);

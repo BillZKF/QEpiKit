@@ -1,17 +1,19 @@
 var QEpiKit;
 (function (QEpiKit) {
     var Environment = (function () {
-        function Environment(agents, resources, facilities, eventsQueue, randF) {
+        function Environment(resources, facilities, eventsQueue, activationType, randF) {
+            if (eventsQueue === void 0) { eventsQueue = []; }
+            if (activationType === void 0) { activationType = 'random'; }
             if (randF === void 0) { randF = Math.random; }
             this.time = 0;
             this.timeOfDay = 0;
             this.models = [];
-            this.observers = [];
             this.history = [];
-            this.agents = agents;
+            this.agents = [];
             this.resources = resources;
             this.facilities = facilities;
             this.eventsQueue = eventsQueue;
+            this.activationType = activationType;
             this.randF = randF;
         }
         Environment.prototype.add = function (component) {
@@ -24,17 +26,14 @@ var QEpiKit;
             } });
             this.models.splice(deleteIndex, 1);
         };
-        Environment.prototype.addObserver = function (observer) {
-            this.observers.push(observer);
-        };
-        Environment.prototype.removeObserver = function (id) {
-            var deleteIndex;
-            this.observers.forEach(function (c, index) { if (c.id === id) {
-                deleteIndex = index;
-            } });
-            this.observers.splice(deleteIndex, 1);
-        };
         Environment.prototype.run = function (step, until, saveInterval) {
+            for (var c = 0; c < this.models.length; c++) {
+                for (var d = 0; d < this.models[c].data.length; d++) {
+                    this.models[c].data[d].model = this.models[c].name;
+                    this.models[c].data[d].modelIndex = c;
+                }
+                this.agents = this.agents.concat(this.models[c].data);
+            }
             while (this.time <= until) {
                 this.update(step);
                 var rem = (this.time % saveInterval);
@@ -44,12 +43,6 @@ var QEpiKit;
                 }
                 this.time += step;
                 this.formatTime();
-            }
-            this.publish("finished");
-        };
-        Environment.prototype.publish = function (eventName) {
-            for (var o = 0; o < this.observers.length; o++) {
-                this.observers[o].assess(eventName);
             }
         };
         Environment.prototype.update = function (step) {
@@ -62,9 +55,20 @@ var QEpiKit;
                 }
                 index++;
             }
-            for (var c = 0; c < this.models.length; c++) {
+            if (this.activationType === "random") {
                 QEpiKit.Utils.shuffle(this.agents, this.randF);
-                this.models[c].update(step);
+                for (var a = 0; a < this.agents.length; a++) {
+                    this.models[this.agents[a].modelIndex].update(this.agents[a], step);
+                }
+            }
+            if (this.activationType === "parallel") {
+                var tempAgents = JSON.parse(JSON.stringify(this.agents));
+                for (var i = 0; i < tempAgents.length; i++) {
+                    this.models[tempAgents[i].modelIndex].update(tempAgents[i], step);
+                }
+                for (var a = 0; a < this.agents.length; a++) {
+                    this.agents[a] = this.models[this.agents[a].modelIndex].apply(this.agents[a], tempAgents[a], step);
+                }
             }
         };
         Environment.prototype.formatTime = function () {

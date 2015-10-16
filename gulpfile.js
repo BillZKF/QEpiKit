@@ -5,19 +5,19 @@ var rename = require('gulp-rename');
 var connect = require('gulp-connect');
 var Server = require('karma').Server;
 
+
 /**
  * Watch for file changes and re-run tests on each change
  */
-gulp.task('tdd', function (done) {
-  new Server({
-    configFile: __dirname + '/karma.conf.js',
-    runOnce: true
-  }, done).start();
-});
+ gulp.task('tdd', function (done) {
+   new Server({
+     configFile: __dirname + '/karma.conf.js'
+   }, done).start();
+ });
 
 // Concatenate & Minify JS
 gulp.task('scripts', function() {
-    return gulp.src('dist/*.js')
+    return gulp.src(['dist/QComponent.js','dist/*.js'])
         .pipe(concat('qepikit.js'))
         .pipe(gulp.dest('./'))
         .pipe(rename('qepikit.min.js'))

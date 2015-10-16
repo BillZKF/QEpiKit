@@ -10,6 +10,8 @@ module QEpiKit {
     public id: string;
     public name: string;
     public time: number;
+    public data: any[];
+    public results: any[];
     public history: any[];
 
     constructor(name: string) {
@@ -22,24 +24,8 @@ module QEpiKit {
     /** Take one time step forward (most subclasses override the base method)
     * @param step size of time step (in days by convention)
     */
-    update(step: number) {
-      this.time += step;
-    }
-
-    /** Run QComponent from t = 0 until t = until using time step = step
-    * @param step size of time step (in days by convention)
-    * @param until the end time
-    * @param saveInterval save every 'x' steps
-    */
-    run(step: number, until: number, saveInterval: number) {
-      this.time = 0;
-      while (this.time <= until) {
-        let rem = (this.time / step) % saveInterval;
-        if (rem == 0) {
-          this.history.push(JSON.parse(JSON.stringify(this)));
-        }
-        this.update(step);
-      }
+    update(agent:any, step: number) {
+      //something super!
     }
   }
 }

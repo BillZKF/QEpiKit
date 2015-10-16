@@ -13,30 +13,24 @@ var QEpiKit;
             this.results = [];
             this.data = data;
         }
-        USys.prototype.update = function (step) {
-            var tmp = [], max = [], avg, top, dataLen = this.data.length;
-            for (var d = 0; d < dataLen; d++) {
-                max[d] = 0;
-                for (var i = 0; i < this.options.length; i++) {
-                    tmp[i] = 0;
-                    for (var j = 0; j < this.options[i].considerations.length; j++) {
-                        var c = this.options[i].considerations[j];
-                        var x = c.x(this.data[d], this.options[i].params);
-                        tmp[i] += c.f(x, c.m, c.b, c.k);
-                    }
-                    avg = tmp[i] / this.options[i].considerations.length;
-                    this.results.push({ point: d, opt: this.options[i].name, result: avg });
-                    if (avg > max[d]) {
-                        this.data[d].top = { name: this.options[i].name, util: avg };
-                        top = i;
-                        max[d] = avg;
-                    }
+        USys.prototype.update = function (agent, step) {
+            var tmp = [], max = 0, avg, top;
+            for (var i = 0; i < this.options.length; i++) {
+                tmp[i] = 0;
+                for (var j = 0; j < this.options[i].considerations.length; j++) {
+                    var c = this.options[i].considerations[j];
+                    var x = c.x(agent, this.options[i].params);
+                    tmp[i] += c.f(x, c.m, c.b, c.k);
                 }
-                this.options[top].action(this.data[d]);
+                avg = tmp[i] / this.options[i].considerations.length;
+                this.results.push({ point: agent.id, opt: this.options[i].name, result: avg });
+                if (avg > max) {
+                    agent.top = { name: this.options[i].name, util: avg };
+                    top = i;
+                    max = avg;
+                }
             }
-            this.time += step;
-        };
-        USys.prototype.assess = function (eventName) {
+            this.options[top].action(agent);
         };
         return USys;
     })(QEpiKit.QComponent);
@@ -52,7 +46,7 @@ var QEpiKit;
     }
     QEpiKit.logit = logit;
     function linear(x, m, b, k) {
-        var y = m * x + b;
+        var y = 1 / (m * x + b);
         return y;
     }
     QEpiKit.linear = linear;

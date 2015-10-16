@@ -1,6 +1,6 @@
 module QEpiKit {
 
-  export class StateMachine extends QComponent implements Observer {
+  export class StateMachine extends QComponent {
     public states: any;
     public actions: any;
     public transitions: any[];
@@ -16,15 +16,14 @@ module QEpiKit {
       this.data = data;
     }
 
-    update(step: number) {
-      for (var d = 0; d < this.data.length; d++) {
-        for (var s in this.data[d].states) {
-          let state = this.data[d].states[s];
-          this.states[state](step, this.data[d]);
+    update(agent:any, step: number) {
+        for (var s in agent.states) {
+          let state = agent.states[s];
+          this.states[state](step, agent);
           for (var i = 0; i < this.transitions.length; i++) {
             for (var j = 0; j < this.transitions[i].from.length; j++) {
               let trans = this.transitions[i].from[j];
-              if (trans === this.data[d].states[s]) {
+              if (trans === agent.states[s]) {
                 let cond = this.conditions[this.transitions[i].name];
                 let value;
                 if(typeof(cond.value) === 'function'){
@@ -32,30 +31,25 @@ module QEpiKit {
                 } else {
                   value = cond.value;
                 }
-                let r = cond.check(this.data[d][cond.key], value);
+                let r = cond.check(agent[cond.key], value);
                 if (r === StateMachine.SUCCESS) {
-                  this.data[d].states[s] = this.transitions[i].to;
+                  agent.states[s] = this.transitions[i].to;
                 }
               }
             }
           }
         }
-      this.data[d].time += step;
-      }
-      this.time += step;
     }
 
     checkTransitions(transitions): any[] {
       for (var t = 0; t < transitions.length; t++) {
         if (typeof transitions[t].from === 'string') {
           transitions[t].from = [transitions[t].from];
+        } else {
+          return;
         }
       }
       return transitions;
-    }
-
-    assess(eventName: string) {
-
     }
   }
 }

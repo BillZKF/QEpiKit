@@ -67,12 +67,12 @@ describe("Behavior Trees are control structures for reactive agents", function()
   describe("Root Nodes are Control Nodes that tick their one child", function() {
 
     it("should return SUCCESS code if child succeeds", function() {
-      expect(BHTree.start(agents[1])).toBe(QEpiKit.BehaviorTree.SUCCESS);
+      expect(BHTree.update(agents[1])).toBe(QEpiKit.BehaviorTree.SUCCESS);
     });
 
     it("should return FAILED code if child fails", function() {
       Root.children = [ConditionFail];
-      expect(BHTree.start(agents[1])).toBe(QEpiKit.BehaviorTree.FAILED);
+      expect(BHTree.update(agents[1])).toBe(QEpiKit.BehaviorTree.FAILED);
     });
   });
 
@@ -81,13 +81,13 @@ describe("Behavior Trees are control structures for reactive agents", function()
     it("should return SUCCESS code if a child succeeds", function() {
       var SelectorTest = new QEpiKit.BTSelector("selector-test", [ConditionFail, ConditionFail, ConditionSuccess]);
       Root.children = [SelectorTest];
-      expect(BHTree.start(agents[1])).toBe(QEpiKit.BehaviorTree.SUCCESS);
+      expect(BHTree.update(agents[1], 1)).toBe(QEpiKit.BehaviorTree.SUCCESS);
     });
 
     it("should return FAILED code if all children fail", function() {
       var SelectorTest = new QEpiKit.BTSelector("selector-test", [ConditionFail, ConditionFail]);
       Root.children = [SelectorTest];
-      expect(BHTree.start(agents[1])).toBe(QEpiKit.BehaviorTree.FAILED);
+      expect(BHTree.update(agents[1], 1)).toBe(QEpiKit.BehaviorTree.FAILED);
     });
   });
 
@@ -96,13 +96,13 @@ describe("Behavior Trees are control structures for reactive agents", function()
     it("should return SUCCESS code if all children succeeds", function() {
       var SequenceTest = new QEpiKit.BTSequence("sequence-test", [ConditionSuccess, ConditionSuccess, ConditionSuccess, ConditionSuccess]);
       Root.children = [SequenceTest];
-      expect(BHTree.start(agents[1])).toBe(QEpiKit.BehaviorTree.SUCCESS);
+      expect(BHTree.update(agents[1], 1)).toBe(QEpiKit.BehaviorTree.SUCCESS);
     });
 
     it("should return FAILED code if a child fails", function() {
       var SequenceTest = new QEpiKit.BTSequence("sequence-test", [ConditionFail]);
       Root.children = [SequenceTest];
-      expect(BHTree.start(agents[0])).toBe(QEpiKit.BehaviorTree.FAILED);
+      expect(BHTree.update(agents[0],1)).toBe(QEpiKit.BehaviorTree.FAILED);
     });
   });
 
@@ -111,41 +111,13 @@ describe("Behavior Trees are control structures for reactive agents", function()
     it("should return SUCCESS code if at least 3 children succeed", function() {
       var ParallelTest = new QEpiKit.BTParallel("parallel-test", [ConditionSuccess, ConditionSuccess, ConditionFail, ConditionSuccess], 3);
       Root.children = [ParallelTest];
-      expect(BHTree.start(agents[1])).toBe(QEpiKit.BehaviorTree.SUCCESS);
+      expect(BHTree.update(agents[1],1)).toBe(QEpiKit.BehaviorTree.SUCCESS);
     });
 
     it("should return FAILED less than 3 children succeed", function() {
       var ParallelTest = new QEpiKit.BTParallel("parallel-test", [ConditionSuccess, ConditionSuccess, ConditionFail, ConditionFail], 3);
       Root.children = [ParallelTest];
-      expect(BHTree.start(agents[0])).toBe(QEpiKit.BehaviorTree.FAILED);
-    });
-  });
-
-  describe("Methods for BT class", function() {
-    it("should run and create 'history' array that can be output to a csv.", function() {
-      var ActionA = new QEpiKit.BTAction("action-a", {
-        key: "state",
-        value: "a",
-        check: QEpiKit.Utils.equalTo
-      }, function(person) {
-        person.state = "b";
-      });
-      var ActionB = new QEpiKit.BTAction("action-b", {
-        key: "state",
-        value: "b",
-        check: QEpiKit.Utils.equalTo
-      }, function(person) {
-        person.state = "a";
-      });
-      var SelectorTest = new QEpiKit.BTSelector("selector-test", [ActionA]);
-      Root.children = [SelectorTest];
-      BHTree.run(1, 10, 1);
-
-      expect(BHTree.history[0][0].state).toEqual("a");
-      expect(BHTree.history[6][0].state).toEqual("b");
-
-      BHTree.assess("post");
-      expect(BHTree.results.post.length).toBe(2);
+      expect(BHTree.update(agents[0],1)).toBe(QEpiKit.BehaviorTree.FAILED);
     });
   });
 });

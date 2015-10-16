@@ -21,10 +21,6 @@ module QEpiKit {
     */
     public models: any[];
     /**
-    * The observers for this environment
-    */
-    public observers: any[];
-    /**
     * The eventsQueue is an array of Event objects
     */
     public eventsQueue: QEvent[];
@@ -32,10 +28,6 @@ module QEpiKit {
     * The history of the environment
     */
     public history: any;
-    /**
-    * The geographic network
-    */
-    public geoNetwork: any;
     /**
     * The finite resources of the environment
     */
@@ -49,21 +41,25 @@ module QEpiKit {
     */
     public agents: any;
     /**
+    * The activationType, 'random' (default) or 'parrallel'. 'parrallel' activation requires an additional apply function within each model.
+    */
+    public activationType: string;
+    /**
     * Randomness function for shuffling
     */
     public randF: () => number;
 
 
-    constructor(agents, resources, facilities, eventsQueue: QEvent[], randF: () => number = Math.random) {
+    constructor(resources, facilities, eventsQueue: QEvent[] = [], activationType: string = 'random', randF: () => number = Math.random) {
       this.time = 0;
       this.timeOfDay = 0;
       this.models = [];
-      this.observers = [];
       this.history = [];
-      this.agents = agents;
+      this.agents = [];
       this.resources = resources;
       this.facilities = facilities;
       this.eventsQueue = eventsQueue;
+      this.activationType = activationType;
       this.randF = randF;
     }
 
@@ -83,25 +79,19 @@ module QEpiKit {
       this.models.splice(deleteIndex, 1)
     }
 
-    /** Add an observer to this environment
-    * @param observer agent to be called on change
-    */
-    addObserver(observer) {
-      this.observers.push(observer);
-    }
-
-    removeObserver(id) {
-      var deleteIndex;
-      this.observers.forEach(function(c, index) { if (c.id === id) { deleteIndex = index; } });
-      this.observers.splice(deleteIndex, 1);
-    }
-
     /** Run all environment model components from t=0 until t=until using time step = step
     * @param step the step size
     * @param until the end time
     * @param saveInterval save every 'x' steps
     */
     run(step: number, until: number, saveInterval: number) {
+      for (var c = 0; c < this.models.length; c++) {
+        for (var d = 0; d < this.models[c].data.length; d++) {
+          this.models[c].data[d].model = this.models[c].name;
+          this.models[c].data[d].modelIndex = c;
+        }
+        this.agents = this.agents.concat(this.models[c].data);
+      }
       while (this.time <= until) {
         this.update(step);
         let rem = (this.time % saveInterval);
@@ -112,38 +102,46 @@ module QEpiKit {
         this.time += step;
         this.formatTime();
       }
-      this.publish("finished");
     }
 
-    publish(eventName) {
-      for (var o = 0; o < this.observers.length; o++) {
-        this.observers[o].assess(eventName);
-      }
-    }
 
     /** Update each model compenent one time step forward
     * @param step the step size
     */
     update(step: number) {
       var index = 0;
-      while(index < this.eventsQueue.length && this.eventsQueue[index].at <= this.time){
+      while (index < this.eventsQueue.length && this.eventsQueue[index].at <= this.time) {
         this.eventsQueue[index].trigger();
         this.eventsQueue[index].triggered = true;
-        if(this.eventsQueue[index].until <= this.time){
+        if (this.eventsQueue[index].until <= this.time) {
           this.eventsQueue.splice(index, 1);
         }
         index++;
       }
-      for (var c = 0; c < this.models.length; c++) {
+
+      if (this.activationType === "random") {
         QEpiKit.Utils.shuffle(this.agents, this.randF);
-        this.models[c].update(step);
+        for (let a = 0; a < this.agents.length; a++) {
+          this.models[this.agents[a].modelIndex].update(this.agents[a], step);
+        }
+      }
+
+      if (this.activationType === "parallel") {
+        let tempAgents = JSON.parse(JSON.stringify(this.agents));
+        for (let i = 0; i < tempAgents.length; i++) {
+          this.models[tempAgents[i].modelIndex].update(tempAgents[i], step);
+        }
+
+        for (let a = 0; a < this.agents.length; a++) {
+          this.agents[a] = this.models[this.agents[a].modelIndex].apply(this.agents[a], tempAgents[a], step);
+        }
       }
     }
 
     /** Format a time of day. Current time % 1.
     *
     */
-    formatTime(){
+    formatTime() {
       this.timeOfDay = this.time % 1;
     }
   }

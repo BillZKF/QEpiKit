@@ -139,8 +139,10 @@ var prepare = function(run) {
       check: QEpiKit.Utils.notInRange
     }
   };
-  environment.agents = agents;
+
+  environment.remove(model.id);
   model.data = agents;
+  environment.add(model);
 
   QEpiKit.ContactPatch.WIWArray = [];
   //iterate the random seed for next run

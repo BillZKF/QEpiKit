@@ -20,7 +20,7 @@ module QEpiKit {
       return or;
     }
 
-  
+
 
     static IPF2D(rowTotals: number[], colTotals: number[], iterations: number, seeds: any[]) {
       var rT = 0,
@@ -34,7 +34,7 @@ module QEpiKit {
       colTotals.forEach(function(c, j) {
         cT += c;
         seedCells.forEach(function(row, k) {
-          seedCells[k][j] = seedCells[k][j] ||  Math.round(rowTotals[k] / rowTotals.length + (colTotals[j] / colTotals.length) / 2 * Math.random());
+          seedCells[k][j] = seedCells[k][j] || Math.round(rowTotals[k] / rowTotals.length + (colTotals[j] / colTotals.length) / 2 * Math.random());
         });
       });
       if (rT === cT) {
@@ -67,8 +67,8 @@ module QEpiKit {
 
   export interface EpiTable2 {
     a: number; //expYOutY
-    b: number; //expYOutN
+    b: number; //expYOutNo
     c: number; //expNOutY
-    d: number; //expNOutN
+    d: number; //expNOutNo
   }
 }

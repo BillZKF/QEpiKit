@@ -36,16 +36,15 @@ describe("Hierarchal Task Network module: ", function() {
       expect(TestPlanner.id.length).toBe(36);
     });
 
-    it("start method should take a Task and return an array of summary results", function() {
-      TestPlanner.run(1,4,1);
-      expect(TestPlanner.history.length).toBe(5);
-      expect(TestPlanner.history[4][1].active).toBe(false);
+    it("update should tick a data element through the network", function() {
+      TestPlanner.update(TestPlanner.data[1],1);
+      expect(TestPlanner.data[1].runningList.length).toBe(1);
     });
   });
 
   describe("HTN root task", function(){
     it("evaluateGoals method should check if agent state fullfills all goal conditions", function(){
-      var result = TestTask.evaluateGoal(agents[0]);
+      var result = TestTask.evaluateGoal(TestPlanner.data[0]);
       expect(result).toBe(QEpiKit.HTNPlanner.FAILED);
     });
 
@@ -72,17 +71,19 @@ describe("Hierarchal Task Network module: ", function() {
     });
 
     it("should check a precondition, if succeeds, test effect, then evaluate goal", function() {
-      TestPlanner.run(1,20,2);
-      expect(TestPlanner.history[9][0].successList.length).not.toBe(0);
-      expect(TestPlanner.history[9][1].successList.length).toBe(0);
+      TestPlanner.update(TestPlanner.data[0],1);
+      TestPlanner.update(TestPlanner.data[1],1);
+      expect(TestPlanner.data[0].successList.length).toBe(2);
+      expect(TestPlanner.data[1].successList.length).toBe(0);
     });
 
     it("should check a precondition, if fails, return failed", function() {
       //bad test
       TestSuccessOperator.preconditions.push(fail);
-      TestPlanner.run(1,20,2);
-      expect(TestPlanner.summary[0]).toBe(false);
-      expect(TestPlanner.summary[1]).toBe(false);
+      TestPlanner.update(TestPlanner.data[0],1);
+      TestPlanner.update(TestPlanner.data[1],1);
+      expect(TestPlanner.data[0].succeed).toBe(false);
+      expect(TestPlanner.data[0].succeed).toBe(false);
     });
   });
 
@@ -102,25 +103,18 @@ describe("Hierarchal Task Network module: ", function() {
     });
 
     it("should check a precondition, if succeeds, visit children", function() {
-      TestPlanner.run(1,20,2);
-      expect(TestPlanner.summary[0]).not.toBe(false);
-      expect(TestPlanner.summary[1]).toBe(false);
+      TestPlanner.update(TestPlanner.data[0],1);
+      TestPlanner.update(TestPlanner.data[1],1);
+      expect(TestPlanner.data[0].succeed).not.toBe(false);
+      expect(TestPlanner.data[1].succeed).toBe(false);
     });
 
     it("should check a precondition, if fails, return failed", function() {
       TestMethodA.preconditions.push(fail);
-      TestPlanner.run(1,20,2);
-      expect(TestPlanner.summary[0]).toBe(false);
-      expect(TestPlanner.summary[1]).toBe(false);
+      TestPlanner.update(TestPlanner.data[0],1);
+      TestPlanner.update(TestPlanner.data[1],1);
+      expect(TestPlanner.data[0].succeed).toBe(false);
+      expect(TestPlanner.data[1].succeed).toBe(false);
     });
-
-    it("should be able to assess without moving time", function() {
-      TestPlanner.assess('assessTest');
-      expect(TestPlanner.results.assessTest).toBeDefined();
-      expect(TestPlanner.results.assessTest[0].length).toBe(3);
-      expect(TestPlanner.results.assessTest[1]).toBe(false);
-    });
-
-
   });
 });

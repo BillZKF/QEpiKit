@@ -17,7 +17,7 @@ var QEpiKit;
             var state = node.operate(agent);
             return state;
         };
-        BehaviorTree.prototype.start = function (agent, step) {
+        BehaviorTree.prototype.update = function (agent, step) {
             var state;
             agent.active = true;
             while (agent.active === true) {
@@ -26,30 +26,6 @@ var QEpiKit;
                 agent.active = false;
             }
             return state;
-        };
-        BehaviorTree.prototype.update = function (step) {
-            var dataLen = this.data.length;
-            for (var d = 0; d < dataLen; d++) {
-                this.start(this.data[d], step);
-            }
-            this.time += step;
-        };
-        BehaviorTree.prototype.run = function (step, until, saveInterval) {
-            this.time = 0;
-            while (this.time <= until) {
-                var rem = (this.time / step) % saveInterval;
-                if (rem == 0) {
-                    this.history.push(JSON.parse(JSON.stringify(this.data)));
-                }
-                this.update(step);
-            }
-        };
-        BehaviorTree.prototype.assess = function (eventName) {
-            var dataLen = this.data.length;
-            for (var d = 0; d < dataLen; d++) {
-                this.start(this.data[d], 0);
-            }
-            this.results[eventName] = JSON.parse(JSON.stringify(this.data));
         };
         return BehaviorTree;
     })(QEpiKit.QComponent);
