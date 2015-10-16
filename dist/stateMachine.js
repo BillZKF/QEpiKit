@@ -21,7 +21,7 @@ var QEpiKit;
                 for (var i = 0; i < this.transitions.length; i++) {
                     for (var j = 0; j < this.transitions[i].from.length; j++) {
                         var trans = this.transitions[i].from[j];
-                        if (trans === agent.states[s]) {
+                        if (trans === state) {
                             var cond = this.conditions[this.transitions[i].name];
                             var value = void 0;
                             if (typeof (cond.value) === 'function') {
@@ -45,7 +45,6 @@ var QEpiKit;
                     transitions[t].from = [transitions[t].from];
                 }
                 else {
-                    return;
                 }
             }
             return transitions;

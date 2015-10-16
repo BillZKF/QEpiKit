@@ -15,6 +15,7 @@ var distUnits = 'miles';
 
 //before each run of the experiment, do this.
 var prepare = function(run) {
+  environment.remove(model.id);
   //set defaults
   experimentVars = {
     schoolProb: 0.08,
@@ -24,7 +25,7 @@ var prepare = function(run) {
     peak: 9.45e4,
     shedRate: 0.015,
     recoveryRate : 0.25,
-    numberOfAgents: 1000,
+    numberOfAgents: 5000,
     infectAtStart: 0.01
   };
   //then set the value you're testing for this run
@@ -140,7 +141,7 @@ var prepare = function(run) {
     }
   };
 
-  environment.remove(model.id);
+
   model.data = agents;
   environment.add(model);
 
@@ -215,7 +216,7 @@ var report = function(run) {
 var step = 1/24;
 var duration = 30;
 var model = Model;//define this in a seperate file. This is how the agents behave.
-var environment = new QEpiKit.Environment(agents, resources, events, facilities, function() {
+var environment = new QEpiKit.Environment(resources, events, facilities, 'random', function() {
   return random.real(0, 1);
 });
 environment.add(model);
@@ -223,16 +224,14 @@ environment.add(model);
 var experiment = new QEpiKit.Experiment(environment, prepare, report);
 //these are the parameters that will be tested systematically
 var expParams = {
-  schoolProb: [0.04, 0.08, 0.12],
-  workProb: [0.0125, 0.025, 0.0375],
-  neighborhoodProb: [0.001, 0.01, 0.08],
-  N50: QEpiKit.Utils.arrayFromRange(9.45e4 * 0.75, 9.45e4 * 1.25, 9.45e4 * 0.25),
-  peak: [9.4e4, 9.4e5],
+  schoolProb: [0.01, 0.02, 0.13],
+  workProb: [0.00125, 0.0025, 0.00375],
+  neighborhoodProb: [0.0001, 0.001, 0.008],
   shedRate: [0.01, 0.03, 0.05],
   recoveryRate : [ 1/6, 0.25, 0.4]
 };
 //create the experiment plans. how many runs each param.
-var perParam = 10;
+var perParam = 1;
 experiment.sweep(expParams, perParam);
 //start the experiment for: number of runs, by step (days), until time
 experiment.start(experiment.plans.length, step, duration);

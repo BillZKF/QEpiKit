@@ -59,7 +59,6 @@ states = {
   },
   'sleeping': function(step, person) {},
   'succeptible': function(step, person) {
-
     person.pathogenLoad -= person.pathogenLoad * 0.025 * step;
   },
   'exposed': function(step, person) {

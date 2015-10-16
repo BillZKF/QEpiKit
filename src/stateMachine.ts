@@ -23,7 +23,7 @@ module QEpiKit {
           for (var i = 0; i < this.transitions.length; i++) {
             for (var j = 0; j < this.transitions[i].from.length; j++) {
               let trans = this.transitions[i].from[j];
-              if (trans === agent.states[s]) {
+              if (trans === state) {
                 let cond = this.conditions[this.transitions[i].name];
                 let value;
                 if(typeof(cond.value) === 'function'){
@@ -33,6 +33,7 @@ module QEpiKit {
                 }
                 let r = cond.check(agent[cond.key], value);
                 if (r === StateMachine.SUCCESS) {
+
                   agent.states[s] = this.transitions[i].to;
                 }
               }
@@ -46,7 +47,7 @@ module QEpiKit {
         if (typeof transitions[t].from === 'string') {
           transitions[t].from = [transitions[t].from];
         } else {
-          return;
+          //;
         }
       }
       return transitions;

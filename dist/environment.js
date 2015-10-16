@@ -20,10 +20,16 @@ var QEpiKit;
             this.models.push(component);
         };
         Environment.prototype.remove = function (id) {
-            var deleteIndex;
+            var deleteIndex, L = this.agents.length;
             this.models.forEach(function (c, index) { if (c.id === id) {
                 deleteIndex = index;
             } });
+            while (L > 0 && this.agents.length >= 0) {
+                L--;
+                if (this.agents[L].modelIndex === deleteIndex) {
+                    this.agents.splice(L, 1);
+                }
+            }
             this.models.splice(deleteIndex, 1);
         };
         Environment.prototype.run = function (step, until, saveInterval) {
@@ -59,6 +65,7 @@ var QEpiKit;
                 QEpiKit.Utils.shuffle(this.agents, this.randF);
                 for (var a = 0; a < this.agents.length; a++) {
                     this.models[this.agents[a].modelIndex].update(this.agents[a], step);
+                    this.agents[a].time += 0 || step;
                 }
             }
             if (this.activationType === "parallel") {

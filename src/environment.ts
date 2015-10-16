@@ -74,9 +74,15 @@ module QEpiKit {
     * @param id UUID of the component to be removed.
     */
     remove(id) {
-      var deleteIndex;
+      var deleteIndex, L = this.agents.length;
       this.models.forEach(function(c, index) { if (c.id === id) { deleteIndex = index; } });
-      this.models.splice(deleteIndex, 1)
+      while (L > 0 && this.agents.length >= 0) {
+        L--;
+        if(this.agents[L].modelIndex === deleteIndex){
+          this.agents.splice(L, 1);
+        }
+      }
+      this.models.splice(deleteIndex,1);
     }
 
     /** Run all environment model components from t=0 until t=until using time step = step
@@ -118,11 +124,11 @@ module QEpiKit {
         }
         index++;
       }
-
       if (this.activationType === "random") {
         QEpiKit.Utils.shuffle(this.agents, this.randF);
         for (let a = 0; a < this.agents.length; a++) {
           this.models[this.agents[a].modelIndex].update(this.agents[a], step);
+          this.agents[a].time += 0 || step;
         }
       }
 
