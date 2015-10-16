@@ -25,7 +25,7 @@ module QEpiKit {
     * @param step size of time step (in days by convention)
     */
     update(agent:any, step: number) {
-      //this.time += step;
+      //something super!
     }
   }
 }

@@ -17,7 +17,7 @@ var Server = require('karma').Server;
 
 // Concatenate & Minify JS
 gulp.task('scripts', function() {
-    return gulp.src('dist/*.js')
+    return gulp.src(['dist/QComponent.js','dist/*.js'])
         .pipe(concat('qepikit.js'))
         .pipe(gulp.dest('./'))
         .pipe(rename('qepikit.min.js'))

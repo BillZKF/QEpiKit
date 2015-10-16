@@ -1,3 +1,22 @@
+var QEpiKit;
+(function (QEpiKit) {
+    var QComponent = (function () {
+        function QComponent(name) {
+            this.id = QEpiKit.Utils.generateUUID();
+            this.name = name;
+            this.time = 0;
+            this.history = [];
+        }
+        QComponent.prototype.update = function (agent, step) {
+        };
+        QComponent.SUCCESS = 1;
+        QComponent.FAILED = 2;
+        QComponent.RUNNING = 3;
+        return QComponent;
+    })();
+    QEpiKit.QComponent = QComponent;
+})(QEpiKit || (QEpiKit = {}));
+//# sourceMappingURL=QComponent.js.map
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -16,11 +35,16 @@ var QEpiKit;
             this.beliefHistory = [];
             this.planHistory = [];
         }
-        BDIAgent.prototype.update = function (step) {
-            var c, matcher, policy, intent, achievements = [], barriers = [], belief = this.data, successes = 0;
+        BDIAgent.prototype.update = function (agent, step) {
+            var policy, intent, evaluation;
             policy = this.policySelector(this.plans, this.planHistory);
             intent = this.plans[policy];
-            intent(belief);
+            intent(agent, step);
+            evaluation = this.evaluateGoals();
+            this.planHistory.push({ time: this.time, id: agent.id, intention: policy, goals: evaluation.achievements, barriers: evaluation.barriers, r: evaluation.successes / this.goals.length });
+        };
+        BDIAgent.prototype.evaluateGoals = function () {
+            var achievements = [], barriers = [], successes = 0, c, matcher;
             for (var i = 0; i < this.goals.length; i++) {
                 c = this.goals[i].condition;
                 achievements[i] = this.goals[i].temporal(c.check(c.data[c.key], c.value));
@@ -38,8 +62,7 @@ var QEpiKit;
                     });
                 }
             }
-            this.planHistory.push({ time: this.time, intention: policy, goals: achievements, barriers: barriers, r: successes / this.goals.length });
-            this.time += step;
+            return { successes: successes, barriers: barriers, achievements: achievements };
         };
         BDIAgent.stochasticSelection = function (plans, planHistory) {
             var policy, score, max = 0;
@@ -490,6 +513,44 @@ var QEpiKit;
             var or = (table.a * table.d) / (table.b * table.c);
             return or;
         };
+        Epi.IPF2D = function (rowTotals, colTotals, iterations, seeds) {
+            var rT = 0, cT = 0, seedCells = seeds;
+            rowTotals.forEach(function (r, i) {
+                rT += r;
+                seedCells[i] = seedCells[i] || [];
+            });
+            colTotals.forEach(function (c, j) {
+                cT += c;
+                seedCells.forEach(function (row, k) {
+                    seedCells[k][j] = seedCells[k][j] || Math.round(rowTotals[k] / rowTotals.length + (colTotals[j] / colTotals.length) / 2 * Math.random());
+                });
+            });
+            if (rT === cT) {
+                for (var iter = 0; iter < iterations; iter++) {
+                    seedCells.forEach(function (row, ii) {
+                        var currentRowTotal = 0;
+                        row.forEach(function (cell, j) {
+                            currentRowTotal += cell;
+                        });
+                        row.forEach(function (cell, jj) {
+                            seedCells[ii][jj] = cell / currentRowTotal;
+                            seedCells[ii][jj] *= rowTotals[ii];
+                        });
+                    });
+                    for (var col = 0; col < colTotals.length; col++) {
+                        var currentColTotal = 0;
+                        seedCells.forEach(function (r, k) {
+                            currentColTotal += r[col];
+                        });
+                        seedCells.forEach(function (row, kk) {
+                            seedCells[kk][col] = row[col] / currentColTotal;
+                            seedCells[kk][col] *= colTotals[col];
+                        });
+                    }
+                }
+                return seedCells;
+            }
+        };
         return Epi;
     })();
     QEpiKit.Epi = Epi;
@@ -625,28 +686,25 @@ var QEpiKit;
             this.jumpSet = jumpSet;
             this.jumpMap = jumpMap;
         }
-        HybridAutomata.prototype.update = function (step) {
-            for (var i = 0; i < this.data.length; i++) {
-                var agent = this.data[i];
-                var temp = JSON.parse(JSON.stringify(agent));
-                for (var mode in this.jumpSet) {
-                    var edge = this.jumpSet[mode];
-                    var edgeState = edge.check(agent[edge.key], edge.value);
-                    if (edgeState === QEpiKit.Utils.SUCCESS && mode != agent.currentMode) {
-                        try {
-                            agent[edge.key] = this.jumpMap[edge.key][agent.currentMode][mode](agent[edge.key]);
-                            agent.currentMode = mode;
-                        }
-                        catch (Err) {
-                        }
+        HybridAutomata.prototype.update = function (agent, step) {
+            var temp = JSON.parse(JSON.stringify(agent));
+            for (var mode in this.jumpSet) {
+                var edge = this.jumpSet[mode];
+                var edgeState = edge.check(agent[edge.key], edge.value);
+                if (edgeState === QEpiKit.Utils.SUCCESS && mode != agent.currentMode) {
+                    try {
+                        agent[edge.key] = this.jumpMap[edge.key][agent.currentMode][mode](agent[edge.key]);
+                        agent.currentMode = mode;
                     }
-                    for (var key in this.flowMap) {
-                        temp[key] = this.flowMap[key][agent.currentMode](agent);
-                        agent[key] = 0.5 * (temp[key] + this.flowMap[key][agent.currentMode](temp));
+                    catch (Err) {
                     }
                 }
+                for (var key in this.flowMap) {
+                    var tempD = this.flowMap[key][agent.currentMode](agent[key]);
+                    temp[key] = agent[key] + tempD;
+                    agent[key] += 0.5 * (tempD + this.flowMap[key][agent.currentMode](temp[key]));
+                }
             }
-            this.time += step;
         };
         return HybridAutomata;
     })(QEpiKit.QComponent);
@@ -683,33 +741,16 @@ var QEpiKit;
             var state = node.visit(agent, task);
             return state;
         };
-        HTNPlanner.prototype.update = function (step) {
-            for (var i = 0; i < this.data.length; i++) {
-                this.data[i].active = true;
-                HTNPlanner.tick(this.root, this.task, this.data[i]);
-                if (this.data[i].successList.length > 0) {
-                    this.summary[i] = this.data[i].successList;
-                }
-                else {
-                    this.summary[i] = false;
-                }
-                this.data[i].active = false;
+        HTNPlanner.prototype.update = function (agent, step) {
+            agent.active = true;
+            HTNPlanner.tick(this.root, this.task, agent);
+            if (agent.successList.length > 0) {
+                agent.succeed = true;
             }
-            this.time += step;
-        };
-        HTNPlanner.prototype.assess = function (eventName) {
-            for (var i = 0; i < this.data.length; i++) {
-                this.data[i].active = true;
-                HTNPlanner.tick(this.root, this.task, this.data[i]);
-                if (this.data[i].successList.length > 0) {
-                    this.summary[i] = this.data[i].successList;
-                }
-                else {
-                    this.summary[i] = false;
-                }
-                this.data[i].active = false;
+            else {
+                agent.succeed = false;
             }
-            this.results[eventName] = this.summary;
+            agent.active = false;
         };
         return HTNPlanner;
     })(QEpiKit.QComponent);
@@ -817,26 +858,6 @@ var QEpiKit;
 //# sourceMappingURL=interfaces.js.map
 var QEpiKit;
 (function (QEpiKit) {
-    var QComponent = (function () {
-        function QComponent(name) {
-            this.id = QEpiKit.Utils.generateUUID();
-            this.name = name;
-            this.time = 0;
-            this.history = [];
-        }
-        QComponent.prototype.update = function (agents, step) {
-            this.time += step;
-        };
-        QComponent.SUCCESS = 1;
-        QComponent.FAILED = 2;
-        QComponent.RUNNING = 3;
-        return QComponent;
-    })();
-    QEpiKit.QComponent = QComponent;
-})(QEpiKit || (QEpiKit = {}));
-//# sourceMappingURL=QComponent.js.map
-var QEpiKit;
-(function (QEpiKit) {
     var QLearner = (function () {
         function QLearner(R, gamma, goal) {
             this.rawMax = 1;
@@ -922,34 +943,30 @@ var QEpiKit;
             this.conditions = conditions;
             this.data = data;
         }
-        StateMachine.prototype.update = function (step) {
-            for (var d = 0; d < this.data.length; d++) {
-                for (var s in this.data[d].states) {
-                    var state = this.data[d].states[s];
-                    this.states[state](step, this.data[d]);
-                    for (var i = 0; i < this.transitions.length; i++) {
-                        for (var j = 0; j < this.transitions[i].from.length; j++) {
-                            var trans = this.transitions[i].from[j];
-                            if (trans === this.data[d].states[s]) {
-                                var cond = this.conditions[this.transitions[i].name];
-                                var value = void 0;
-                                if (typeof (cond.value) === 'function') {
-                                    value = cond.value();
-                                }
-                                else {
-                                    value = cond.value;
-                                }
-                                var r = cond.check(this.data[d][cond.key], value);
-                                if (r === StateMachine.SUCCESS) {
-                                    this.data[d].states[s] = this.transitions[i].to;
-                                }
+        StateMachine.prototype.update = function (agent, step) {
+            for (var s in agent.states) {
+                var state = agent.states[s];
+                this.states[state](step, agent);
+                for (var i = 0; i < this.transitions.length; i++) {
+                    for (var j = 0; j < this.transitions[i].from.length; j++) {
+                        var trans = this.transitions[i].from[j];
+                        if (trans === agent.states[s]) {
+                            var cond = this.conditions[this.transitions[i].name];
+                            var value = void 0;
+                            if (typeof (cond.value) === 'function') {
+                                value = cond.value();
+                            }
+                            else {
+                                value = cond.value;
+                            }
+                            var r = cond.check(agent[cond.key], value);
+                            if (r === StateMachine.SUCCESS) {
+                                agent.states[s] = this.transitions[i].to;
                             }
                         }
                     }
                 }
-                this.data[d].time += step;
             }
-            this.time += step;
         };
         StateMachine.prototype.checkTransitions = function (transitions) {
             for (var t = 0; t < transitions.length; t++) {
@@ -982,28 +999,24 @@ var QEpiKit;
             this.results = [];
             this.data = data;
         }
-        USys.prototype.update = function (step) {
-            var tmp = [], max = [], avg, top, dataLen = this.data.length;
-            for (var d = 0; d < dataLen; d++) {
-                max[d] = 0;
-                for (var i = 0; i < this.options.length; i++) {
-                    tmp[i] = 0;
-                    for (var j = 0; j < this.options[i].considerations.length; j++) {
-                        var c = this.options[i].considerations[j];
-                        var x = c.x(this.data[d], this.options[i].params);
-                        tmp[i] += c.f(x, c.m, c.b, c.k);
-                    }
-                    avg = tmp[i] / this.options[i].considerations.length;
-                    this.results.push({ point: d, opt: this.options[i].name, result: avg });
-                    if (avg > max[d]) {
-                        this.data[d].top = { name: this.options[i].name, util: avg };
-                        top = i;
-                        max[d] = avg;
-                    }
+        USys.prototype.update = function (agent, step) {
+            var tmp = [], max = 0, avg, top;
+            for (var i = 0; i < this.options.length; i++) {
+                tmp[i] = 0;
+                for (var j = 0; j < this.options[i].considerations.length; j++) {
+                    var c = this.options[i].considerations[j];
+                    var x = c.x(agent, this.options[i].params);
+                    tmp[i] += c.f(x, c.m, c.b, c.k);
                 }
-                this.options[top].action(this.data[d]);
+                avg = tmp[i] / this.options[i].considerations.length;
+                this.results.push({ point: agent.id, opt: this.options[i].name, result: avg });
+                if (avg > max) {
+                    agent.top = { name: this.options[i].name, util: avg };
+                    top = i;
+                    max = avg;
+                }
             }
-            this.time += step;
+            this.options[top].action(agent);
         };
         return USys;
     })(QEpiKit.QComponent);
