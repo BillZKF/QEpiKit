@@ -1,5 +1,5 @@
 //using a web worker to avoid blocking the main thread is recommended.
-importScripts('../bower_components/random/lib/random.min.js', "libs/jstat.min.js", "../node_modules/turf/turf.min.js", "../qepikit.js", "sm-model1.js", "sm-genpop1.js");
+importScripts('../bower_components/random/lib/random.min.js', "libs/jstat.min.js", "../node_modules/turf/turf.min.js", "../qepikit.js", "htn-model1.js", "sm-genpop1.js");
 
 //use a mersene twister for pseudo-random number generation
 var startSeed = 0x12345678;
