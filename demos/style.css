@@ -1,3 +1,14 @@
+body{
+  font-family:sans-serif;
+}
+
+h1{
+  color: #2196F3;
+}
+
+.container{
+  margin: 5%;
+}
 .main-c {
   background-color: #2196F3;
   color: #fff;
@@ -29,16 +40,4 @@ a:hover {
   font-size: 125%;
 	top-margin:8px;
 	bottom-margin:8px;
-}
-.sphere-header-menu{
-	height: 48px;
-}
-.sphere-header-menu a{
-  font-weight: bolder;
-  color: #fff;
-}
-.forecast-msg {
-  font-size: 1.1em;
-  padding: 12px;
-  margin-bottom: 4px;
 }

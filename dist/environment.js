@@ -65,7 +65,7 @@ var QEpiKit;
                 QEpiKit.Utils.shuffle(this.agents, this.randF);
                 for (var a = 0; a < this.agents.length; a++) {
                     this.models[this.agents[a].modelIndex].update(this.agents[a], step);
-                    this.agents[a].time += 0 || step;
+                    this.agents[a].time = this.agents[a].time + step || 0;
                 }
             }
             if (this.activationType === "parallel") {
@@ -75,6 +75,7 @@ var QEpiKit;
                 }
                 for (var a = 0; a < this.agents.length; a++) {
                     this.agents[a] = this.models[this.agents[a].modelIndex].apply(this.agents[a], tempAgents[a], step);
+                    this.agents[a].time = this.agents[a].time + step || 0;
                 }
             }
         };
