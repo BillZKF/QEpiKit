@@ -8,9 +8,12 @@
   <link href="qepikit-render-style.css" rel="stylesheet"></link>
   <link href="style.css" rel="stylesheet"></link>
   <script type='text/javascript' src='libs/prism.js'></script>
-  <script type='text/javascript' src='http://localhost:8080/qepikit.js'></script>
-  <script type='text/javascript' src='http://localhost:8080/node_modules/turf/turf.min.js'></script>
-  <script type='text/javascript' src='http://localhost:8080/bower_components/random/lib/random.min.js'></script>
+  <script src="../bower_components/leaflet/dist/leaflet.js"></script>
+  <script src="../bower_components/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+  <script src="../bower_components/d3/d3.min.js"></script>
+  <script src="../qepikit.js"></script>
+  <script src="qepikit-renderer.js"></script>
+  <script type='text/javascript' src='../bower_components/random/lib/random.min.js'></script>
 </head>
 <div class="container">
   <h1>Quickstart</h1>
@@ -18,10 +21,17 @@
     In this example we'll create a simple SIR model abm of an Influenza-like illness in about 150 lines of code. Our main goal in this tutorial is to introduce some of the concepts within the QEpiKit library. In the next section we'll talk about running the
     models in batches, using real world data, and some of the other features we can use. First we'll load QEpiKit and some additional libraries.
   </p>
+</div>
+<div id="map-ex-1" style="height:260px"></div>
+</div>
+<div class="container">
   <pre data-src="base-example1.js">
     <code class="language-javascript">
-      importScripts('../qepikit.js', '../node_modules/turf/turf.min.js', '../bower_components/random/lib/random.min.js'); //use a mersene twister for pseudo-random number generation var seed = 0x12345678; var random = new Random(Random.engines.mt19937().seedWithArray([seed,
-      0x90abcdef])); var distUnits = "miles";
+      importScripts('../qepikit.js', '../node_modules/turf/turf.min.js', '../bower_components/random/lib/random.min.js');
+      //use a mersene twister for pseudo-random number generation
+      var seed = 0x12345678;
+      var random = new Random(Random.engines.mt19937().seedWithArray([seed, 0x90abcdef]));
+      var distUnits = "miles";
     </code>
   </pre>
   <p>
@@ -30,17 +40,49 @@
   </p>
   <pre data-src="base-example1.js">
     <code class="language-javascript">
-      //function for generating the population var generatePopulation = function(numAgents, infectedAtStart) { var pop = []; var locs = turf.random('points', numAgents, { bbox: [-75.1867, 39.9900, -75.1467, 39.9200] //randomly place points within this geobounding
-      box }); for (var a = 0; a
-      < numAgents; a++) { pop[a]={ id: a, sex: random.pick([ 'male', 'female']), age: random.integer(0,85), pathogenLoad: 0, states: { illness: 'succeptible' }, timeInfectious: 0, location: locs.features[a] }; pop[a].location.properties.agentRefID=p
-      op[a].id; pop[a].moveRate=4 - (Math.abs(43 - pop[a].age) / 43 * 4); // low movement rates for children and older people. pop[a].physContact=( -pop[a].age - 3) * 0.05 + 120; // physical contact high for children, low for almost everyone else. } for
-      (var r=0 ; r < infectedAtStart; r++) { var rIndex=r andom.integer(0, numAgents - 1); pop[r].states.illness='infectious' ; pop[r].pathogenLoad=1 e4; } return [pop, locs]; }; </code>
+      var generatePopulation = function(numAgents, infectedAtStart) {
+        var pop = [];
+        var locs = turf.random('points', numAgents, {
+          bbox: [-75.1867, 39.9900, -75.1467, 39.9200] //randomly place points within this geobounding box
+        });
+        for (var a = 0; a < numAgents; a++) {
+          pop[a] = {
+            id: a,
+            sex: random.pick(['male', 'female']),
+            age: random.integer(0,85),
+            pathogenLoad: 0,
+            states: {
+              illness: 'succeptible'
+            },
+            timeInfectious: 0,
+            location: locs.features[a]
+          };
+          pop[a].location.properties.agentRefID = pop[a].id;
+          pop[a].moveRate = 4 - (Math.abs(43 - pop[a].age) / 43 * 4); // low movement rates for children and older people.
+          pop[a].physContact = (-pop[a].age - 3) * 0.05 + 120; // physical contact high for children, low for almost everyone else.
+        }
+        for (var r = 0; r < infectedAtStart; r++) {
+          var rIndex = random.integer(0, numAgents - 1);
+          pop[r].states.illness = 'infectious';
+          pop[r].pathogenLoad = 1e4;
+        }
+        return [pop, locs];
+      };
+    </code>
   </pre>
   <p>We're going to include a dose response model used in the Quantative Microbial Risk Assement framework to assign probabilities of infection based on pathogen load property defined above.</p>
   <pre data-src="base-example1.js">
     <code class="language-javascript">
-      //this is based on information about influenza var pathogen = { N50: 9.45e4, shedRate: 7000, recoveryTime: 6, doseResponse: function(dose) { var response = 1 - Math.pow((1 + (dose / this.N50) * (Math.pow(2, (1 / 5.81e-1)) - 1)), (-5.81e-1)); return response;
-      } };
+      //this is based on information about influenza
+      var pathogen = {
+        N50: 9.45e4,
+        shedRate: 7000,
+        recoveryTime: 6,
+        doseResponse: function(dose) {
+          var response = 1 - Math.pow((1 + (dose / this.N50) * (Math.pow(2, (1 / 5.81e-1)) - 1)), (-5.81e-1));
+          return response;
+        }
+      };
     </code>
   </pre>
   <p>
@@ -122,5 +164,36 @@
 <script>
 if (typeof Worker !== 'undefined ') {
   baseExWorker1 = new Worker('base-example1.js ');
-}
+  baseExWorker1.onmessage = function(event) {
+    console.log(event.data);
+    exampleHistory1 = event.data[1];
+    locations1 = event.data[2];
+    startCenter = locations1[0].geometry.coordinates;
+    mapEx1 = L.map('map-ex-1').setView([startCenter[1], startCenter[0]], 13);
+    L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+      attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
+      maxZoom: 18,
+      id: 'wzkflynn.dace8f89',
+      accessToken: 'pk.eyJ1Ijoid3prZmx5bm4iLCJhIjoiNjk0ZGM2ZDVmYTc1OWZjZDE4ZjE5NGQxMmIxN2ZiYTMifQ.iE0_Yuq1EJXoeEL5WhD7vg'
+    }).addTo(mapEx1);
+    var markers = new L.MarkerClusterGroup();
+    var geoJSONLayer = L.geoJson(locations1, {
+      onEachFeature: function(feature, layer) {
+        layer.bindPopup('<div><p>source:' + feature.properties.src + '</p><p>target: ' + feature.properties.target + '</p><p>srcAge: ' + feature.properties.srcAge + '</p><p>targetAge: ' + feature.properties.targetAge + '</p><p>p of response: ' + feature.properties.responseProb + '</p></div>');
+      }
+    });
+    markers.addLayer(geoJSONLayer);
+    mapEx1.addLayer(markers);
+    mapEx1.fitBounds(markers.getBounds());
+    var a = d3.csv.format(exampleHistory1);
+    var csvURI = "data:text/csv;charset=utf-8," + encodeURI(a);
+    var link = document.createElement("a");
+    link.setAttribute("href", csvURI);
+    link.setAttribute("download", "qepikit_example_1.csv");
+    link.innerHTML = "CSV file";
+    document.getElementById('data-ex-1').appendChild(link);
+  }
+  } else {
+  document.getElementById('web-worker-msg').innerHTML = "<h4 style='background-color:#f00'>You need to use a browser (or machine) that supports web-workers</h4>"
+  }
 </script>

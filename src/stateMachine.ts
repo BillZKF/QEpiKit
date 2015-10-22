@@ -33,7 +33,6 @@ module QEpiKit {
                 }
                 let r = cond.check(agent[cond.key], value);
                 if (r === StateMachine.SUCCESS) {
-
                   agent.states[s] = this.transitions[i].to;
                 }
               }
