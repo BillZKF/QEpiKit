@@ -65,7 +65,7 @@ var QEpiKit;
             }
         };
         return QLearner;
-    })();
+    }());
     QEpiKit.QLearner = QLearner;
 })(QEpiKit || (QEpiKit = {}));
 //# sourceMappingURL=QLearner.js.map

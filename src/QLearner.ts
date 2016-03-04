@@ -8,6 +8,8 @@ module QEpiKit {
     public gamma: number;
     private rawMax: number = 1;
 
+    //TODO - change episode to update
+
     constructor(R: any, gamma: number, goal: number) {
       this.R = R;
       this.gamma = gamma;

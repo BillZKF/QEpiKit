@@ -21,6 +21,7 @@
     In this example we'll create a simple SIR model abm of an Influenza-like illness in about 150 lines of code. Our main goal in this tutorial is to introduce some of the concepts within the QEpiKit library. In the next section we'll talk about running the
     models in batches, using real world data, and some of the other features we can use. First we'll load QEpiKit and some additional libraries.
   </p>
+  <h4 id="data-ex-1"></h4>
 </div>
 <div id="map-ex-1" style="height:260px"></div>
 </div>
@@ -179,7 +180,7 @@ if (typeof Worker !== 'undefined ') {
     var markers = new L.MarkerClusterGroup();
     var geoJSONLayer = L.geoJson(locations1, {
       onEachFeature: function(feature, layer) {
-        layer.bindPopup('<div><p>source:' + feature.properties.src + '</p><p>target: ' + feature.properties.target + '</p><p>srcAge: ' + feature.properties.srcAge + '</p><p>targetAge: ' + feature.properties.targetAge + '</p><p>p of response: ' + feature.properties.responseProb + '</p></div>');
+        layer.bindPopup('<div><p>source:' + feature.properties.src + '</p><p>target: ' + feature.properties.target + '</p><p>srcAge: ' + feature.properties.srcAge + '</p><p>targetAge: ' + feature.properties.targetAge + '</p><p>time: ' + feature.properties.time + '</p><p>p of response: ' + feature.properties.responseProb + '</p></div>');
       }
     });
     markers.addLayer(geoJSONLayer);
