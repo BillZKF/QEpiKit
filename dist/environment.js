@@ -2,6 +2,8 @@ var QEpiKit;
 (function (QEpiKit) {
     var Environment = (function () {
         function Environment(resources, facilities, eventsQueue, activationType, randF) {
+            if (resources === void 0) { resources = []; }
+            if (facilities === void 0) { facilities = []; }
             if (eventsQueue === void 0) { eventsQueue = []; }
             if (activationType === void 0) { activationType = 'random'; }
             if (randF === void 0) { randF = Math.random; }
@@ -83,7 +85,7 @@ var QEpiKit;
             this.timeOfDay = this.time % 1;
         };
         return Environment;
-    })();
+    }());
     QEpiKit.Environment = Environment;
 })(QEpiKit || (QEpiKit = {}));
 //# sourceMappingURL=environment.js.map

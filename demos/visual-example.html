@@ -1,0 +1,111 @@
+<html>
+  <head>
+    <link href="qepikit-render-style.css" rel="stylesheet"></link>
+    <link href="style.css" rel="stylesheet"></link>
+    <script src="../bower_components/d3/d3.min.js"></script>
+    <script src="../bower_components/three.js/three.min.js"></script>
+    <script src="../qepikit.js"></script>
+    <script src="qepikit-renderer.js"></script>
+    <script type='text/javascript' src='../bower_components/random/lib/random.min.js'></script>
+    <script src="visual-example.js"></script>
+  </head>
+  <div class="container">
+    <h1>Visual Example Using Refbook</h1>
+    <div class="col-25">
+      <label>Agent</label>
+      <select onchange="showPathogen(event)" id="select-pathogen"></select>
+      <label>Model</label>
+      <div id="model"/></div>
+      <label>N50</label>
+      <input type="number" id="N50"/>
+      <label>Optimized Parameter</label>
+      <input type="number" id="opt-param"/>
+      <label>Decay Rate</label>
+      <input type="number" id="decay-rate" value=300 />
+      <label>Shed Rate</label>
+      <input type="number" id="shed-rate" value=1000 />
+      <label>Recovery Rate</label>
+      <input type="number" id="recovery-time" value=6 />
+      <label>Step</label>
+      <input type="number" id="model-step" value=0.01 max=1/>
+      <label>Population</label>
+      <input type="number" id="number-agents" value=700 max=3000/>
+      <label>Proportion infected at start</label>
+      <input type="number" id="number-at-start" value=0.03 max=1 step=0.01/>
+      <label>Shed Range</label>
+      <input type="number" id="shed-range" value=3 max=5 step=0.1/>
+      <label>Mutation Rate</label>
+      <input type="number" id="mutation-time" value=14 max=30 step=1/>
+      <button onclick="setOptions()">Run</button>
+    </div>
+    <div class="col-50 panel" id="ex-1" height="480px"></div>
+  </div>
+</div>
+<script>
+  'use strict'
+  let prefModels = [];
+  const myHeaders = new Headers();
+
+  const cors = {
+    method: 'GET',
+    headers: myHeaders,
+    mode: 'cors',
+    cache: 'default'
+  };
+  const baseURL = `http://localhost/api/`;
+  window.fetch(`${baseURL}dataset/?title=Dose%20Response%20Experiments`, cors).then(function (res) {
+    return res.json();
+  }).then(function (json) {
+    prefModels = json.entries.filter((exp) => {
+      if (exp['Preferred for Agent'] === "TRUE") {
+        return true;
+      } else {
+        return false;
+      }
+    })
+    prefModels.forEach(model => {
+      let el = document.createElement('option');
+      el.innerHTML = el.name = model["Agent"];
+      document.querySelector('#select-pathogen').appendChild(el)
+    })
+  })
+
+  function showPathogen(event) {
+    let pathogenName = event.target.value;
+    let pathogen = prefModels.filter(model => {
+      if (model["Agent"] === pathogenName) {
+        return true;
+      }
+      return false;
+    })
+    pathogen = pathogen[0];
+    document.querySelector('#model').innerHTML = pathogen['Best Fit Model'];
+    document.querySelector('#N50').value = pathogen['LD50/ID50/N50'];
+    document.querySelector('#opt-param').value = pathogen["Optimized Parameter"];
+  }
+
+  function setOptions() {
+    let options = {}
+    let pathogenName = document.querySelector('#select-pathogen').value;
+    options.step = Number(document.querySelector('#model-step').value);
+
+    options.numberOfAgents = Number(document.querySelector('#number-agents').value);
+    options.shedRange = Number(document.querySelector('#shed-range').value);
+    options.infectedAtStart = Number(document.querySelector('#number-at-start').value);
+    options.pathogen = prefModels.filter(model => {
+      if (model["Agent"] === pathogenName) {
+        return true;
+      }
+      return false;
+    })
+    options.pathogen = options.pathogen[0];
+    //rename badly named params
+    options.pathogen.shedRate = Number(document.querySelector('#shed-rate').value);
+    options.pathogen.mutationTime = Number(document.querySelector('#mutation-time').value);
+    options.pathogen.recoveryTime = Number(document.querySelector('#recovery-time').value);;
+    options.pathogen.N50 = Number(options.pathogen["LD50/ID50/N50"]);
+    options.pathogen.bestFitModel = options.pathogen["Best Fit Model"];
+    options.pathogen.optParam = Number(options.pathogen["Optimized Parameter"]);
+    init(options);
+  }
+</script>

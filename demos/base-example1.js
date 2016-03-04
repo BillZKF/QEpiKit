@@ -24,7 +24,7 @@ var generatePopulation = function(numAgents, infectedAtStart) {
     };
     pop[a].location.properties.agentRefID = pop[a].id;
     pop[a].moveRate = 4 - (Math.abs(43 - pop[a].age) / 43 * 4) + 3e-4; // low movement rates for children and older people.
-    pop[a].physContact = (-pop[a].age - 3) * 0.05 + 120; // physical contact high for children, low for almost everyone else.
+    pop[a].physContact = -0.0135(pop[a].age - 43) + 20; // physical contact high for children, low for almost everyone else.
   }
   for (var r = 0; r < infectedAtStart; r++) {
     var rIndex = random.integer(0, numAgents - 1);

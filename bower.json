@@ -21,6 +21,7 @@
     "random": "~1.0.5",
     "pixi": "~3.0.7",
     "leaflet": "~0.7.3",
-    "leaflet.markercluster": "~0.4.0"
+    "leaflet.markercluster": "~0.4.0",
+    "three.js": "~0.74.0"
   }
 }

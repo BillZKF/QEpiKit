@@ -6,7 +6,31 @@ h1{
   color: #2196F3;
 }
 
+label{
+  font-weight: bold;
+  display:block;
+}
+
+.col-25{
+  width:25%;
+  display:inline;
+  float:left;
+}
+.col-50{
+  width:50%;
+  display:inline;
+  float:left;
+  margin:5px;
+}
+.col-75{
+  width:75%;
+  display:inline;
+  float:left;
+  margin:5px;
+}
+
 .container{
+  flex: auto;
   margin: 5%;
 }
 .main-c {
