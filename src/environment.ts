@@ -126,22 +126,21 @@ module QEpiKit {
       }
       if (this.activationType === "random") {
         QEpiKit.Utils.shuffle(this.agents, this.randF);
-        for (let a = 0; a < this.agents.length; a++) {
-          this.models[this.agents[a].modelIndex].update(this.agents[a], step);
-          this.agents[a].time = this.agents[a].time + step || 0;
-        }
+        this.agents.forEach((agent)=>{
+          this.models[agent.modelIndex].update(agent, step);
+          agent.time = agent.time + step || 0;
+        })
       }
 
       if (this.activationType === "parallel") {
         let tempAgents = JSON.parse(JSON.stringify(this.agents));
-        for (let i = 0; i < tempAgents.length; i++) {
-          this.models[tempAgents[i].modelIndex].update(tempAgents[i], step);
-        }
-
-        for (let a = 0; a < this.agents.length; a++) {
-          this.agents[a] = this.models[this.agents[a].modelIndex].apply(this.agents[a], tempAgents[a], step);
-          this.agents[a].time = this.agents[a].time + step || 0;
-        }
+        tempAgents.forEach((agent)=>{
+          this.models[agent.modelIndex].update(agent, step);
+        })
+        this.agents.forEach((agent, i)=>{
+          this.models[agent.modelIndex].apply(agent, tempAgents[i], step);
+          agent.time = agent.time + step || 0;
+        })
       }
     }
 

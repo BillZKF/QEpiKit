@@ -54,6 +54,7 @@ var QEpiKit;
             }
         };
         Environment.prototype.update = function (step) {
+            var _this = this;
             var index = 0;
             while (index < this.eventsQueue.length && this.eventsQueue[index].at <= this.time) {
                 this.eventsQueue[index].trigger();
@@ -65,20 +66,20 @@ var QEpiKit;
             }
             if (this.activationType === "random") {
                 QEpiKit.Utils.shuffle(this.agents, this.randF);
-                for (var a = 0; a < this.agents.length; a++) {
-                    this.models[this.agents[a].modelIndex].update(this.agents[a], step);
-                    this.agents[a].time = this.agents[a].time + step || 0;
-                }
+                this.agents.forEach(function (agent) {
+                    _this.models[agent.modelIndex].update(agent, step);
+                    agent.time = agent.time + step || 0;
+                });
             }
             if (this.activationType === "parallel") {
-                var tempAgents = JSON.parse(JSON.stringify(this.agents));
-                for (var i = 0; i < tempAgents.length; i++) {
-                    this.models[tempAgents[i].modelIndex].update(tempAgents[i], step);
-                }
-                for (var a = 0; a < this.agents.length; a++) {
-                    this.agents[a] = this.models[this.agents[a].modelIndex].apply(this.agents[a], tempAgents[a], step);
-                    this.agents[a].time = this.agents[a].time + step || 0;
-                }
+                var tempAgents_1 = JSON.parse(JSON.stringify(this.agents));
+                tempAgents_1.forEach(function (agent) {
+                    _this.models[agent.modelIndex].update(agent, step);
+                });
+                this.agents.forEach(function (agent, i) {
+                    _this.models[agent.modelIndex].apply(agent, tempAgents_1[i], step);
+                    agent.time = agent.time + step || 0;
+                });
             }
         };
         Environment.prototype.formatTime = function () {

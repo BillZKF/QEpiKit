@@ -1,4 +1,4 @@
-'use strict'
+'use strict()';
 //for simple example, just do global scope entities
 let options;
 let environment;
@@ -77,8 +77,6 @@ function init(options) {
   document.querySelector('#ex-1').appendChild(renderer.domElement);
   renderer.setSize(document.querySelector('#ex-1').offsetWidth, 480);
   renderer.setClearColor(0xffffff, 0)
-
-
 
   //some actions are shared across states.
   actions = {

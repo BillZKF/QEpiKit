@@ -8,11 +8,15 @@ var QEpiKit;
     var BDIAgent = (function (_super) {
         __extends(BDIAgent, _super);
         function BDIAgent(name, goals, plans, data, policySelector) {
+            if (goals === void 0) { goals = []; }
+            if (plans === void 0) { plans = {}; }
+            if (data === void 0) { data = []; }
+            if (policySelector === void 0) { policySelector = BDIAgent.stochasticSelection; }
             _super.call(this, name);
             this.goals = goals;
             this.plans = plans;
             this.data = data;
-            this.policySelector = policySelector || BDIAgent.stochasticSelection;
+            this.policySelector = policySelector;
             this.beliefHistory = [];
             this.planHistory = [];
         }
@@ -70,7 +74,7 @@ var QEpiKit;
             return options[selection];
         };
         return BDIAgent;
-    })(QEpiKit.QComponent);
+    }(QEpiKit.QComponent));
     QEpiKit.BDIAgent = BDIAgent;
 })(QEpiKit || (QEpiKit = {}));
 //# sourceMappingURL=bdi.js.map

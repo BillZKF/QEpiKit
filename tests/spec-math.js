@@ -1,6 +1,5 @@
-describe('an rk4 ode integrator', fucntion(){
+describe('an rk4 ode integrator', function(){
   it('can take a single step', function(){
-    var f = () => ;
-    QEpiKit.rk4OdeInt(f, y0, t, options);
+    //soon
   })
 })

@@ -67,7 +67,6 @@ describe('An environment contains resources, a population, and model components'
       },
       name: 'sick',
       data: agents
-
     };
     events = new QEpiKit.Events([{
       name: 'deliver-shots',

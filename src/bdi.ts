@@ -12,12 +12,12 @@ module QEpiKit {
     public beliefHistory: any[];
     public planHistory: any[];
 
-    constructor(name: string, goals: any, plans, data, policySelector) {
+    constructor(name: string, goals: any = [], plans = {}, data = [], policySelector = BDIAgent.stochasticSelection) {
       super(name);
       this.goals = goals;
       this.plans = plans;
       this.data = data;
-      this.policySelector = policySelector || BDIAgent.stochasticSelection;
+      this.policySelector = policySelector;
       this.beliefHistory = [];
       this.planHistory = [];
     }

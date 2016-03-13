@@ -13,7 +13,7 @@ var QEpiKit;
         QComponent.FAILED = 2;
         QComponent.RUNNING = 3;
         return QComponent;
-    })();
+    }());
     QEpiKit.QComponent = QComponent;
 })(QEpiKit || (QEpiKit = {}));
 //# sourceMappingURL=QComponent.js.map
