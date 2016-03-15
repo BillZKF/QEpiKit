@@ -7,6 +7,7 @@
     <script src="../qepikit.js"></script>
     <script src="qepikit-renderer.js"></script>
     <script type='text/javascript' src='../bower_components/random/lib/random.min.js'></script>
+    <script type='text/javascript' src='./libs/jstat.min.js'></script>
     <script src="visual-example.js"></script>
   </head>
   <div class="container">
@@ -24,7 +25,7 @@
       <input type="number" id="decay-rate" value=300 />
       <label>Shed Rate</label>
       <input type="number" id="shed-rate" value=1000 />
-      <label>Recovery Rate</label>
+      <label>Recovery Time</label>
       <input type="number" id="recovery-time" value=6 />
       <label>Step</label>
       <input type="number" id="model-step" value=0.01 max=1/>
@@ -40,6 +41,7 @@
     </div>
     <div class="col-50 panel" id="ex-1" height="480px"></div>
   </div>
+  <div id="status"></div>
 </div>
 <script>
   'use strict'
@@ -52,17 +54,11 @@
     mode: 'cors',
     cache: 'default'
   };
-  const baseURL = `http://localhost/api/`;
-  window.fetch(`${baseURL}dataset/?title=Dose%20Response%20Experiments`, cors).then(function (res) {
+  const baseURL = `http://104.131.48.182:3000/`;
+  window.fetch(`${baseURL}api/dataset/56e6fea96612902d330ae763`, cors).then(function (res) {
     return res.json();
   }).then(function (json) {
-    prefModels = json.entries.filter((exp) => {
-      if (exp['Preferred for Agent'] === "TRUE") {
-        return true;
-      } else {
-        return false;
-      }
-    })
+    prefModels = json.entries;
     prefModels.forEach(model => {
       let el = document.createElement('option');
       el.innerHTML = el.name = model["Agent"];
@@ -79,9 +75,9 @@
       return false;
     })
     pathogen = pathogen[0];
-    document.querySelector('#model').innerHTML = pathogen['Best Fit Model'];
-    document.querySelector('#N50').value = pathogen['LD50/ID50/N50'];
-    document.querySelector('#opt-param').value = pathogen["Optimized Parameter"];
+    document.querySelector('#model').innerHTML = pathogen['Best fit model'];
+    document.querySelector('#N50').value = pathogen['N50/LD50/ID50'];
+    document.querySelector('#opt-param').value = pathogen["Optimized parameter"];
   }
 
   function setOptions() {
@@ -103,9 +99,9 @@
     options.pathogen.shedRate = Number(document.querySelector('#shed-rate').value);
     options.pathogen.mutationTime = Number(document.querySelector('#mutation-time').value);
     options.pathogen.recoveryTime = Number(document.querySelector('#recovery-time').value);;
-    options.pathogen.N50 = Number(options.pathogen["LD50/ID50/N50"]);
-    options.pathogen.bestFitModel = options.pathogen["Best Fit Model"];
-    options.pathogen.optParam = Number(options.pathogen["Optimized Parameter"]);
+    options.pathogen.N50 = Number(options.pathogen["N50/LD50/ID50"]);
+    options.pathogen.bestFitModel = options.pathogen["Best fit model"];
+    options.pathogen.optParam = Number(options.pathogen["Optimized parameter"]);
     init(options);
   }
 </script>

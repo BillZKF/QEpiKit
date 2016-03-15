@@ -17,7 +17,22 @@ let renderer = new THREE.WebGLRenderer({
   alpha: true
 });
 
-function init(options) {
+//timeline objects
+var infectious = 0;
+var infoOverTime = [];
+var margin = {
+    top: 20,
+    right: 20,
+    bottom: 30,
+    left: 50
+  },
+  width = 480 - margin.left - margin.right,
+  height = 250 - margin.top - margin.bottom;
+
+
+
+function init(opts) {
+  options = opts;
   let bounds = [300, 90];
   let numAgents = options.numberOfAgents;
   let infectedAtStart = Math.floor(options.infectedAtStart * numAgents);
@@ -90,7 +105,7 @@ function init(options) {
           if (d.object.type === 'agent') {
             let contactedAgent = agents[d.object.qId];
             if (contactedAgent.states.illness === 'succeptible') {
-              contactedAgent.pathogenLoad += pathogen.shedRate * step;
+              contactedAgent.pathogenLoad += jStat.normal.inv(random.real(0,1), pathogen.shedRate * step, pathogen.shedRate * step * 0.32);
               contactedAgent.lastInfectedContact = agent.id;
               contactedAgent.responseProb = pathogen[pathogen.bestFitModel](contactedAgent.pathogenLoad);
             }
@@ -120,17 +135,18 @@ function init(options) {
       actions.move(step, agent);
       if (agent.pathogenLoad > 0) {
         agent.responseProb = pathogen[pathogen.bestFitModel](agent.pathogenLoad);
-        agent.pathogenLoad -= pathogen.decayRate * Math.log(agent.pathogenLoad) * step;;
+        agent.pathogenLoad -= pathogen.decayRate * Math.log(agent.pathogenLoad) * step;
       } else {
         agent.responseProb = 0;
         agent.pathogenLoad = 0;
       }
     },
     'infectious': function(step, agent) {
+      infectious++;
       agent.mesh.material.color.set(0xff0000);
       actions.move(step, agent);
       actions.contact(step, agent);
-      agent.timeInfectious += 1 * step;
+      agent.timeInfectious += jStat.normal.inv(random.real(0,1), 1 * step, step);
     },
     'removed': function(step, agent) {
       agent.mesh.material.color.set(0x0000ff);
@@ -189,15 +205,70 @@ function init(options) {
   });
   environment.add(SIRModel);
   environment.run(step, step * 2, 0);
+
+  //timeline setup (lazy global scope)
+  svg = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+  x = d3.time.scale()
+    .range([0, width]);
+
+  y = d3.scale.linear()
+    .range([height, 0]);
+
+    x.domain([0, 10]);
+    y.domain([0, options.numberOfAgents]);
+  line = d3.svg.line()
+    .x(function(d) {
+      return x(d.time);
+    })
+    .y(function(d) {
+      return y(d.infectious);
+    });
+
+  xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom");
+
+  yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left");
+
+  svg.append("g")
+    .attr("class", "x axis")
+    .attr("transform", "translate(0," + height + ")")
+    .call(xAxis);
+
+  svg.append("g")
+    .attr("class", "y axis")
+    .call(yAxis)
+    .append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("y", 6)
+    .attr("dy", ".71em")
+    .style("text-anchor", "end")
+    .text("# of Infected");
+
   render();
 }
 
 function render() {
-  if (environment.time <= 100) {
+  if (environment.time <= 10) {
+    infectious = 0;
     requestAnimationFrame(render);
     environment.update(step);
     environment.time += step;
     renderer.render(scene, camera);
+    document.querySelector('#status').innerHTML = `<div>Time: ${Math.round(environment.time)}</div>
+    <div>Infectious: ${infectious}</div>`;
+    infoOverTime.push({
+      time: environment.time,
+      infectious: infectious
+    });
+    drawTimeline(infoOverTime);
   } else {
     let iCount = environment.agents.reduce(function(prev, current) {
       if (current.states.illness == 'infectious') {
@@ -205,10 +276,17 @@ function render() {
       }
       return prev;
     }, 0);
-    let completeMsg = document.createElement('div');
-    completeMsg.innerHTML = seed + " - Infectious at t = 100 : " + iCount;
-    document.body.appendChild(completeMsg);
     seed++;
     //setOptions(options)
   }
+}
+
+
+
+function drawTimeline(data) {
+  d3.select("g").selectAll("path").remove();
+  svg.append("path")
+    .datum(data)
+    .attr("class", "line")
+    .attr("d", line);
 }
