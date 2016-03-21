@@ -51,7 +51,7 @@ var QEpiKit;
     }
     QEpiKit.linear = linear;
     function exponential(x, m, b, k) {
-        var y = 1 - (Math.pow(x, k) / Math.pow(1, k));
+        var y = 1 - Math.pow(x, k) / Math.pow(1, k);
         return y;
     }
     QEpiKit.exponential = exponential;

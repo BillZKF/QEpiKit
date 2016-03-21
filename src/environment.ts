@@ -9,7 +9,7 @@ module QEpiKit {
   */
   export class Environment {
     /**
-    * time current time for the environment (shared with all model components)
+    * current time for the environment (shared with all model components)
     */
     public time: number;
     /**
@@ -49,6 +49,7 @@ module QEpiKit {
     */
     public randF: () => number;
 
+    private _agentIndex: any;
 
     constructor(resources = [], facilities = [], eventsQueue: QEvent[] = [], activationType: string = 'random', randF: () => number = Math.random) {
       this.time = 0;
@@ -61,6 +62,7 @@ module QEpiKit {
       this.eventsQueue = eventsQueue;
       this.activationType = activationType;
       this.randF = randF;
+      this._agentIndex = {};
     }
 
     /** Add a model components from the environment
@@ -126,10 +128,18 @@ module QEpiKit {
       }
       if (this.activationType === "random") {
         QEpiKit.Utils.shuffle(this.agents, this.randF);
+<<<<<<< Updated upstream
         this.agents.forEach((agent)=>{
           this.models[agent.modelIndex].update(agent, step);
           agent.time = agent.time + step || 0;
         })
+=======
+        this.agents.forEach((d, i) => this._agentIndex[d.id] = i);
+        for (let a = 0; a < this.agents.length; a++) {
+          this.models[this.agents[a].modelIndex].update(this.agents[a], step);
+          this.agents[a].time = this.agents[a].time + step || 0;
+        }
+>>>>>>> Stashed changes
       }
 
       if (this.activationType === "parallel") {
@@ -149,6 +159,10 @@ module QEpiKit {
     */
     formatTime() {
       this.timeOfDay = this.time % 1;
+    }
+
+    getAgentById(id:number){
+      return this.agents[this._agentIndex[id]];
     }
   }
 }

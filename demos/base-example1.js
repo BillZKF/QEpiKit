@@ -4,13 +4,19 @@ var seed = 0x12345678;
 var random = new Random(Random.engines.mt19937().seedWithArray([seed, 0x90abcdef]));
 var distUnits = "miles";
 
+//The environmental class can takes resources, facilities, and events as its first three arguements.
+//Here we have none. We've also set the agent activation to 'random'.
+var environment = new QEpiKit.Environment([], [], [], 'random', function() {
+  return random.real(0, 1);
+});
+
 //function for generating the population
 var generatePopulation = function(numAgents, infectedAtStart) {
   var pop = [];
-  var locs = turf.random('points', numAgents, {
-    bbox: [-75.1867, 39.9900, -75.1467, 39.9200] //randomly place points within this geobounding box
-  });
+  var locs = {type:'FeatureCollection', features:[]};
+
   for (var a = 0; a < numAgents; a++) {
+    locs.features[a] = turf.point([random.real(-75.1467,-75.1867), random.real(39.9200, 39.9900)]);
     pop[a] = {
       id: a,
       sex: random.pick(['male', 'female']),
@@ -68,8 +74,8 @@ var actions = {
       if (agentsWithinBuffer.features.length > 1) {
         for (var i = 0; i < numContacts; i++) {
           var rand = random.integer(0, agentsWithinBuffer.features.length - 1);
-          var randContact = agentsWithinBuffer.features[rand].properties.agentRefID;
-          var contactedAgent = getAgentById(randContact, environment.agents);
+          var randContactId = agentsWithinBuffer.features[rand].properties.agentRefID;
+          var contactedAgent = environment.getAgentById(randContactId);
           if (contactedAgent.states.illness === 'succeptible') {
             contactedAgent.pathogenLoad += pathogen.shedRate * step;
             contactedAgent.lastInfectedContact = agent.id;
@@ -141,16 +147,13 @@ var actions = {
       to: 'removed'
     }];
 
-    var popAndLocations = generatePopulation(500, 5);
+    var popAndLocations = generatePopulation(500, 3);
     var population = popAndLocations[0];
     var locations = popAndLocations[1];
     var contactLocations = [];
 
     var SIRModel = new QEpiKit.StateMachine('sir-model', states, transitions, conditions, population);
-    //the environmental class can takes resources, facilities, and events as its first three arguements. Here we have none. We've also set the agent activation to 'random'.
-    var environment = new QEpiKit.Environment([], [], [], 'random', function() {
-      return random.real(0, 1);
-    });
+
     environment.add(SIRModel);
     environment.run(1 / 24, 7, 1);
     self.postMessage(['complete', environment.history, contactLocations]);

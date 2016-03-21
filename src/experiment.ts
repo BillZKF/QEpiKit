@@ -7,14 +7,13 @@ module QEpiKit {
     public prepFunction: Function;
     public recordFunction: Function;
     public experimentLog: any[];
-    public plans: any[];
+    public plans: any;
 
     constructor(environment: Environment, prepFunction: Function, recordFunction: Function) {
       this.environment = environment;
       this.prepFunction = prepFunction;
       this.recordFunction = recordFunction;
       this.experimentLog = [];
-      this.plans = [];
     }
 
     start(runs: number, step: number, until: number) {
@@ -27,7 +26,7 @@ module QEpiKit {
         r++;
       }
     }
-
+    //on each run, change one param, hold others constant
     sweep(params:any, runsPer:number, baseline = true) {
       var expPlan = [];
       if(baseline === true){
@@ -45,6 +44,19 @@ module QEpiKit {
         }
       }
       this.plans = expPlan;
+    }
+
+    boot(params:any){
+      let runs;
+      for(let param in params){
+        if(typeof runs === 'undefined'){
+          runs = params[param].length;
+        }
+        if(params[param].length !== runs){
+          throw "length of parameter arrays did not match";
+        }
+      }
+      this.plans = params;
     }
   }
 }

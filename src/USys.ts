@@ -65,7 +65,7 @@ module QEpiKit {
   }
 
   export function exponential(x: number, m: number, b: number, k: number) {
-    var y = 1 - (Math.pow(x, k) / Math.pow(1, k));
+    var y = 1 - Math.pow(x, k) / Math.pow(1, k);
     return y;
   }
 

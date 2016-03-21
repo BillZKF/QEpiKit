@@ -1,0 +1,46 @@
+<link href="style.css" rel="stylesheet"></link>
+<link href="qepikit-render-style.css" rel="stylesheet"></link>
+<script src="../bower_components/d3/d3.min.js"></script>
+<script src="../qepikit.js"></script>
+<script src="qepikit-renderer.js"></script>
+<div>
+  <h3>MC Tests</h3>
+  <button onclick="runEx1()">Run MC Area Estimation Example</button>
+</div>
+<script>
+  var AreaEstModel = function(radius) {
+    this.inside = 0;
+    this.outside = 0;
+    this.radius = radius;
+  }
+
+  AreaEstModel.prototype.createPoints = function(points) {
+    p = []
+    for (var i = 0; i < points; i++) {
+      p[i] = {
+        x: Math.random() * 2 * this.radius - this.radius,
+        y: Math.random() * 2 * this.radius - this.radius
+      }
+    }
+    this.points = p;
+  }
+
+  AreaEstModel.prototype.update = function(point, step) {
+    if (point.x * point.x + point.y * point.y < this.radius) {
+      this.inside++;
+    } else {
+      this.outside++;
+    }
+  }
+
+  function runEx1() {
+    var simulations = 1000000;
+    var smallCircle = new AreaEstModel(1);
+    smallCircle.createPoints(simulations);
+    console.log(smallCircle);
+    for (var j = 0; j < simulations; j++) {
+      smallCircle.update(smallCircle.points[j], 1);
+    }
+    console.log(4 * (smallCircle.inside / simulations))
+  }
+</script>

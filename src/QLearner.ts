@@ -43,7 +43,6 @@ module QEpiKit {
           maxAction = action;
         }
       }
-
       return maxAction;
     }
 

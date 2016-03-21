@@ -6,7 +6,6 @@ var QEpiKit;
             this.prepFunction = prepFunction;
             this.recordFunction = recordFunction;
             this.experimentLog = [];
-            this.plans = [];
         }
         Experiment.prototype.start = function (runs, step, until) {
             var r = 0;
@@ -36,6 +35,18 @@ var QEpiKit;
                 }
             }
             this.plans = expPlan;
+        };
+        Experiment.prototype.boot = function (params) {
+            var runs;
+            for (var param in params) {
+                if (typeof runs === 'undefined') {
+                    runs = params[param].length;
+                }
+                if (params[param].length !== runs) {
+                    throw "length of parameter arrays did not match";
+                }
+            }
+            this.plans = params;
         };
         return Experiment;
     })();

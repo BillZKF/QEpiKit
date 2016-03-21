@@ -17,6 +17,7 @@ var QEpiKit;
             this.eventsQueue = eventsQueue;
             this.activationType = activationType;
             this.randF = randF;
+            this._agentIndex = {};
         }
         Environment.prototype.add = function (component) {
             this.models.push(component);
@@ -66,10 +67,18 @@ var QEpiKit;
             }
             if (this.activationType === "random") {
                 QEpiKit.Utils.shuffle(this.agents, this.randF);
+<<<<<<< Updated upstream
                 this.agents.forEach(function (agent) {
                     _this.models[agent.modelIndex].update(agent, step);
                     agent.time = agent.time + step || 0;
                 });
+=======
+                this.agents.forEach(function (d, i) { return _this._agentIndex[d.id] = i; });
+                for (var a = 0; a < this.agents.length; a++) {
+                    this.models[this.agents[a].modelIndex].update(this.agents[a], step);
+                    this.agents[a].time = this.agents[a].time + step || 0;
+                }
+>>>>>>> Stashed changes
             }
             if (this.activationType === "parallel") {
                 var tempAgents_1 = JSON.parse(JSON.stringify(this.agents));
@@ -84,6 +93,9 @@ var QEpiKit;
         };
         Environment.prototype.formatTime = function () {
             this.timeOfDay = this.time % 1;
+        };
+        Environment.prototype.getAgentById = function (id) {
+            return this.agents[this._agentIndex[id]];
         };
         return Environment;
     }());
