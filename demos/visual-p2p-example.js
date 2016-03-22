@@ -1,4 +1,4 @@
-'use strict()';
+'use strict'
 //for simple example, just do global scope entities
 let options;
 let environment;
@@ -7,7 +7,6 @@ let agents = [];
 let actions, states, conditions, transitions, SIRModel;
 let seed = 0x12345678;
 let random = new Random(Random.engines.mt19937().seedWithArray([seed, 0x90abcdef]));
-let distUnits = "miles";
 
 //visualization objects
 let scene = new THREE.Scene();
@@ -18,9 +17,11 @@ let renderer = new THREE.WebGLRenderer({
 });
 
 //timeline objects
-var infectious = 0;
-var infoOverTime = [];
-var margin = {
+let svg, x, y, xAxis, yAxis, line;
+let duration = 21;
+let infectious = 0;
+let infoOverTime = [];
+let margin = {
     top: 20,
     right: 20,
     bottom: 30,
@@ -29,13 +30,10 @@ var margin = {
   width = 480 - margin.left - margin.right,
   height = 250 - margin.top - margin.bottom;
 
-
-
-function init(opts) {
-  options = opts;
+function init(options) {
   let bounds = [300, 90];
   let numAgents = options.numberOfAgents;
-  let infectedAtStart = Math.floor(options.infectedAtStart * numAgents);
+  let infectedAtStart = options.infectedAtStart;
   raycaster.far = options.shedRange;
   step = options.step;
 
@@ -84,15 +82,6 @@ function init(opts) {
     agents[rIndex].pathogenLoad = 1e4;
   }
 
-
-  camera.position.z = 80;
-  camera.position.x = bounds[0] * 0.5;
-  camera.position.y = bounds[1] * 0.5;
-  camera.rotation.x = 8 * Math.PI / 180;
-  document.querySelector('#ex-1').appendChild(renderer.domElement);
-  renderer.setSize(document.querySelector('#ex-1').offsetWidth, 480);
-  renderer.setClearColor(0xffffff, 0)
-
   //some actions are shared across states.
   actions = {
     contact: function(step, agent) {
@@ -105,7 +94,7 @@ function init(opts) {
           if (d.object.type === 'agent') {
             let contactedAgent = agents[d.object.qId];
             if (contactedAgent.states.illness === 'succeptible') {
-              contactedAgent.pathogenLoad += jStat.normal.inv(random.real(0,1), pathogen.shedRate * step, pathogen.shedRate * step * 0.32);
+              contactedAgent.pathogenLoad += jStat.normal.inv(random.real(0,1),pathogen.shedRate * step,pathogen.shedRate *step);
               contactedAgent.lastInfectedContact = agent.id;
               contactedAgent.responseProb = pathogen[pathogen.bestFitModel](contactedAgent.pathogenLoad);
             }
@@ -114,10 +103,10 @@ function init(opts) {
       }
     },
     move: function(step, agent) {
-      var randomBearing = random.real(-1, 1);
-      var ageM = 4 - (Math.abs(43 - agent.age) / 43 * 4) + 3e-4;
-      var x = randomBearing * random.real(0, 1) * ageM + (agent.prevX * 0.98);
-      var y = randomBearing * random.real(0, 1) * ageM + (agent.prevY * 0.98);
+      var maxDistPerDay = 500;
+      var ageM = maxDistPerDay - (Math.abs(43 - agent.age) / 43 * maxDistPerDay) + 3e-4;
+      var x = random.real(-1, 1) * ageM + (agent.prevX * 0.98);
+      var y = random.real(-1, 1) * ageM + (agent.prevY * 0.98);
       agent.mesh.position.y += x * step;
       agent.mesh.position.x += y * step;
       agent.mesh.rotation.z = Math.atan2(x * step, y * step);
@@ -135,7 +124,7 @@ function init(opts) {
       actions.move(step, agent);
       if (agent.pathogenLoad > 0) {
         agent.responseProb = pathogen[pathogen.bestFitModel](agent.pathogenLoad);
-        agent.pathogenLoad -= pathogen.decayRate * Math.log(agent.pathogenLoad) * step;
+        agent.pathogenLoad -= pathogen.decayRate * Math.log(agent.pathogenLoad) * step;;
       } else {
         agent.responseProb = 0;
         agent.pathogenLoad = 0;
@@ -146,7 +135,7 @@ function init(opts) {
       agent.mesh.material.color.set(0xff0000);
       actions.move(step, agent);
       actions.contact(step, agent);
-      agent.timeInfectious += jStat.normal.inv(random.real(0,1), 1 * step, step);
+      agent.timeInfectious += 1 * step;
     },
     'removed': function(step, agent) {
       agent.mesh.material.color.set(0x0000ff);
@@ -206,6 +195,15 @@ function init(opts) {
   environment.add(SIRModel);
   environment.run(step, step * 2, 0);
 
+  //live update
+  camera.position.z = 80;
+  camera.position.x = bounds[0] * 0.5;
+  camera.position.y = bounds[1] * 0.5;
+  camera.rotation.x = 8 * Math.PI / 180;
+  document.querySelector('#ex-1').appendChild(renderer.domElement);
+  renderer.setSize(screen.width, screen.height);
+  renderer.setClearColor(0xffffff, 0)
+
   //timeline setup (lazy global scope)
   svg = d3.select("body").append("svg")
     .attr("width", width + margin.left + margin.right)
@@ -213,14 +211,12 @@ function init(opts) {
     .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-  x = d3.time.scale()
+  x = d3.scale.linear()
     .range([0, width]);
 
   y = d3.scale.linear()
     .range([height, 0]);
 
-    x.domain([0, 10]);
-    y.domain([0, options.numberOfAgents]);
   line = d3.svg.line()
     .x(function(d) {
       return x(d.time);
@@ -237,32 +233,17 @@ function init(opts) {
     .scale(y)
     .orient("left");
 
-  svg.append("g")
-    .attr("class", "x axis")
-    .attr("transform", "translate(0," + height + ")")
-    .call(xAxis);
-
-  svg.append("g")
-    .attr("class", "y axis")
-    .call(yAxis)
-    .append("text")
-    .attr("transform", "rotate(-90)")
-    .attr("y", 6)
-    .attr("dy", ".71em")
-    .style("text-anchor", "end")
-    .text("# of Infected");
-
   render();
 }
 
 function render() {
-  if (environment.time <= 10) {
+  if (environment.time <= duration) {
     infectious = 0;
     requestAnimationFrame(render);
     environment.update(step);
     environment.time += step;
     renderer.render(scene, camera);
-    document.querySelector('#status').innerHTML = `<div>Time: ${Math.round(environment.time)}</div>
+    document.querySelector('#status').innerHTML = `<div>Time: ${Math.round(environment.time * 100) / 100}</div>
     <div>Infectious: ${infectious}</div>`;
     infoOverTime.push({
       time: environment.time,
@@ -281,10 +262,29 @@ function render() {
   }
 }
 
-
-
 function drawTimeline(data) {
-  d3.select("g").selectAll("path").remove();
+  let maxInfect = d3.max(data, function(d) {
+    return d.infectious
+  });
+  d3.select("g").selectAll("*").remove();
+  x.domain([0, duration]);
+  y.domain([0, maxInfect * 1.25]);
+
+  svg.append("g")
+    .attr("class", "x axis")
+    .attr("transform", "translate(0," + height + ")")
+    .call(xAxis);
+
+  svg.append("g")
+    .attr("class", "y axis")
+    .call(yAxis)
+    .append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("y", 6)
+    .attr("dy", ".71em")
+    .style("text-anchor", "end")
+    .text("# of Infected");
+
   svg.append("path")
     .datum(data)
     .attr("class", "line")

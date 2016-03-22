@@ -1,4 +1,7 @@
 module QEpiKit {
+  /*
+  * Utility Systems class
+  */
   export class USys extends QComponent {
     public options: UtilityGroup[];
     public results: any[];

@@ -50,7 +50,7 @@ var QEpiKit;
             return transitions;
         };
         return StateMachine;
-    })(QEpiKit.QComponent);
+    }(QEpiKit.QComponent));
     QEpiKit.StateMachine = StateMachine;
 })(QEpiKit || (QEpiKit = {}));
 //# sourceMappingURL=stateMachine.js.map

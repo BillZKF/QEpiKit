@@ -27,7 +27,9 @@ module QEpiKit {
       }
       return range;
     }
-
+    /**
+    * shuffle - fisher-yates shuffle
+    */
     public static shuffle(array: any[], randomF: () => number) {
       var currentIndex = array.length, temporaryValue, randomIndex;
 

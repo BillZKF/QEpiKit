@@ -128,18 +128,11 @@ module QEpiKit {
       }
       if (this.activationType === "random") {
         QEpiKit.Utils.shuffle(this.agents, this.randF);
-<<<<<<< Updated upstream
-        this.agents.forEach((agent)=>{
+        this.agents.forEach((agent, i) => {this._agentIndex[agent.id] = i}); // reassign agent
+        this.agents.forEach((agent, i)=>{
           this.models[agent.modelIndex].update(agent, step);
           agent.time = agent.time + step || 0;
         })
-=======
-        this.agents.forEach((d, i) => this._agentIndex[d.id] = i);
-        for (let a = 0; a < this.agents.length; a++) {
-          this.models[this.agents[a].modelIndex].update(this.agents[a], step);
-          this.agents[a].time = this.agents[a].time + step || 0;
-        }
->>>>>>> Stashed changes
       }
 
       if (this.activationType === "parallel") {
@@ -161,6 +154,9 @@ module QEpiKit {
       this.timeOfDay = this.time % 1;
     }
 
+    /** Gets agent by id. A utility function that
+    *
+    */
     getAgentById(id:number){
       return this.agents[this._agentIndex[id]];
     }

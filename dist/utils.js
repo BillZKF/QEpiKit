@@ -225,7 +225,7 @@ var QEpiKit;
         Utils.FAILED = 2;
         Utils.RUNNING = 3;
         return Utils;
-    })();
+    }());
     QEpiKit.Utils = Utils;
 })(QEpiKit || (QEpiKit = {}));
 //# sourceMappingURL=utils.js.map

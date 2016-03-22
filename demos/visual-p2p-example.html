@@ -8,11 +8,14 @@
     <script src="qepikit-renderer.js"></script>
     <script type='text/javascript' src='../bower_components/random/lib/random.min.js'></script>
     <script type='text/javascript' src='./libs/jstat.min.js'></script>
-    <script src="visual-example.js"></script>
+    <script src="visual-p2p-example.js"></script>
   </head>
+  <div id="ex-1" class="full-window"></div>
   <div class="container">
-    <h1>Visual Example Using Refbook</h1>
-    <div class="col-25">
+    <h1>Visual Example  of Person to Person Transmission Using Refbook</h1>
+    <div class="col-10">
+      <button onclick="setOptions()">Run person to person</button>
+      <div id="status"></div>
       <label>Agent</label>
       <select onchange="showPathogen(event)" id="select-pathogen"></select>
       <label>Model</label>
@@ -28,20 +31,17 @@
       <label>Recovery Time</label>
       <input type="number" id="recovery-time" value=6 />
       <label>Step</label>
-      <input type="number" id="model-step" value=0.01 max=1/>
+      <input type="number" id="model-step" value=0.001 max=1/>
       <label>Population</label>
       <input type="number" id="number-agents" value=700 max=3000/>
-      <label>Proportion infected at start</label>
-      <input type="number" id="number-at-start" value=0.03 max=1 step=0.01/>
+      <label>Number infected at start (pumps or people)</label>
+      <input type="number" id="number-at-start" value=1 step=1/>
       <label>Shed Range</label>
       <input type="number" id="shed-range" value=3 max=5 step=0.1/>
       <label>Mutation Rate</label>
       <input type="number" id="mutation-time" value=14 max=30 step=1/>
-      <button onclick="setOptions()">Run</button>
     </div>
-    <div class="col-50 panel" id="ex-1" height="480px"></div>
   </div>
-  <div id="status"></div>
 </div>
 <script>
   'use strict'
@@ -64,6 +64,7 @@
       el.innerHTML = el.name = model["Agent"];
       document.querySelector('#select-pathogen').appendChild(el)
     })
+    showPathogen({target:{value:prefModels[0]["Agent"]}});
   })
 
   function showPathogen(event) {
@@ -80,7 +81,7 @@
     document.querySelector('#opt-param').value = pathogen["Optimized parameter"];
   }
 
-  function setOptions() {
+  function setOptions(model) {
     let options = {}
     let pathogenName = document.querySelector('#select-pathogen').value;
     options.step = Number(document.querySelector('#model-step').value);
@@ -102,6 +103,13 @@
     options.pathogen.N50 = Number(options.pathogen["N50/LD50/ID50"]);
     options.pathogen.bestFitModel = options.pathogen["Best fit model"];
     options.pathogen.optParam = Number(options.pathogen["Optimized parameter"]);
+
     init(options);
+  }
+
+  function setDailyWater(agent){
+    agent.dailyWaterRequired = 909;
+    agent.waterAvailable = jStat.normal.inv(random.real(0, 1), agent.dailyWaterRequired, 20);
+    agent.waterPathConcentration = 0;
   }
 </script>

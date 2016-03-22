@@ -33,7 +33,7 @@ var QEpiKit;
             this.options[top].action(agent);
         };
         return USys;
-    })(QEpiKit.QComponent);
+    }(QEpiKit.QComponent));
     QEpiKit.USys = USys;
     function logistic(x, m, b, k) {
         var y = 1 / (m + Math.exp(-k * (x - b)));
