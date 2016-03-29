@@ -32,18 +32,20 @@ module QEpiKit {
             max = avg;
           }
         }
-        this.options[top].action(agent);
+        this.options[top].action(step, agent);
     }
   }
 
   interface UtilityGroup {
     name: string;
     considerations: Consideration[];
-    action(x): void;
+    //what actually happens if this is selected
+    action(step, agent): void;
     params: any;
   }
 
   interface Consideration {
+    //for this person
     x(subject:any, optionParams:any): number;
     name: string;
     m: number;
@@ -63,7 +65,7 @@ module QEpiKit {
   }
 
   export function linear(x: number, m: number, b: number, k: number) {
-    var y =  1 / (m * x + b);
+    var y =  m * x + b;
     return y;
   }
 

@@ -94,10 +94,30 @@ module QEpiKit {
     */
     run(step: number, until: number, saveInterval: number) {
       for (var c = 0; c < this.models.length; c++) {
+        let alreadyIn = [];
+        //assign each agent model indexes to handle agents assigned to multiple models
         for (var d = 0; d < this.models[c].data.length; d++) {
-          this.models[c].data[d].model = this.models[c].name;
-          this.models[c].data[d].modelIndex = c;
+          let id = this.models[c].data[d].id;
+          if(id in this._agentIndex){
+            //this agent belongs to multiple models.
+            this.models[c].data[d].models.push(this.models[c].name);
+            this.models[c].data[d].modelIndexes.push(c);
+            alreadyIn.push(id);
+          } else {
+            //this agent belongs to only one model so far.
+            this._agentIndex[id] = 0;
+            this.models[c].data[d].models = [this.models[c].name];
+            this.models[c].data[d].modelIndexes = [c];
+          }
         }
+        //eliminate any duplicate agents by id
+        this.models[c].data = this.models[c].data.filter((d)=>{
+          if(alreadyIn.indexOf(d.id) !== -1){
+            return false;
+          }
+          return true;
+        })
+        //concat the results
         this.agents = this.agents.concat(this.models[c].data);
       }
       while (this.time <= until) {
@@ -130,7 +150,9 @@ module QEpiKit {
         QEpiKit.Utils.shuffle(this.agents, this.randF);
         this.agents.forEach((agent, i) => {this._agentIndex[agent.id] = i}); // reassign agent
         this.agents.forEach((agent, i)=>{
-          this.models[agent.modelIndex].update(agent, step);
+          agent.modelIndexes.forEach((modelIndex) => {
+            this.models[modelIndex].update(agent, step);
+          });
           agent.time = agent.time + step || 0;
         })
       }
@@ -138,10 +160,14 @@ module QEpiKit {
       if (this.activationType === "parallel") {
         let tempAgents = JSON.parse(JSON.stringify(this.agents));
         tempAgents.forEach((agent)=>{
-          this.models[agent.modelIndex].update(agent, step);
+          agent.modelIndexes.forEach((modelIndex) => {
+            this.models[modelIndex].update(agent, step);
+          });
         })
         this.agents.forEach((agent, i)=>{
-          this.models[agent.modelIndex].apply(agent, tempAgents[i], step);
+          agent.modelIndexes.forEach((modelIndex) => {
+            this.models[modelIndex].apply(agent, tempAgents[i], step);
+          });
           agent.time = agent.time + step || 0;
         })
       }

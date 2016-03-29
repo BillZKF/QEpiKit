@@ -1,46 +1,48 @@
 <html>
-  <head>
-    <link href="qepikit-render-style.css" rel="stylesheet"></link>
-    <link href="style.css" rel="stylesheet"></link>
-    <script src="../bower_components/d3/d3.min.js"></script>
-    <script src="../bower_components/three.js/three.min.js"></script>
-    <script src="../qepikit.js"></script>
-    <script type='text/javascript' src='../bower_components/random/lib/random.min.js'></script>
-    <script type='text/javascript' src='./libs/jstat.min.js'></script>
-    <script src="visual-camp-example.js"></script>
-  </head>
-  <div id="ex-1" class="full-window"></div>
-  <div class="container">
-    <h1>Visual Example</h1>
-    <div class="col-10">
-      <button onclick="setOptions()">Run cow to water to person</button>
-      <div id="status"></div>
-      <label>Agent</label>
-      <select onchange="showPathogen(event)" id="select-pathogen"></select>
-      <label>Model</label>
-      <div id="model"/></div>
-      <label>N50</label>
-      <input type="number" id="N50"/>
-      <label>Optimized Parameter</label>
-      <input type="number" id="opt-param"/>
-      <label>Decay Rate</label>
-      <input type="number" id="decay-rate" value=300 />
-      <label>Shed Rate</label>
-      <input type="number" id="shed-rate" value=1000 />
-      <label>Recovery Time</label>
-      <input type="number" id="recovery-time" value=6 />
-      <label>Step</label>
-      <input type="number" id="model-step" value=0.001 max=1/>
-      <label>Population</label>
-      <input type="number" id="number-agents" value=700 max=3000/>
-      <label>Number infected cows at start</label>
-      <input type="number" id="number-at-start" value=1 step=1/>
-      <label>Shed Range</label>
-      <input type="number" id="shed-range" value=3 max=5 step=0.1/>
-      <label>Mutation Rate</label>
-      <input type="number" id="mutation-time" value=14 max=30 step=1/>
-    </div>
-  </div>
+
+<head>
+  <link href="qepikit-render-style.css" rel="stylesheet"></link>
+  <link href="style.css" rel="stylesheet"></link>
+  <script src="../bower_components/d3/d3.min.js"></script>
+  <script src="../bower_components/three.js/three.min.js"></script>
+  <script src="../qepikit.js"></script>
+  <script type='text/javascript' src='../bower_components/random/lib/random.min.js'></script>
+  <script type='text/javascript' src='./libs/jstat.min.js'></script>
+  <script src="actions.js"></script>
+  <script src="visual-camp-example.js"></script>
+</head>
+<div id="ex-1" class="full-window"></div>
+<div class="container">
+  <h1>Visual Camp Example</h1>
+  <div class="col-10">
+    <button onclick="setOptions()">Run</button>
+    <div id="status"></div>
+    <label>Agent</label>
+    <select onchange="showPathogen(event)" id="select-pathogen"></select>
+    <label>Model</label>
+    <div id="model" /></div>
+  <label>N50</label>
+  <input type="number" id="N50" />
+  <label>Optimized Parameter</label>
+  <input type="number" id="opt-param" />
+  <label>Decay Rate</label>
+  <input type="number" id="decay-rate" value=300 />
+  <label>Shed Rate</label>
+  <input type="number" id="shed-rate" value=1000 />
+  <label>Recovery Time</label>
+  <input type="number" id="recovery-time" value=6 />
+  <label>Step</label>
+  <input type="number" id="model-step" value=0.001 max=1/>
+  <label>Population</label>
+  <input type="number" id="number-agents" value=700 max=3000/>
+  <label>Number infected cows at start</label>
+  <input type="number" id="number-at-start" value=1 step=1/>
+  <label>Shed Range</label>
+  <input type="number" id="shed-range" value=3 max=5 step=0.1/>
+  <label>Mutation Rate</label>
+  <input type="number" id="mutation-time" value=14 max=30 step=1/>
+</div>
+</div>
 </div>
 <script>
   'use strict'
@@ -54,16 +56,20 @@
     cache: 'default'
   };
   const baseURL = `http://104.131.48.182:3000/`;
-  window.fetch(`${baseURL}api/dataset/56e6fea96612902d330ae763`, cors).then(function (res) {
+  window.fetch(`${baseURL}api/dataset/56e6fea96612902d330ae763`, cors).then(function(res) {
     return res.json();
-  }).then(function (json) {
+  }).then(function(json) {
     prefModels = json.entries;
     prefModels.forEach(model => {
       let el = document.createElement('option');
       el.innerHTML = el.name = model["Agent"];
       document.querySelector('#select-pathogen').appendChild(el)
     })
-    showPathogen({target:{value:prefModels[0]["Agent"]}});
+    showPathogen({
+      target: {
+        value: prefModels[0]["Agent"]
+      }
+    });
   })
 
   function showPathogen(event) {
@@ -80,7 +86,7 @@
     document.querySelector('#opt-param').value = pathogen["Optimized parameter"];
   }
 
-  function setOptions(model) {
+  function setOptions() {
     let options = {}
     let pathogenName = document.querySelector('#select-pathogen').value;
     options.step = Number(document.querySelector('#model-step').value);
@@ -102,11 +108,10 @@
     options.pathogen.N50 = Number(options.pathogen["N50/LD50/ID50"]);
     options.pathogen.bestFitModel = options.pathogen["Best fit model"];
     options.pathogen.optParam = Number(options.pathogen["Optimized parameter"]);
-
     init(options);
   }
 
-  function setDailyWater(agent){
+  function setDailyWater(agent) {
     agent.dailyWaterRequired = 909;
     agent.waterAvailable = jStat.normal.inv(random.real(0, 1), agent.dailyWaterRequired, 20);
     agent.waterPathConcentration = 0;

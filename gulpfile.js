@@ -7,17 +7,24 @@ var Server = require('karma').Server;
 
 
 /**
- * Watch for file changes and re-run tests on each change
+ * Do karma
  */
- gulp.task('tdd', function (done) {
+ gulp.task('test', function (done) {
    new Server({
      configFile: __dirname + '/karma.conf.js'
    }, done).start();
  });
 
+ /**
+  * Watch for file changes and re-run tests on each change
+  */
+  gulp.task('tdd', function (done) {
+    gulp.watch(['dist/*.js','tests/*.js','demos/*'], ['scripts','test']);
+  });
+
 // Concatenate & Minify JS
 gulp.task('scripts', function() {
-    return gulp.src(['dist/QComponent.js','dist/*.js'])
+    return gulp.src(['dist/QComponent.js','dist/*.js','!dist/actions.*'])
         .pipe(concat('qepikit.js'))
         .pipe(gulp.dest('./'))
         .pipe(rename('qepikit.min.js'))
@@ -36,4 +43,4 @@ gulp.task('watch', function() {
     gulp.watch(['dist/*.js','tests/*.js','demos/*'], ['scripts']);
 });
 
-gulp.task('default', ['server', 'watch']);
+gulp.task('default', ['server', 'tdd']);

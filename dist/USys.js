@@ -30,7 +30,7 @@ var QEpiKit;
                     max = avg;
                 }
             }
-            this.options[top].action(agent);
+            this.options[top].action(step, agent);
         };
         return USys;
     }(QEpiKit.QComponent));
@@ -46,7 +46,7 @@ var QEpiKit;
     }
     QEpiKit.logit = logit;
     function linear(x, m, b, k) {
-        var y = 1 / (m * x + b);
+        var y = m * x + b;
         return y;
     }
     QEpiKit.linear = linear;

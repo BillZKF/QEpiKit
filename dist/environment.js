@@ -36,12 +36,33 @@ var QEpiKit;
             this.models.splice(deleteIndex, 1);
         };
         Environment.prototype.run = function (step, until, saveInterval) {
-            for (var c = 0; c < this.models.length; c++) {
-                for (var d = 0; d < this.models[c].data.length; d++) {
-                    this.models[c].data[d].model = this.models[c].name;
-                    this.models[c].data[d].modelIndex = c;
+            var _loop_1 = function() {
+                var alreadyIn = [];
+                for (d = 0; d < this_1.models[c].data.length; d++) {
+                    var id = this_1.models[c].data[d].id;
+                    if (id in this_1._agentIndex) {
+                        this_1.models[c].data[d].models.push(this_1.models[c].name);
+                        this_1.models[c].data[d].modelIndexes.push(c);
+                        alreadyIn.push(id);
+                    }
+                    else {
+                        this_1._agentIndex[id] = 0;
+                        this_1.models[c].data[d].models = [this_1.models[c].name];
+                        this_1.models[c].data[d].modelIndexes = [c];
+                    }
                 }
-                this.agents = this.agents.concat(this.models[c].data);
+                this_1.models[c].data = this_1.models[c].data.filter(function (d) {
+                    if (alreadyIn.indexOf(d.id) !== -1) {
+                        return false;
+                    }
+                    return true;
+                });
+                this_1.agents = this_1.agents.concat(this_1.models[c].data);
+            };
+            var this_1 = this;
+            var d;
+            for (var c = 0; c < this.models.length; c++) {
+                _loop_1();
             }
             while (this.time <= until) {
                 this.update(step);
@@ -69,17 +90,23 @@ var QEpiKit;
                 QEpiKit.Utils.shuffle(this.agents, this.randF);
                 this.agents.forEach(function (agent, i) { _this._agentIndex[agent.id] = i; });
                 this.agents.forEach(function (agent, i) {
-                    _this.models[agent.modelIndex].update(agent, step);
+                    agent.modelIndexes.forEach(function (modelIndex) {
+                        _this.models[modelIndex].update(agent, step);
+                    });
                     agent.time = agent.time + step || 0;
                 });
             }
             if (this.activationType === "parallel") {
                 var tempAgents_1 = JSON.parse(JSON.stringify(this.agents));
                 tempAgents_1.forEach(function (agent) {
-                    _this.models[agent.modelIndex].update(agent, step);
+                    agent.modelIndexes.forEach(function (modelIndex) {
+                        _this.models[modelIndex].update(agent, step);
+                    });
                 });
                 this.agents.forEach(function (agent, i) {
-                    _this.models[agent.modelIndex].apply(agent, tempAgents_1[i], step);
+                    agent.modelIndexes.forEach(function (modelIndex) {
+                        _this.models[modelIndex].apply(agent, tempAgents_1[i], step);
+                    });
                     agent.time = agent.time + step || 0;
                 });
             }

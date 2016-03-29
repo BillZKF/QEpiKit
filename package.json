@@ -1,0 +1,41 @@
+{
+  "name": "qepikit",
+  "version": "0.0.9",
+  "description": "dynamic models",
+  "main": "qepikit.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "dependencies": {
+    "gulp-concat": "^2.6.0",
+    "gulp-connect": "^2.2.0",
+    "gulp-uglify": "^1.2.0",
+    "gulp": "^3.9.0",
+    "gulp-rename": "^1.2.2",
+    "karma": "^0.13.11",
+    "karma-coverage": "^0.5.2",
+    "karma-chrome-launcher": "^0.2.0",
+    "karma-jasmine": "^0.2.2",
+    "turf": "^2.0.2",
+    "gulp-minify": "^0.0.5"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "gulp test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BillZKF/QEpiKit.git"
+  },
+  "keywords": [
+    "epidemiology",
+    "agent-based"
+  ],
+  "author": "Bill Flynn",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/BillZKF/QEpiKit/issues"
+  },
+  "homepage": "https://github.com/BillZKF/QEpiKit#readme"
+}

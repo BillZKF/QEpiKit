@@ -105,7 +105,7 @@ describe('An environment contains resources, a population, and model components'
 
   it('should handle mutliple models', function() {
     var doctors = [{
-      id: 1,
+      id: 200,
       sex: "female",
       age: 42,
       treated: []
