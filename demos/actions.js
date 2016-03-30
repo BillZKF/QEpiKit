@@ -11,6 +11,19 @@ QActions.findClosest = function(step, agent, array, key) {
   })
 }
 
+QActions.findNClosest = function(step, n, agent, array, key) {
+  let closest = 1e15;
+  let dist = array.map(function(d) {
+    return agent.mesh.position.distanceTo(d.mesh.position);
+  });
+  let sortedDist = dist.sort(function(a,b){
+    return b - a;
+  });
+
+  let nClosest = dist.indexOf(sortedDist[n - 1]);
+  agent[key] = array[nClosest];
+}
+
 //move randomly
 QActions.move = function(step, agent) {
   var dx = step * (agent.movePerDay * random.real(-1, 1) + (agent.prevX * 0.90));
@@ -23,10 +36,9 @@ QActions.move = function(step, agent) {
 };
 
 QActions.moveTo = function(step, agent, destination) {
-  var d = step * agent.movePerDay;
+  let d = step * agent.movePerDay;
   if (agent.mesh.position.distanceTo(destination.mesh.position) > d) {
     let dir = Math.atan2(destination.mesh.position.x - agent.mesh.position.x, destination.mesh.position.y - agent.mesh.position.y);
-
     let dVec = new THREE.Vector3(Math.sin(dir), Math.cos(dir), 0);
     agent.mesh.position.x += dVec.x * d;
     agent.mesh.position.y += dVec.y * d;
@@ -133,6 +145,18 @@ QActions.checkWater = function(step, agent) {
     actions.getWater(step, agent);
   } else {
     actions.drink(step, agent);
+  }
+};
+QActions.waitInLine= function(step, agent, destination){
+  let target;
+  let placeInLine = destination.queue.indexOf(agent.id);
+  if(placeInLine === 0){
+    target = destination;
+  } else {
+    target = environment.getAgentById(destination.queue[placeInLine - 1]);
+  }
+  if (agent.mesh.position.distanceTo(target.mesh.position) > 2){
+    QActions.moveTo(step, agent, target);
   }
 };
 QActions.drink = function(step, agent) {

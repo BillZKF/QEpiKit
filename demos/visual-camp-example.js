@@ -6,7 +6,7 @@ let step = 0.01;
 let agents = [];
 let facilities = [];
 let actions, states, conditions, transitions, SIRModel;
-let seed = 0x12345678;
+let seed = 0x111111115;
 let random = new Random(Random.engines.mt19937().seedWithArray([seed, 0x90abcdef]));
 let distUnits = "miles";
 
@@ -45,16 +45,16 @@ function init(opts) {
       bottom: 100
     },
     "waterPumps": {
-      left: 10,
+      left: 100,
       right: 500,
-      top: 400,
-      bottom: 200
+      top: 200,
+      bottom: 150
     },
     "bathrooms": {
-      left: bounds[0] * 0.5 - 15,
+      left: 10,
       right: bounds[0] - 10,
       top: bounds[1] - 1,
-      bottom: 200
+      bottom: 250
     }
   };
   let numAgents = options.numberOfAgents;
@@ -76,7 +76,6 @@ function init(opts) {
 
   var numTents = Math.ceil(numAgents / 5);
   var tents = [];
-  var tentsPerRow = (boundaries.tents.right - boundaries.tents.left) / 10;
   for (var t = 0; t < numTents; t++) {
     tents[t] = {
       id: t,
@@ -91,12 +90,9 @@ function init(opts) {
     tents[t].mesh = new THREE.Mesh(new THREE.CubeGeometry(5, 5, 1), new THREE.MeshBasicMaterial({
       color: 0x22ccdd
     }));
-    let row = Math.ceil((t + 1) / tentsPerRow);
-    let col = t % tentsPerRow;
-    tents[t].mesh.position.x = col * 10 + boundaries.tents.left;
-    tents[t].mesh.position.y = row * 10 + boundaries.tents.bottom;
     scene.add(tents[t].mesh);
   }
+  QUtils.arrangeEvenWithin(tents, 5, 5, boundaries.tents);
 
   for (let i = 0; i < numAgents; i++) {
     let mesh = new THREE.Mesh(new THREE.TetrahedronGeometry(1, 1), new THREE.MeshBasicMaterial({
@@ -107,6 +103,7 @@ function init(opts) {
       type: 'agent',
       waterPump: null,
       bathroom: null,
+      inQueue: false,
       age: Math.round(random.real(0, 1) * 100) + 3,
       pathogenLoad: 0,
       states: {
@@ -117,11 +114,10 @@ function init(opts) {
       timeInfectious: 0,
       timeRecovered: 0,
       gPerDayExcrete: 0.15,
+      tInBathroom: 0.0018,
       needsBathroom: 0,
       needsSleep: 0,
-      mesh: mesh,
-      objectives: [],
-      pastObjectives: []
+      mesh: mesh
     };
     agents[i].tent = tents[Math.floor(i / 5)];
     agents[i].physContact = -0.0135 * (Math.pow(agents[i].age - 43, 2)) + 8;
@@ -137,7 +133,8 @@ function init(opts) {
   var waterPumps = [];
   for (var wp = 0; wp < numPumps; wp++) {
     waterPumps[wp] = {
-      id: wp
+      id: wp,
+      pathConc: 0
     };
     waterPumps[wp].mesh = new THREE.Mesh(new THREE.CubeGeometry(4, 4, 0.5), new THREE.MeshBasicMaterial({
       color: 0x00aacc
@@ -145,17 +142,20 @@ function init(opts) {
     waterPumps[wp].mesh.type = 'pump';
     waterPumps[wp].mesh.position.x = boundaries.waterPumps.right * random.real(0, 1) + boundaries.waterPumps.left;
     waterPumps[wp].mesh.position.y = boundaries.waterPumps.top * random.real(0, 1) + boundaries.waterPumps.bottom;
-    waterPumps[wp].pathConc = 0;
     scene.add(waterPumps[wp].mesh);
   }
 
   var bathrooms = [];
-  for (var b = 0; b < Math.ceil(agents.length / 50); b++) {
+  var numBathrooms = Math.ceil(agents.length / 25);
+  for (var b = 0; b < numBathrooms; b++) {
     bathrooms[b] = {
       id: b,
       label: "ventilated improved pit latrine",
       working: true,
       capacity: 1,
+      queue: [],
+      useCapacity: 2,
+      use: [],
       type: 'unisex',
       units: "m3",
       pathConc: 0,
@@ -164,13 +164,10 @@ function init(opts) {
     bathrooms[b].mesh = new THREE.Mesh(new THREE.CubeGeometry(7, 7, 0.5), new THREE.MeshBasicMaterial({
       color: 0x4444ff
     }));
-    let row = Math.ceil((b + 1) / 2);
-    let col = b % 2;
-
-    bathrooms[b].mesh.position.x = col * 15 + boundaries.bathrooms.left;
-    bathrooms[b].mesh.position.y = row * 15 + boundaries.bathrooms.bottom;
     scene.add(bathrooms[b].mesh);
   }
+  QUtils.arrangeEvenWithin(bathrooms, 7, 8, boundaries.bathrooms)
+
 
   for (var r = 0; r < infectedAtStart; r++) {
     var rIndex = Math.floor(waterPumps.length * random.real(0, 1));
@@ -202,7 +199,7 @@ function init(opts) {
   cNeedBathroom = {
     name: 'needBathroom',
     x: function(subject, optionParams) {
-      return subject.needsBathroom;
+      return Math.min(1,subject.needsBathroom);
     },
     extents: [0, 1],
     f: QEpiKit.linear,
@@ -215,14 +212,45 @@ function init(opts) {
     name: 'useBathroom',
     considerations: [cNeedBathroom],
     action: function(step, person) {
+      //first, think of the closest bathroom
       if (person.bathroom === null) {
         QActions.findClosest(step, person, bathrooms, 'bathroom');
       }
-      if (person.mesh.position.distanceTo(person.bathroom.mesh.position) > 1) {
-        QActions.moveTo(step, person, person.bathroom);
+      //when you get in sight of the bathroom, decide whether to get in line
+      let distToBathroom = person.mesh.position.distanceTo(person.bathroom.mesh.position);
+      if(distToBathroom <= 50 && person.inQueue === false){
+        let nChoice = 1;
+        while(person.inQueue === false){
+          let waitLine = person.bathroom.queue.length * person.tInBathroom;
+          let waitTravel = distToBathroom / person.movePerDay;
+          if (waitLine < waitTravel) {
+            person.bathroom.queue.push(person.id);
+            person.inQueue = true;
+          } else {
+            nChoice++;
+            QActions.findNClosest(step, nChoice, person, bathrooms, 'bathroom');
+            //person.bathroom.queue.push(person.id);
+            //person.inQueue = true;
+          }
+        }
+
+      }
+      //once in line
+      if(person.inQueue){
+        if (person.bathroom.queue[0] === person.id) {
+          if (distToBathroom > 1) {
+            QActions.moveTo(step, person, person.bathroom);
+          } else {
+            QActions.excrete(step, person, person.bathroom);
+            person.bathroom.queue.shift();
+            person.inQueue = false;
+            person.bathroom = null;
+          }
+        } else {
+          QActions.waitInLine(step, person, person.bathroom);
+        }
       } else {
-        QActions.excrete(step, person, person.bathroom);
-        person.bathroom = null;
+        QActions.moveTo(step, person, person.bathroom);
       }
     }
   };
@@ -230,7 +258,7 @@ function init(opts) {
   cNeedWater = {
     name: 'needWater',
     x: function(subject, optionParams) {
-      return 1 - subject.waterAvailable / this.extents[1];
+      return Math.min(1, 1-subject.waterAvailable / this.extents[1]);
     },
     extents: [0, 10000],
     f: QEpiKit.linear,
@@ -258,7 +286,7 @@ function init(opts) {
   cNeedSleep = {
     name: 'needSleep',
     x: function(subject, optionParams) {
-      return subject.needsSleep;
+      return Math.min(0.99, subject.needsSleep);
     },
     extents: [0, 1],
     f: QEpiKit.linear,
