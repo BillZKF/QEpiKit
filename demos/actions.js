@@ -16,13 +16,57 @@ QActions.findNClosest = function(step, n, agent, array, key) {
   let dist = array.map(function(d) {
     return agent.mesh.position.distanceTo(d.mesh.position);
   });
-  let sortedDist = dist.sort(function(a,b){
-    return b - a;
+  let sortedDist = JSON.parse(JSON.stringify(dist));
+  sortedDist.sort(function(a, b) {
+    return a - b;
   });
 
   let nClosest = dist.indexOf(sortedDist[n - 1]);
-  agent[key] = array[nClosest];
+  return array[nClosest];
 }
+
+QActions.useFacility = function(step, agent, facilities, key, success) {
+  //first, think of the closest bathroom
+  if (agent[key] === null) {
+    QActions.findClosest(step, agent, facilities, key);
+  }
+  let distToFacil = agent.mesh.position.distanceTo(agent[key].mesh.position);
+  if (!agent.inQueue && distToFacil < 50) {
+    let nChoice = 1;
+    while (!agent.inQueue && nChoice < facilities.length) {
+      let waitLine = agent[key].queue.length * agent[key].wait;
+      let waitTravel = distToFacil / agent.movePerDay;
+      //if not inline see if the wait is long
+      if (waitLine < waitTravel) {
+        agent[key].queue.push(agent.id);
+        agent.inQueue = true;
+      } else {
+        nChoice++;
+        agent[key] = QActions.findNClosest(step, nChoice, agent, facilities);
+        distToFacil = agent.mesh.position.distanceTo(agent[key].mesh.position);
+      }
+    }
+  }
+  if (agent.inQueue) {
+    //once in line
+    if (agent[key].queue[0] === agent.id) {
+      if (distToFacil > 1 || agent.useTime < agent[key].wait) {
+        QActions.moveTo(step, agent, agent[key]);
+        agent.useTime += step;
+      } else {
+        success(step, agent, agent[key]);
+        agent[key].queue.shift();
+        agent.inQueue = false;
+        agent.useTime = 0;
+        agent[key] = null;
+      }
+    } else {
+      QActions.waitInLine(step, agent, agent[key]);
+    }
+  } else {
+    QActions.moveTo(step, agent, agent[key]);
+  }
+};
 
 //move randomly
 QActions.move = function(step, agent) {
@@ -133,32 +177,28 @@ QActions.excrete = function(step, agent, destination) {
   destination.status += agent.gPerDayExcrete * 0.001;
   destination.pathConc += agent.gPerDayExcrete * step / (destination.capacity * 1000);
   agent.needsBathroom = 0;
-  if(destination.status > destination.capacity){
+
+  if (destination.status > destination.capacity) {
     agent.pathogenLoad += destination.pathConc * 0.05;
   }
   destination.mesh.material.color.r = destination.status / destination.capacity;
   destination.mesh.material.color.b = 1 - destination.status / destination.capacity;
   destination.mesh.material.color.g = destination.status / destination.capacity;
 };
-QActions.checkWater = function(step, agent) {
-  if (agent.waterAvailable < 1) {
-    actions.getWater(step, agent);
-  } else {
-    actions.drink(step, agent);
-  }
-};
-QActions.waitInLine= function(step, agent, destination){
+
+QActions.waitInLine = function(step, agent, destination) {
   let target;
   let placeInLine = destination.queue.indexOf(agent.id);
-  if(placeInLine === 0){
+  if (placeInLine === 0) {
     target = destination;
   } else {
     target = environment.getAgentById(destination.queue[placeInLine - 1]);
   }
-  if (agent.mesh.position.distanceTo(target.mesh.position) > 2){
+  if (agent.mesh.position.distanceTo(target.mesh.position) > 2) {
     QActions.moveTo(step, agent, target);
   }
 };
+
 QActions.drink = function(step, agent) {
   agent.waterAvailable -= agent.dailyWaterRequired * step;
   agent.pathogenLoad += agent.waterPathConcentration * step;

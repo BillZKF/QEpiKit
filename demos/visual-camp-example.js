@@ -111,11 +111,11 @@ function init(opts) {
       },
       prevX: 0,
       prevY: 0,
+      useTime: 0,
       timeInfectious: 0,
       timeRecovered: 0,
       gPerDayExcrete: 0.15,
-      tInBathroom: 0.0018,
-      needsBathroom: 0,
+      needsBathroom: random.real(0,0.9),
       needsSleep: 0,
       mesh: mesh
     };
@@ -134,6 +134,10 @@ function init(opts) {
   for (var wp = 0; wp < numPumps; wp++) {
     waterPumps[wp] = {
       id: wp,
+      working: true,
+      wait: 0.005,
+      capacity: 1,
+      queue: [],
       pathConc: 0
     };
     waterPumps[wp].mesh = new THREE.Mesh(new THREE.CubeGeometry(4, 4, 0.5), new THREE.MeshBasicMaterial({
@@ -150,9 +154,10 @@ function init(opts) {
   for (var b = 0; b < numBathrooms; b++) {
     bathrooms[b] = {
       id: b,
+      wait: 0.005,
       label: "ventilated improved pit latrine",
       working: true,
-      capacity: 1,
+      capacity: 0.01,
       queue: [],
       useCapacity: 2,
       use: [],
@@ -177,7 +182,7 @@ function init(opts) {
   cBored = {
     name: 'bored',
     x: function(subject, optionParams) {
-      return 0.5;
+      return 0.8;
     },
     extents: [0, 1],
     f: QEpiKit.linear,
@@ -212,55 +217,16 @@ function init(opts) {
     name: 'useBathroom',
     considerations: [cNeedBathroom],
     action: function(step, person) {
-      //first, think of the closest bathroom
-      if (person.bathroom === null) {
-        QActions.findClosest(step, person, bathrooms, 'bathroom');
-      }
-      //when you get in sight of the bathroom, decide whether to get in line
-      let distToBathroom = person.mesh.position.distanceTo(person.bathroom.mesh.position);
-      if(distToBathroom <= 50 && person.inQueue === false){
-        let nChoice = 1;
-        while(person.inQueue === false){
-          let waitLine = person.bathroom.queue.length * person.tInBathroom;
-          let waitTravel = distToBathroom / person.movePerDay;
-          if (waitLine < waitTravel) {
-            person.bathroom.queue.push(person.id);
-            person.inQueue = true;
-          } else {
-            nChoice++;
-            QActions.findNClosest(step, nChoice, person, bathrooms, 'bathroom');
-            //person.bathroom.queue.push(person.id);
-            //person.inQueue = true;
-          }
-        }
-
-      }
-      //once in line
-      if(person.inQueue){
-        if (person.bathroom.queue[0] === person.id) {
-          if (distToBathroom > 1) {
-            QActions.moveTo(step, person, person.bathroom);
-          } else {
-            QActions.excrete(step, person, person.bathroom);
-            person.bathroom.queue.shift();
-            person.inQueue = false;
-            person.bathroom = null;
-          }
-        } else {
-          QActions.waitInLine(step, person, person.bathroom);
-        }
-      } else {
-        QActions.moveTo(step, person, person.bathroom);
-      }
+      QActions.useFacility(step, person, bathrooms, 'bathroom', QActions.excrete);
     }
   };
 
   cNeedWater = {
     name: 'needWater',
     x: function(subject, optionParams) {
-      return Math.min(1, 1-subject.waterAvailable / this.extents[1]);
+      return Math.min(1, 1 - subject.waterAvailable / this.extents[1]);
     },
-    extents: [0, 10000],
+    extents: [0, 3000],
     f: QEpiKit.linear,
     m: 1,
     b: 0,
@@ -271,15 +237,7 @@ function init(opts) {
     name: 'getWater',
     considerations: [cNeedWater],
     action: function(step, person) {
-      if (person.waterPump === null) {
-        QActions.findClosest(step, person, waterPumps, 'waterPump');
-      }
-      if (person.mesh.position.distanceTo(person.waterPump.mesh.position) > 1) {
-        QActions.moveTo(step, person, person.waterPump);
-      } else {
-        QActions.getWater(step, person, person.waterPump);
-        person.waterPump = null;
-      }
+      QActions.useFacility(step, person, waterPumps, 'waterPump', QActions.getWater);
     }
   };
 
@@ -299,7 +257,6 @@ function init(opts) {
     name: 'getSleep',
     considerations: [cNeedSleep],
     action: function(step, person) {
-
       if (person.mesh.position.distanceTo(person.tent.mesh.position) > 1) {
         QActions.moveTo(step, person, person.tent);
       } else {
