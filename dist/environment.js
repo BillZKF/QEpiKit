@@ -36,6 +36,19 @@ var QEpiKit;
             this.models.splice(deleteIndex, 1);
         };
         Environment.prototype.run = function (step, until, saveInterval) {
+            this.init();
+            while (this.time <= until) {
+                this.update(step);
+                var rem = (this.time % saveInterval);
+                if (rem < step) {
+                    var copy = JSON.parse(JSON.stringify(this.agents));
+                    this.history = this.history.concat(copy);
+                }
+                this.time += step;
+                this.formatTime();
+            }
+        };
+        Environment.prototype.init = function () {
             var _loop_1 = function() {
                 var alreadyIn = [];
                 for (d = 0; d < this_1.models[c].data.length; d++) {
@@ -63,16 +76,6 @@ var QEpiKit;
             var d;
             for (var c = 0; c < this.models.length; c++) {
                 _loop_1();
-            }
-            while (this.time <= until) {
-                this.update(step);
-                var rem = (this.time % saveInterval);
-                if (rem < step) {
-                    var copy = JSON.parse(JSON.stringify(this.agents));
-                    this.history = this.history.concat(copy);
-                }
-                this.time += step;
-                this.formatTime();
             }
         };
         Environment.prototype.update = function (step) {

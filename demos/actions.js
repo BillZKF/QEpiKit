@@ -90,12 +90,9 @@ QActions.moveTo = function(step, agent, destination) {
 };
 
 //move randomly within a rectangle
-QActions.moveWithin = function(step, agent) {
-  var boundary = boundaries[agent.boundaryGroup];
-  var maxDistPerDay = 500;
-  var individualRate = maxDistPerDay - (Math.abs(43 - agent.age) / 43 * maxDistPerDay) + 3e-4;
-  var dx = step * (random.real(-1, 1) * individualRate + (agent.prevX * 0.98));
-  var dy = step * (random.real(-1, 1) * individualRate + (agent.prevY * 0.98));
+QActions.moveWithin = function(step, agent, boundary) {
+  var dx = step * (agent.movePerDay * random.real(-1, 1) + (agent.prevX * 0.90));
+  var dy = step * (agent.movePerDay * random.real(-1, 1) + (agent.prevY * 0.90));
   var nextX = agent.mesh.position.x + dx;
   var nextY = agent.mesh.position.y + dy;
   if (nextX > boundary.right) {
@@ -141,16 +138,17 @@ QActions.contact = function(step, agent) {
     let dir = new THREE.Vector3(random.real(-1, 1), random.real(-1, 1), 0);
     raycaster.set(agent.mesh.position, dir);
     let intersects = raycaster.intersectObjects(scene.children);
-    intersects.forEach(function(d) {
+    if (intersects.length > 0) {
+      let d = intersects[0];
       if (d.object.type === 'agent') {
         let contactedAgent = agents[d.object.qId];
-        if (contactedAgent.states.illness === 'succeptible') {
+        if (contactedAgent.states.illness === 'succeptible' || contactedAgent.states.illness === 'exposed') {
           contactedAgent.pathogenLoad += jStat.normal.inv(random.real(0, 1), pathogen.shedRate * step, pathogen.shedRate * step);
           contactedAgent.lastInfectedContact = agent.id;
           contactedAgent.responseProb = pathogen[pathogen.bestFitModel](contactedAgent.pathogenLoad);
         }
       }
-    });
+    }
   }
 };
 
@@ -175,11 +173,14 @@ QActions.geoContact = function(step, agent) {
 };
 QActions.excrete = function(step, agent, destination) {
   destination.status += agent.gPerDayExcrete * 0.001;
-  destination.pathConc += agent.gPerDayExcrete * step / (destination.capacity * 1000);
+  if (pathogen.fecalOral) {
+    destination.pathConc += agent.pathogenLoad / agent.gPerDayExcrete * step / (destination.capacity * 1000);
+  }
   agent.needsBathroom = 0;
-
   if (destination.status > destination.capacity) {
-    agent.pathogenLoad += destination.pathConc * 0.05;
+    if (pathogen.fecalOral) {
+      agent.pathogenLoad += random.real(0, destination.pathConc) * 0.001;
+    }
   }
   destination.mesh.material.color.r = destination.status / destination.capacity;
   destination.mesh.material.color.b = 1 - destination.status / destination.capacity;
@@ -187,8 +188,7 @@ QActions.excrete = function(step, agent, destination) {
 };
 
 QActions.waitInLine = function(step, agent, destination) {
-  let target;
-  let placeInLine = destination.queue.indexOf(agent.id);
+  let target, placeInLine = destination.queue.indexOf(agent.id);
   if (placeInLine === 0) {
     target = destination;
   } else {
@@ -198,13 +198,36 @@ QActions.waitInLine = function(step, agent, destination) {
     QActions.moveTo(step, agent, target);
   }
 };
-
 QActions.drink = function(step, agent) {
   agent.waterAvailable -= agent.dailyWaterRequired * step;
-  agent.pathogenLoad += agent.waterPathConcentration * step;
-  agent.needsBathroom += agent.dailyWaterRequired * step / (agent.dailyWaterRequired * 0.3)
+  agent.needsBathroom += agent.dailyWaterRequired * step / (agent.dailyWaterRequired * 0.3);
+  if (pathogen.waterBorne) {
+    agent.pathogenLoad += agent.waterPathConcentration * step;
+  }
 };
 QActions.getWater = function(step, agent, watersource) {
   agent.waterAvailable += agent.dailyWaterRequired * 0.333; //needs to get water 3 times a day
-  agent.waterPathConcentration += watersource.pathConc * (agent.waterAvailable / 1000);
+  if (pathogen.waterBorne) {
+    agent.waterPathConcentration += watersource.pathConc * (agent.waterAvailable / 1000);
+  }
+};
+QActions.checkWater = function(step, agent, watersource) {
+  if (agent.waterAvailable < 1) {
+    QActions.getWater(step, agent, watersource);
+  } else {
+    if(random.real(0,1) > 0.75){
+      QActions.drink(step, agent);
+    }
+  }
+};
+QActions.findWater = function(step, agent, watersources, key) {
+  if (agent.waterAvailable < 1) {
+    QActions.findClosest(step, agent, watersources, key);
+    QActions.getWater(step, agent, agent[key]);
+  } else {
+    if(random.real(0,1) > 0.5){
+      QActions.drink(step, agent);
+    }
+  }
+
 };

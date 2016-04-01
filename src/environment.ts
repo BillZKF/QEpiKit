@@ -80,11 +80,11 @@ module QEpiKit {
       this.models.forEach(function(c, index) { if (c.id === id) { deleteIndex = index; } });
       while (L > 0 && this.agents.length >= 0) {
         L--;
-        if(this.agents[L].modelIndex === deleteIndex){
+        if (this.agents[L].modelIndex === deleteIndex) {
           this.agents.splice(L, 1);
         }
       }
-      this.models.splice(deleteIndex,1);
+      this.models.splice(deleteIndex, 1);
     }
 
     /** Run all environment model components from t=0 until t=until using time step = step
@@ -93,12 +93,28 @@ module QEpiKit {
     * @param saveInterval save every 'x' steps
     */
     run(step: number, until: number, saveInterval: number) {
+      this.init();
+      while (this.time <= until) {
+        this.update(step);
+        let rem = (this.time % saveInterval);
+        if (rem < step) {
+          let copy = JSON.parse(JSON.stringify(this.agents));
+          this.history = this.history.concat(copy);
+        }
+        this.time += step;
+        this.formatTime();
+      }
+    }
+
+    /** Assign all agents to appropriate models
+    */
+    init() {
       for (var c = 0; c < this.models.length; c++) {
         let alreadyIn = [];
         //assign each agent model indexes to handle agents assigned to multiple models
         for (var d = 0; d < this.models[c].data.length; d++) {
           let id = this.models[c].data[d].id;
-          if(id in this._agentIndex){
+          if (id in this._agentIndex) {
             //this agent belongs to multiple models.
             this.models[c].data[d].models.push(this.models[c].name);
             this.models[c].data[d].modelIndexes.push(c);
@@ -111,24 +127,14 @@ module QEpiKit {
           }
         }
         //eliminate any duplicate agents by id
-        this.models[c].data = this.models[c].data.filter((d)=>{
-          if(alreadyIn.indexOf(d.id) !== -1){
+        this.models[c].data = this.models[c].data.filter((d) => {
+          if (alreadyIn.indexOf(d.id) !== -1) {
             return false;
           }
           return true;
         })
         //concat the results
         this.agents = this.agents.concat(this.models[c].data);
-      }
-      while (this.time <= until) {
-        this.update(step);
-        let rem = (this.time % saveInterval);
-        if (rem < step) {
-          let copy = JSON.parse(JSON.stringify(this.agents));
-          this.history = this.history.concat(copy);
-        }
-        this.time += step;
-        this.formatTime();
       }
     }
 
@@ -148,8 +154,8 @@ module QEpiKit {
       }
       if (this.activationType === "random") {
         QEpiKit.Utils.shuffle(this.agents, this.randF);
-        this.agents.forEach((agent, i) => {this._agentIndex[agent.id] = i}); // reassign agent
-        this.agents.forEach((agent, i)=>{
+        this.agents.forEach((agent, i) => { this._agentIndex[agent.id] = i }); // reassign agent
+        this.agents.forEach((agent, i) => {
           agent.modelIndexes.forEach((modelIndex) => {
             this.models[modelIndex].update(agent, step);
           });
@@ -159,12 +165,12 @@ module QEpiKit {
 
       if (this.activationType === "parallel") {
         let tempAgents = JSON.parse(JSON.stringify(this.agents));
-        tempAgents.forEach((agent)=>{
+        tempAgents.forEach((agent) => {
           agent.modelIndexes.forEach((modelIndex) => {
             this.models[modelIndex].update(agent, step);
           });
         })
-        this.agents.forEach((agent, i)=>{
+        this.agents.forEach((agent, i) => {
           agent.modelIndexes.forEach((modelIndex) => {
             this.models[modelIndex].apply(agent, tempAgents[i], step);
           });
@@ -183,7 +189,7 @@ module QEpiKit {
     /** Gets agent by id. A utility function that
     *
     */
-    getAgentById(id:number){
+    getAgentById(id: number) {
       return this.agents[this._agentIndex[id]];
     }
   }

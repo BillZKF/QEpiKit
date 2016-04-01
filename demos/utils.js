@@ -1,5 +1,5 @@
 QUtils = {
-  //place objects within a boundary
+  //place objects within a boundary in rows and cols
   arrangeEvenWithin(array, footprint, margin, boundaries){
     let full = footprint + margin;
     let perRow = (boundaries.right - boundaries.left) / full;
