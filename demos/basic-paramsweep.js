@@ -77,7 +77,7 @@ var experiment = new QEpiKit.Experiment(environment, prepare, report);
 //these are the parameters that will be tested systematically
 var expParams = {
   shedRate: [0.01, 0.03, 0.05],
-  recoveryRate : [ 4 / step, 6/step, 10 / step]
+  recoveryRate : [ 4 / step, 6 / step, 10 / step]
 };
 //create the experiment plans. how many runs each param.
 var perParam = 1;

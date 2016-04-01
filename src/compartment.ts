@@ -1,65 +1,40 @@
 module QEpiKit {
-  export class CompartmentModel {
+  export class CompartmentModel extends QComponent {
     public name: string;
-    public step: number;
-    public vital: Vital;
-    public pathogen: Pathogen;
-    public compartments: Compartment[];
+    public data: Patch[];
     public totalPop: number;
-    public transmissionRate: number;
-    public recoveryRate: number;
-    public basicReproductiveNumber: number;
-    public time: number;
-    public tolerance: number;
-    public runDuration: number;
-    public history: any[];
 
-    constructor(name: string, step: number, compartments: Compartment[], pathogen: Pathogen, vital: Vital) {
-      this.name = name;
-      this.step = step;
-      this.compartments = compartments;
-      this.transmissionRate = pathogen.transmissionRate * this.step;
-      this.recoveryRate = pathogen.recoveryRate * this.step;
-      this.basicReproductiveNumber = pathogen.transmissionRate / pathogen.recoveryRate;
+    private _tolerance: number;
+
+    constructor(name: string,  data: Patch[]) {
+      super(name);
+      this.data = data; //an array of Patches. Each patch contains an array of compartments in operational order
       this.totalPop = 0;
-      this.time = 0;
       this.history = [];
-      for (var c in this.compartments) {
-        this.totalPop += this.compartments[c].pop;
-        this.compartments[c].initialPop = this.compartments[c].pop;
+      for (let d = 0; d < this.data.length; d++) {
+        this.totalPop += this.data[d].totalPop;
       }
-      this.tolerance = 1e-9;
+      this._tolerance = 1e-9;//model err tolerance
     }
 
-    run(step:number, until:number, saveInterval:number) {
-      var rem;
-      while (this.time <= until) {
-        this.update();
-        rem = (this.time / step) % saveInterval;
-        if(rem === 0 ){
-          this.history[this.time / step] = JSON.parse(JSON.stringify(this.compartments));
-        }
-        this.time += this.step;
-      }
-    }
-
-    update(){
-      var temp_pop = [], temp_d = [], next_d = [], lte = [], err = 1, newStep;
-      for (var c in this.compartments) {
-        this.compartments[c].update();
+    update(patch:Patch, step:number ){
+      let temp_pop = [], temp_d = [], next_d = [], lte = [], err = 1, newStep;
+      let compartments = patch.compartments;
+      for (let c = 0; c < compartments.length; c++) {
+        compartments[c].dpop = compartments[c].operation(step);
       }
       //first order (Euler)
-      for (var c in this.compartments) {
-        temp_pop[c] = this.compartments[c].pop;
-        temp_d[c] = this.compartments[c].dpop;
-        this.compartments[c].pop = temp_pop[c] + temp_d[c];
+      for (let c = 0; c < compartments.length; c++) {
+        temp_pop[c] = compartments[c].pop;
+        temp_d[c] = compartments[c].dpop;
+        compartments[c].pop = temp_pop[c] + temp_d[c];
       }
       //second order (Heuns)
-      this.totalPop = 0;
-      for (var c in this.compartments) {
-        next_d[c] = this.compartments[c].operation();
-        this.compartments[c].pop = temp_pop[c] + (0.5 * (temp_d[c] + next_d[c]));
-        this.totalPop += this.compartments[c].pop;
+      patch.totalPop = 0;
+      for (let c = 0; c < compartments.length; c++) {
+        next_d[c] = compartments[c].operation(step);
+        compartments[c].pop = temp_pop[c] + (0.5 * (temp_d[c] + next_d[c]));
+        patch.totalPop += compartments[c].pop;
       }
     }
   }
@@ -78,10 +53,6 @@ module QEpiKit {
       this.operation = operation || null;
       this.dpop = 0;
     }
-
-    public update() {
-      this.dpop = this.operation();
-    }
   }
 
   export interface Vital {
@@ -95,8 +66,32 @@ module QEpiKit {
     latentInfectiousRate: number;
   }
 
-  export interface Patch {
-    pop: number;
-    location: number[];
+  export class Patch {
+    public static cId = 0;
+
+    public id: number;
+    public name: string;
+    public compartments: Compartment[];
+    public totalPop: number;
+    public initialPop: number;
+    public operation: Function;
+    public dpop: number;
+    public travelWeight: number;
+
+    static newId(){
+      Patch.cId++;
+      return Patch.cId;
+    }
+
+    constructor(name: string, compartments:Compartment[]) {
+      this.id = Patch.newId();
+      this.name = name;
+      this.compartments = compartments;
+      this.totalPop = 0;
+      for (var c = 0; c < this.compartments.length; c++) {
+        this.totalPop += this.compartments[c].pop;
+        this.compartments[c].initialPop = this.compartments[c].pop;
+      }
+    }
   }
 }

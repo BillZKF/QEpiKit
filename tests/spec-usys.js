@@ -19,9 +19,9 @@ describe('A Utility System', function() {
       name: 'affordable',
       x: function(subject, optionParams) {
         var a = subject.wealth - optionParams.cost;
-        if (a < this.extents[0]) a = 0;
-        else if (a > this.extents[1]) a = this.extents[1];
-        return a / this.extents[1];
+        a = Math.max(a, 0);
+        Math.min(a / this.extents[1], 1);
+        return Math.min(a / this.extents[1], 1);
       },
       extents: [0, 1000],
       f: QEpiKit.linear,
@@ -95,6 +95,6 @@ describe('A Utility System', function() {
     Sys.update(Sys.data[1],1);
     //person 0 should have selected gastric Bypass
     expect(people[0].top.name).toBe("gastericBypass");
-    expect(people[1].top.name).toBe("gastericBypass");
+    expect(people[1].top.name).toBe("exerciseAndDiet");
   });
 });

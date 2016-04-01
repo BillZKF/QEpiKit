@@ -1,7 +1,6 @@
-var seasonalFlu, S, E, I, R, vitals, sfParams;
+var seasonalFlu, S, E, I, R, vitals, sfParams, environment, virginiaPatch;
 describe('Compartment modeling is an equation based technique', function(){
   beforeEach(function(){
-    var step = 1;
     S = new QEpiKit.Compartment("succeptible", 0.999998);
     E = new QEpiKit.Compartment("exposed", 0.000001);
     I = new QEpiKit.Compartment("infectious", 0.000001);
@@ -14,8 +13,10 @@ describe('Compartment modeling is an equation based technique', function(){
       resuccept: 1 / 90
     };
 
-    seasonalFlu = new QEpiKit.CompartmentModel("seasonal-flu", step, [S, E, I, R], sfParams);
-    seasonalFlu.runDuration = 730;
+    basicReproductiveNumber = sfParams.transmissionRate / sfParams.recoveryRate;
+
+    virginiaPatch = new QEpiKit.Patch('virginia', [S, E, I, R]);
+    seasonalFlu = new QEpiKit.CompartmentModel("seasonal-flu", [virginiaPatch]);
     vitals = {
       births: function(total) {
         return total * 0.000002;
@@ -25,23 +26,24 @@ describe('Compartment modeling is an equation based technique', function(){
       }
     };
 
-    S.operation = function() {
-      return (R.pop * sfParams.resuccept * seasonalFlu.step) -(sfParams.transmissionRate * S.pop * (I.pop + E.pop) * seasonalFlu.step) + (seasonalFlu.step * vitals.births(seasonalFlu.totalPop) + vitals.deaths(seasonalFlu.totalPop));
+    S.operation = function(step) {
+      return (R.pop * sfParams.resuccept * step) -(sfParams.transmissionRate * S.pop * (I.pop + E.pop) * step) + (step * vitals.births(seasonalFlu.totalPop) + vitals.deaths(seasonalFlu.totalPop));
     };
 
-    E.operation = function() {
-      return (sfParams.transmissionRate * S.pop * (I.pop + E.pop) * seasonalFlu.step) - (E.pop * sfParams.latentTime * seasonalFlu.step);
+    E.operation = function(step) {
+      return (sfParams.transmissionRate * S.pop * (I.pop + E.pop) * step) - (E.pop * sfParams.latentTime * step);
     };
 
-    I.operation = function() {
-      return (E.pop * sfParams.latentTime * seasonalFlu.step) - (I.pop * sfParams.recoveryRate * seasonalFlu.step);
+    I.operation = function(step) {
+      return (E.pop * sfParams.latentTime * step) - (I.pop * sfParams.recoveryRate * step);
     };
 
-    R.operation = function() {
-      return (I.pop * sfParams.recoveryRate * seasonalFlu.step) - (R.pop * sfParams.resuccept * seasonalFlu.step);
+    R.operation = function(step) {
+      return (I.pop * sfParams.recoveryRate * step) - (R.pop * sfParams.resuccept * step);
     };
 
-
+    environment = new QEpiKit.Environment();
+    environment.add(seasonalFlu);
   });
 
   it('should be able to create new compartments', function(){
@@ -50,7 +52,7 @@ describe('Compartment modeling is an equation based technique', function(){
   });
 
   it('should be able to run models', function(){
-    seasonalFlu.run(1,30,5);
-    expect(seasonalFlu.compartments[1].pop).toBeLessThan(0.999998);
+    environment.run(1,120,1);
+    expect(S.pop * 100000).toBeLessThan(0.999998 * 1000000);
   });
 });

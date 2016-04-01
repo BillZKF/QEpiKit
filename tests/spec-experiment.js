@@ -9,8 +9,9 @@ describe('An Experiment', function() {
     }
 
     prepFunction = function() {
+      environment.remove('faslkdjhf8y2534jkh');
       agents = [];
-      for (var i = 0; i < getRandom(2000); i++) {
+      for (var i = 0; i < getRandom(200); i++) {
         agents[i] = {
           id: i,
           time: 0,
@@ -42,13 +43,13 @@ describe('An Experiment', function() {
           amount: 50
         }
       };
-
       agentModel.data = agents;
-      environment.agents = agents;
+      environment.add(agentModel);
     };
 
 
     agentModel = {
+      id : "faslkdjhf8y2534jkh",
       name:"regular",
       data: agents
     };
