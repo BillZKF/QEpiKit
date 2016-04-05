@@ -1,7 +1,7 @@
 //visualization objects
 let scene = new THREE.Scene();
 let raycaster = new THREE.Raycaster();
-let camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+let camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 5000);
 let renderer = new THREE.WebGLRenderer({
   alpha: true
 });
@@ -10,6 +10,7 @@ let renderer = new THREE.WebGLRenderer({
 let svg, x, y, xAxis, yAxis, line;
 let duration = 21;
 let infectious = 0;
+let lastInfectious = 0;
 let infoOverTime = [];
 let margin = {
     top: 20,
@@ -73,7 +74,10 @@ function render() {
       time: environment.time,
       infectious: infectious
     });
-    drawTimeline(infoOverTime);
+    if(infectious != lastInfectious){
+      drawTimeline(infoOverTime);
+    }
+    lastInfectious = infectious;
   } else {
     let iCount = environment.agents.reduce(function(prev, current) {
       if (current.states.illness == 'infectious') {

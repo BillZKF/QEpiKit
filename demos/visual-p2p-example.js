@@ -42,7 +42,7 @@ function init(options) {
       }));
     agents[i] = {
       id: i,
-      type: 'agent',
+      type: 'spatial',
       age: Math.round(random.real(0, 1) * 100) + 3,
       pathogenLoad: 0,
       states: {
@@ -53,16 +53,17 @@ function init(options) {
       timeInfectious: 0,
       timeRecovered: 0,
       mesh: mesh,
-      objectives: [],
-      pastObjectives: []
+      madeAttempts: 0,
+      newAttempt:0
     };
-    agents[i].movePerDay = 350 - Math.abs(43 - agents[i].age) / 43 * 350 + 500;
-    agents[i].contactAttempts = -0.0135 * (Math.pow(agents[i].age - 43, 2)) + 8;
+    agents[i].movePerDay = jStat.normal.inv(random.real(0,1), 2500 * 24, 0.5); // km/day;
+    agents[i].contactAttempts = jStat.normal.inv(random.real(0,1), Math.abs(agents[i].age - 40), 8) + 8;
     agents[i].mesh.qId = i;
     agents[i].mesh.type = 'agent';
     agents[i].mesh.position.x = random.real(0, 1) * bounds[0];
     agents[i].mesh.position.y = random.real(0, 1) * bounds[1];
     scene.add(agents[i].mesh);
+    agents[i].mesh.visible = true; // makes raycaster work if it is not being rendered
   }
 
   for (var r = 0; r < infectedAtStart; r++) {

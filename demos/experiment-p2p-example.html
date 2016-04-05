@@ -1,24 +1,23 @@
 <html>
-<title>Visual Example of Person to Person Transmission Using Refbook</title>
+<title>Experiment / Batch Run Example of Person to Person Transmission</title>
+
 <head>
   <link href="qepikit-render-style.css" rel="stylesheet"></link>
   <link href="style.css" rel="stylesheet"></link>
   <script src="../bower_components/d3/d3.min.js"></script>
-  <script src="../bower_components/three.js/three.min.js"></script>
-  <script src="../qepikit.js"></script>
   <script src="qepikit-renderer.js"></script>
-  <script type='text/javascript' src='../bower_components/random/lib/random.min.js'></script>
-  <script type='text/javascript' src='./libs/jstat.min.js'></script>
-  <script src="actions.js"></script>
-  <script src="visual-p2p-example.js"></script>
-  <script src="sm-SEIR.js"></script>
+  <script type='text/javascript' src='../node_modules/plotly.js/dist/plotly.min.js'></script>
 </head>
 <div id="ex-1" class="full-window"></div>
 <div class="container">
-  <h1>Visual Example  of Person to Person Transmission Using Refbook</h1>
+  <h1>Experiment / Batch Run Example of Person to Person Transmission</h1>
   <div class="col-10">
-    <button onclick="setOptions()">Run person to person</button>
+    <button onclick="setOptions(runExperiment)">Run person to person</button>
     <div id="status"></div>
+    <label>Number of Runs</label>
+    <div id="script-name">experiment-p2p-example</div>
+    <input type="number" id="exp-runs" value=60 max=100 step=1/>
+    <pre id="debug"></pre>
     <label>Agent</label>
     <select onchange="showPathogen(event)" id="select-pathogen"></select>
     <label>Model</label>
@@ -28,13 +27,13 @@
   <label>Optimized Parameter</label>
   <input type="number" id="opt-param" />
   <label>Reduction Percent</label>
-  <input type="number" id="decay-rate" value=0.01 />
+  <input type="number" id="decay-rate" value=0.99998 />
   <label>Shed Amount</label>
   <input type="number" id="shed-rate" value=1000 />
   <label>Recovery Time</label>
   <input type="number" id="recovery-time" value=6 />
   <label>Step</label>
-  <input type="number" id="model-step" value=0.001 max=1/>
+  <input type="number" id="model-step" value=0.042 max=1/>
   <label>Population</label>
   <input type="number" id="number-agents" value=700 max=3000/>
   <label>Number infected at start (pumps or people)</label>
@@ -46,9 +45,10 @@
 </div>
 </div>
 </div>
-<script src="refbook.js">
+<div id="trendlines"></div>
+<script src="experiment-example-common.js"></script>
+<script src="example-form-handler.js"></script>
 </script>
-<script src="visual-example-renderer.js"></script>
 </body>
 
 </html>

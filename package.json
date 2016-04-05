@@ -8,17 +8,18 @@
     "test": "tests"
   },
   "dependencies": {
+    "gulp": "^3.9.0",
     "gulp-concat": "^2.6.0",
     "gulp-connect": "^2.2.0",
-    "gulp-uglify": "^1.2.0",
-    "gulp": "^3.9.0",
+    "gulp-minify": "^0.0.5",
     "gulp-rename": "^1.2.2",
+    "gulp-uglify": "^1.2.0",
     "karma": "^0.13.11",
-    "karma-coverage": "^0.5.2",
     "karma-chrome-launcher": "^0.2.0",
+    "karma-coverage": "^0.5.2",
     "karma-jasmine": "^0.2.2",
-    "turf": "^2.0.2",
-    "gulp-minify": "^0.0.5"
+    "plotly.js": "^1.7.1",
+    "turf": "^2.0.2"
   },
   "devDependencies": {},
   "scripts": {

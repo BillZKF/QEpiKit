@@ -49,9 +49,9 @@ var QEpiKit;
             }
         };
         Environment.prototype.init = function () {
+            this._agentIndex = {};
             var _loop_1 = function() {
                 var alreadyIn = [];
-                this_1._agentIndex = {};
                 for (d = 0; d < this_1.models[c].data.length; d++) {
                     var id = this_1.models[c].data[d].id;
                     if (id in this_1._agentIndex) {

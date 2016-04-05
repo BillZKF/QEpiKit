@@ -35,7 +35,7 @@ function showPathogen(event) {
   document.querySelector('#opt-param').value = pathogen["Optimized parameter"];
 }
 
-function setOptions(model) {
+function setOptions(callback) {
   let options = {};
   let pathogenName = document.querySelector('#select-pathogen').value;
   options.step = Number(document.querySelector('#model-step').value);
@@ -58,7 +58,16 @@ function setOptions(model) {
   options.pathogen.bestFitModel = options.pathogen["Best fit model"];
   options.pathogen.optParam = Number(options.pathogen["Optimized parameter"]);
   options.pathogen.decayRate = Number(document.querySelector('#decay-rate').value);
-  init(options);
+
+  //experiment params
+  options.runs = Number(document.querySelector('#exp-runs').value);
+
+  //run as webworker
+  var script;
+  if(document.querySelector('#script-name')){
+    script = document.querySelector('#script-name').innerHTML + '.js';
+  }
+  callback(options, script);
 }
 
 function setDailyWater(agent){

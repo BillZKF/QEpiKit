@@ -25,6 +25,18 @@ QActions.findNClosest = function(step, n, agent, array, key) {
   return array[nClosest];
 }
 
+QActions.within = function(step, agent, array, distance){
+  let within = [];
+  for(let i = 0; i < array.length; i++){
+    if(agent.mesh.position.distanceTo(array[i].mesh.position) < distance){
+      if(array[i].id !== agent.id ){
+        within.push(array[i]);
+      }
+    }
+  }
+  return within;
+}
+
 QActions.useFacility = function(step, agent, facilities, key, success) {
   //first, think of the closest bathroom
   if (agent[key] === null) {
@@ -91,6 +103,7 @@ QActions.moveTo = function(step, agent, destination) {
 
 //move randomly within a rectangle
 QActions.moveWithin = function(step, agent, boundary) {
+
   var dx = step * (agent.movePerDay * random.real(-1, 1) + (agent.prevX * 0.90));
   var dy = step * (agent.movePerDay * random.real(-1, 1) + (agent.prevY * 0.90));
   var nextX = agent.mesh.position.x + dx;
@@ -109,7 +122,7 @@ QActions.moveWithin = function(step, agent, boundary) {
   }
   agent.mesh.position.x += dx;
   agent.mesh.position.y += dy;
-  agent.mesh.rotation.z = Math.atan2(dx, dy);
+  //agent.mesh.rotation.z = Math.atan2(dx, dy);
   agent.prevX = dx / step;
   agent.prevY = dy / step;
 };
@@ -118,6 +131,7 @@ QActions.moveWithin = function(step, agent, boundary) {
 QActions.geoMove = function(step, agent) {
   var randomBearing = random.integer(-180, 180);
   var dest = turf.destination(agent.location, step * agent.movePerDay, randomBearing, distUnits);
+  agent.movedTotal += step * agent.movePerDay;
   agent.location = dest;
 };
 
@@ -129,6 +143,7 @@ QActions.geoMoveTo = function(step, agent, destination) {
     var dest = turf.destination(agent.location, step * agent.movePerDay, bearing, distUnits);
     agent.location = dest;
   }
+
 };
 
 //contact using three raycasting
@@ -136,28 +151,59 @@ QActions.contact = function(step, agent) {
   let contactAttempts = agent.contactAttempts * step;
   for (var j = 0; j < contactAttempts; j++) {
     let dir = new THREE.Vector3(random.real(-1, 1), random.real(-1, 1), 0);
+    raycaster.far = step * agent.movePerDay + 1;
     raycaster.set(agent.mesh.position, dir);
     let intersects = raycaster.intersectObjects(scene.children);
     if (intersects.length > 0) {
       let d = intersects[0];
       if (d.object.type === 'agent') {
-        let contactedAgent = agents[d.object.qId];
+        let contactedAgent = environment.getAgentById(d.object.qId);
         if (contactedAgent.states.illness === 'succeptible' || contactedAgent.states.illness === 'exposed') {
-          contactedAgent.pathogenLoad += jStat.normal.inv(random.real(0, 1), pathogen.shedRate * step, pathogen.shedRate * step);
+          contactedAgent.pathogenLoad += jStat.normal.inv(random.real(0, 1), pathogen.shedRate, pathogen.shedRate * 0.3);
           contactedAgent.lastInfectedContact = agent.id;
-          contactedAgent.responseProb = pathogen[pathogen.bestFitModel](contactedAgent.pathogenLoad);
+          contactedAgent.responseProb = step * pathogen[pathogen.bestFitModel](contactedAgent.pathogenLoad);
         }
       }
     }
   }
 };
 
+//contact using similar method to geo one below
+QActions.contactDis = function(step, agent){
+  let contactAttempts = agent.contactAttempts * step;
+  agent.newAttempt += contactAttempts;
+  if(agent.newAttempt < 1){
+    contactAttempts = 0;
+  }
+  if(agent.newAttempt >= 1){
+    agent.newAttempt = 0;
+    contactAttempts = 1;
+  }
+  if(contactAttempts > 0){
+    let near = QActions.within(step, agent, agents, step * agent.movePerDay + 1);
+    if (near.length > 0) {
+    for (var j = 0; j < contactAttempts; j++) {
+        agent.madeAttempts += 1;
+        var rand = random.integer(0, near.length - 1);
+        var contactedAgent = near[rand];
+        if (contactedAgent.mesh.type === 'agent') {
+          if (contactedAgent.states.illness === 'succeptible' || contactedAgent.states.illness === 'exposed') {
+            contactedAgent.pathogenLoad += jStat.normal.inv(random.real(0, 1), pathogen.shedRate, pathogen.shedRate * 0.3);
+            contactedAgent.lastInfectedContact = agent.id;
+            contactedAgent.responseProb = pathogen[pathogen.bestFitModel](contactedAgent.pathogenLoad);
+          }
+        }
+      }
+    }
+  }
+}
+
 //contact using turf within
 QActions.geoContact = function(step, agent) {
   var contactPoint;
   var buffer = turf.buffer(agent.location, step * agent.movePerDay, distUnits);
   var agentsWithinBuffer = turf.within(locations, buffer);
-  var numContacts = Math.round(agent.physContact * step);
+  var numContacts = Math.round(agent.contactAttempts * step);
   if (agentsWithinBuffer.features.length > 1) {
     for (var i = 0; i < numContacts; i++) {
       var rand = random.integer(0, agentsWithinBuffer.features.length - 1);
@@ -166,7 +212,7 @@ QActions.geoContact = function(step, agent) {
       if (contactedAgent.states.illness === 'succeptible') {
         contactedAgent.pathogenLoad += pathogen.shedRate * step;
         contactedAgent.lastInfectedContact = agent.id;
-        contactedAgent.responseProb = pathogen.doseResponse(contactedAgent.pathogenLoad);
+        contactedAgent.responseProb =  pathogen[pathogen.bestFitModel](contactedAgent.pathogenLoad);
       }
     }
   }

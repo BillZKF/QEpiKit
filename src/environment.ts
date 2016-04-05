@@ -109,9 +109,9 @@ module QEpiKit {
     /** Assign all agents to appropriate models
     */
     init() {
+      this._agentIndex = {};
       for (var c = 0; c < this.models.length; c++) {
         let alreadyIn = [];
-        this._agentIndex = {};
         //assign each agent model indexes to handle agents assigned to multiple models
         for (var d = 0; d < this.models[c].data.length; d++) {
           let id = this.models[c].data[d].id;
@@ -163,7 +163,6 @@ module QEpiKit {
           agent.time = agent.time + step || 0;
         })
       }
-
       if (this.activationType === "parallel") {
         let tempAgents = JSON.parse(JSON.stringify(this.agents));
         tempAgents.forEach((agent) => {

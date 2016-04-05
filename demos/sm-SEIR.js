@@ -1,29 +1,46 @@
 states = {
   'succeptible': function(step, agent) {
-    agent.mesh.material.color.set(0x00ff00);
+    //console.log(agent.pathogenLoad);
+    if(agent.type === 'spatial'){
+      agent.mesh.material.color.set(0x00ff00);
+    }
     agent.timeRecovered = 0;
     agent.timeInfectious = 0;
   },
   'exposed': function(step, agent) {
-    agent.mesh.material.color.set(0xff00ff);
-    if (agent.pathogenLoad > 0) {
+    if(agent.type === 'spatial'){
+      agent.mesh.material.color.set(0xff00ff);
+    }
+    if (agent.pathogenLoad > 1) {
       agent.responseProb = pathogen[pathogen.bestFitModel](agent.pathogenLoad);
-      agent.pathogenLoad -= pathogen.decayRate * Math.log(agent.pathogenLoad) * step;
+      agent.pathogenLoad = agent.pathogenLoad * (1 - pathogen.decayRate * step);
     } else {
       agent.responseProb = 0;
       agent.pathogenLoad = 0;
     }
   },
   'infectious': function(step, agent) {
-    infectious++;
-    agent.mesh.material.color.set(0xff0000);
+    if(typeof infectious === 'number'){
+      infectious++;
+    }
+
     agent.timeInfectious += jStat.normal.inv(random.real(0, 1), 1 * step, step);
     if(pathogen.personToPerson){
-      QActions.contact(step, agent);
+      if(agent.type === 'geospatial'){
+        QActions.geoContact(step, agent);
+      } else if(agent.type === 'spatial') {
+        agent.mesh.material.color.set(0xff0000);
+        QActions.contact(step, agent);
+      } else {
+        agent.mesh.material.color.set(0xff0000);
+        QActions.contactDis(step, agent);
+      }
     }
   },
   'removed': function(step, agent) {
-    agent.mesh.material.color.set(0x0000ff);
+    if(agent.type === 'spatial'){
+      agent.mesh.material.color.set(0x0000ff);
+    }
     if (agent.pathogenLoad > 2) {
       agent.pathogenLoad -= pathogen.decayRate * Math.log(agent.pathogenLoad) * step;
     } else {
