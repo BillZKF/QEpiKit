@@ -21,32 +21,38 @@ let boundaries = {
     bottom: 100
   },
   "waterPumps": {
-    left: 100,
-    right: 500,
-    top: 200,
-    bottom: 150
+    left: 50,
+    right: bounds[0] - 50,
+    top: 300,
+    bottom: 200
   },
   "bathrooms": {
     left: 10,
     right: bounds[0] - 10,
     top: bounds[1] - 1,
-    bottom: 250
+    bottom: 350
+  },
+  "people": {
+    left: 1,
+    right: bounds[0] - 1,
+    top: bounds[1] - 1,
+    bottom: 1
   }
 };
 
 function init(opts) {
   options = opts;
   let numAgents = options.numberOfAgents;
-  let numPumps = Math.ceil(options.numberOfAgents / 50);
+  let numPumps = Math.ceil(numAgents / 50);
+  let numBathrooms = Math.ceil(numAgents/ 25);
   let infectedAtStart = options.infectedAtStart;
-  raycaster.far = options.shedRange;
   step = options.step;
 
   pathogen = options.pathogen;
   pathogen.personToPerson = true;
   pathogen.fecalOral = true;
   pathogen.waterBorne = true;
-  pathogen.decayRate = 200;
+
   pathogen['beta-Poisson'] = function(dose) {
     let response = 1 - Math.pow((1 + (dose / pathogen.N50) * (Math.pow(2, (1 / pathogen.optParam)) - 1)), (-pathogen.optParam));
     return response;
@@ -76,47 +82,11 @@ function init(opts) {
   }
   QUtils.arrangeEvenWithin(tents, 5, 5, boundaries.tents);
 
-  for (let i = 0; i < numAgents; i++) {
-    let mesh = new THREE.Mesh(new THREE.TetrahedronGeometry(1, 1), new THREE.MeshBasicMaterial({
-      color: 0x00ff00
-    }));
-    agents[i] = {
-      id: i,
-      type: 'agent',
-      waterPump: null,
-      bathroom: null,
-      inQueue: false,
-      age: Math.round(random.real(0, 1) * 100) + 3,
-      pathogenLoad: 0,
-      states: {
-        illness: 'succeptible'
-      },
-      prevX: 0,
-      prevY: 0,
-      useTime: 0,
-      timeInfectious: 0,
-      timeRecovered: 0,
-      gPerDayExcrete: 0.15,
-      needsBathroom: random.real(0,0.9),
-      needsSleep: 0,
-      mesh: mesh
-    };
-    agents[i].tent = tents[Math.floor(i / 5)];
-    agents[i].physContact = -0.0135 * (Math.pow(agents[i].age - 43, 2)) + 8;
-    agents[i].movePerDay = 350 - Math.abs(43 - agents[i].age) / 43 * 350 + 500;
-    setDailyWater(agents[i]); //sets the daily requirement and consumption rate.
-    agents[i].mesh.qId = i;
-    agents[i].mesh.type = 'agent';
-    agents[i].mesh.position.x = random.real(0, 1) * bounds[0];
-    agents[i].mesh.position.y = random.real(0, 1) * bounds[1];
-    scene.add(agents[i].mesh);
-  }
-
   for (var wp = 0; wp < numPumps; wp++) {
     waterPumps[wp] = {
       id: wp,
       working: true,
-      wait: 0.005,
+      wait: 0.00005,
       capacity: 1,
       queue: [],
       pathConc: 0
@@ -125,19 +95,19 @@ function init(opts) {
       color: 0x00aacc
     }));
     waterPumps[wp].mesh.type = 'pump';
-    waterPumps[wp].mesh.position.x = boundaries.waterPumps.right * random.real(0, 1) + boundaries.waterPumps.left;
-    waterPumps[wp].mesh.position.y = boundaries.waterPumps.top * random.real(0, 1) + boundaries.waterPumps.bottom;
+    waterPumps[wp].mesh.position.x =  random.real(boundaries.waterPumps.left, boundaries.waterPumps.right);
+    waterPumps[wp].mesh.position.y =  random.real(boundaries.waterPumps.bottom, boundaries.waterPumps.top) ;
     scene.add(waterPumps[wp].mesh);
   }
 
-  var numBathrooms = Math.ceil(agents.length / 25);
+
   for (var b = 0; b < numBathrooms; b++) {
     bathrooms[b] = {
       id: b,
-      wait: 0.005,
+      wait: 0.00005,
       label: "ventilated improved pit latrine",
       working: true,
-      capacity: 0.01,
+      capacity: 0.1, //cubic meter
       queue: [],
       useCapacity: 2,
       use: [],
@@ -145,19 +115,25 @@ function init(opts) {
       units: "m3",
       pathConc: 0,
       status: 0
-    }
+    };
     bathrooms[b].mesh = new THREE.Mesh(new THREE.CubeGeometry(7, 7, 0.5), new THREE.MeshBasicMaterial({
       color: 0x4444ff
     }));
     scene.add(bathrooms[b].mesh);
   }
-  QUtils.arrangeEvenWithin(bathrooms, 7, 8, boundaries.bathrooms)
+  QUtils.arrangeEvenWithin(bathrooms, 7, 8, boundaries.bathrooms);
 
 
   for (var r = 0; r < infectedAtStart; r++) {
     var rIndex = Math.floor(waterPumps.length * random.real(0, 1));
     waterPumps[rIndex].pathConc = pathogen.shedRate;
   }
+
+  let optionParams = SEIRparams;
+  optionParams = optionParams.concat(BasicNeedsParams);
+  let results = QUtils.generatePop(numAgents, optionParams);
+  agents = results[0];
+  agents.forEach((agent, i) => {agent.tent = tents[Math.floor(i / 5)];});
 
   Sys = new QEpiKit.USys('camp', [oBathroom, oWater, oIdle, oSleep], agents);
   SEIRModel = new QEpiKit.StateMachine('seir-model', states, transitions, conditions, agents);

@@ -1,6 +1,6 @@
 module QEpiKit {
   /**Batch run environments
-  *
+  * 
   */
   export class Experiment {
     public environment: Environment;

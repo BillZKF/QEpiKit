@@ -1,6 +1,5 @@
 states = {
   'succeptible': function(step, agent) {
-    //console.log(agent.pathogenLoad);
     if(agent.type === 'spatial'){
       agent.mesh.material.color.set(0x00ff00);
     }
@@ -20,11 +19,11 @@ states = {
     }
   },
   'infectious': function(step, agent) {
-    if(typeof infectious === 'number'){
-      infectious++;
-    }
     if(agent.type === 'spatial'){
       agent.mesh.material.color.set(0xff0000);
+    }
+    if(typeof infectious === 'number'){
+      infectious++;
     }
     agent.timeInfectious += jStat.normal.inv(random.real(0, 1), 1 * step, step);
     if(pathogen.personToPerson){
@@ -94,3 +93,22 @@ transitions = [{
   from: 'removed',
   to: 'succeptible'
 }];
+
+//add these parameters to each agent
+SEIRparams = [
+  {name:'contactAttempts',
+   assign: function(agent){
+     //how many physical contacts per day: mean 10 sd 4 with a floor of 1
+    return Math.max(1, jStat.normal.inv(random.real(0,1), 10, 4));
+  }},
+  {name:'newAttempt', assign:0},
+  {name:'madeAttempts', assign:0},
+  {name:'pathogenLoad', assign:0},
+  {name:'responseProb', assign:0},
+  {name:'timeInfectious', assign:0},
+  {name:'timeRecovered', assign:0},
+  {name:'states', assign: function(agent){
+      return {'illness':'succeptible'};
+    }
+  }
+];

@@ -16,7 +16,12 @@
 </head>
 <div id="ex-1" class="full-window"></div>
 <div class="container">
-  <h1>Visual Camp Example</h1>
+  <h1>Visual Camp Waterborne Example Using Refbook</h1>
+  <ul>
+    <li>top, dark blue = bathrooms (0.25 m3 pit latrine)</li>
+    <li>middle, med blue = waterpumps</li>
+    <li>bottom, light blue = tents (5 per person)</li>
+  </ul>
   <div class="col-10">
     <button onclick="setOptions()">Run</button>
     <div id="status"></div>
@@ -28,22 +33,22 @@
   <input type="number" id="N50" />
   <label>Optimized Parameter</label>
   <input type="number" id="opt-param" />
-  <label>Decay Rate</label>
-  <input type="number" id="decay-rate" value=300 />
-  <label>Shed Rate</label>
-  <input type="number" id="shed-rate" value=1000 />
+  <label>Reduction % per day</label>
+  <input type="number" id="decay-rate" value=0.8 />
+  <label>Shed Rate (conc. per liter)</label>
+  <input type="number" id="shed-rate" value=50 />
   <label>Recovery Time</label>
   <input type="number" id="recovery-time" value=6 />
   <label>Step</label>
-  <input type="number" id="model-step" value=0.001 max=1/>
+  <input type="number" id="model-step" value=0.00001 max=1/>
   <label>Population</label>
-  <input type="number" id="number-agents" value=700 max=3000/>
-  <label>Number infected cows at start</label>
+  <input type="number" id="number-agents" value=700 max=1000/>
+  <label>Number infected waterpumps</label>
   <input type="number" id="number-at-start" value=1 step=1/>
-  <label>Shed Range</label>
+  <label>(not used) Shed Range</label>
   <input type="number" id="shed-range" value=3 max=5 step=0.1/>
-  <label>Mutation Rate</label>
-  <input type="number" id="mutation-time" value=14 max=30 step=1/>
+  <label>resucceptible in n days</label>
+  <input type="number" id="mutation-time" value=6 max=30 step=1/>
 </div>
 </div>
 </div>

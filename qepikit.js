@@ -664,7 +664,7 @@ var QEpiKit;
             this.plans = params;
         };
         return Experiment;
-    })();
+    }());
     QEpiKit.Experiment = Experiment;
 })(QEpiKit || (QEpiKit = {}));
 //# sourceMappingURL=experiment.js.map

@@ -11,6 +11,7 @@ QActions.findClosest = function(step, agent, array, key) {
   })
 }
 
+//find n closest in array. example: find the second closest bathroom.
 QActions.findNClosest = function(step, n, agent, array, key) {
   let closest = 1e15;
   let dist = array.map(function(d) {
@@ -25,7 +26,7 @@ QActions.findNClosest = function(step, n, agent, array, key) {
   return array[nClosest];
 }
 
-//check what elements of an array are within distance
+//check return subset of array of elements within distance
 QActions.within = function(step, agent, array, distance) {
   let within = [];
   for (let i = 0; i < array.length; i++) {
@@ -48,12 +49,13 @@ QActions.useFacility = function(step, agent, facilities, key, success) {
     let nChoice = 1;
     while (!agent.inQueue && nChoice < facilities.length) {
       let waitLine = agent[key].queue.length * agent[key].wait;
-      let waitTravel = distToFacil / agent.movePerDay;
+      let waitTravel = distToFacil /( agent.movePerDay * step);
       //if not inline see if the wait is long
       if (waitLine < waitTravel) {
         agent[key].queue.push(agent.id);
         agent.inQueue = true;
       } else {
+        //if it is pick a different bathroom;
         nChoice++;
         agent[key] = QActions.findNClosest(step, nChoice, agent, facilities);
         distToFacil = agent.mesh.position.distanceTo(agent[key].mesh.position);
@@ -63,7 +65,7 @@ QActions.useFacility = function(step, agent, facilities, key, success) {
   if (agent.inQueue) {
     //once in line
     if (agent[key].queue[0] === agent.id) {
-      if (distToFacil > 1 || agent.useTime < agent[key].wait) {
+      if (distToFacil > 0.1 || agent.useTime < agent[key].wait) {
         QActions.moveTo(step, agent, agent[key]);
         agent.useTime += step;
       } else {
@@ -81,7 +83,7 @@ QActions.useFacility = function(step, agent, facilities, key, success) {
   }
 };
 
-//more convincing looking move randomly
+//more convincing looking random move, but it makes no sense
 QActions.rmove = function(step, agent) {
   var dx = step * (agent.movePerDay * random.real(-1, 1) + (agent.prevX * 0.90));
   var dy = step * (agent.movePerDay * random.real(-1, 1) + (agent.prevY * 0.90));
@@ -95,11 +97,11 @@ QActions.rmove = function(step, agent) {
 //move randomly
 QActions.move = function(step, agent) {
   let d = step * agent.movePerDay;
-  let dir = Math.atan2(random.real(-0.8, 0.8) + agent.prevX * 0.95, random.real(-0.8, 0.8) + agent.prevY * 0.95);
+  let dir = Math.atan2(random.real(-0.5, 0.5) + agent.prevX * 0.5, random.real(-0.5, 0.5) + agent.prevY * 0.5);
   let dVec = new THREE.Vector3(Math.sin(dir), Math.cos(dir), 0);
   agent.mesh.position.x += dVec.x * d;
   agent.mesh.position.y += dVec.y * d;
-  //agent.mesh.rotation.z = Math.atan2(dx, dy);
+  //agent.mesh.rotation.z = Math.atan2(dVec.x, dVec.y); this screws up cylinders
   agent.prevX = dVec.x;
   agent.prevY = dVec.y;
 };
@@ -111,6 +113,8 @@ QActions.moveTo = function(step, agent, destination) {
     let dVec = new THREE.Vector3(Math.sin(dir), Math.cos(dir), 0);
     agent.mesh.position.x += dVec.x * d;
     agent.mesh.position.y += dVec.y * d;
+  } else {
+    agent.mesh.position.copy(destination.mesh.position);
   }
 };
 
@@ -178,22 +182,29 @@ QActions.contact = function(step, agent) {
   }
 };
 
-//contact using similar method to geo one below
+/**
+*discrete contacts using similar method to geo one below
+*limits the number of contact attempts per day to the contactAttempts param (~10).
+*probably could be fixed
+*/
 QActions.contactDis = function(step, agent) {
   let contactAttempts = agent.contactAttempts * step;
+  //if step size < 1 accumalate until newAttempt > 1
   agent.newAttempt += contactAttempts;
+
   if (agent.newAttempt < 1) {
     contactAttempts = 0;
   }
   if (agent.newAttempt >= 1) {
+    //new attempt is greater than 1
     contactAttempts = 1;
   }
   if (contactAttempts > 0) {
+    agent.newAttempt = 0;
+    agent.madeAttempts += 1;
     let near = QActions.within(step, agent, agents, step * agent.movePerDay + 1);
     if (near.length > 0) {
       for (var j = 0; j < contactAttempts; j++) {
-        agent.newAttempt = 0;
-        agent.madeAttempts += 1;
         var rand = random.integer(0, near.length - 1);
         var contactedAgent = near[rand];
         if (contactedAgent.mesh.type === 'agent') {
@@ -228,9 +239,9 @@ QActions.geoContact = function(step, agent) {
   }
 };
 QActions.excrete = function(step, agent, destination) {
-  destination.status += agent.gPerDayExcrete * 0.001;
+  destination.status += agent.kgPerDayExcrete * 0.001;
   if (pathogen.fecalOral) {
-    destination.pathConc += agent.pathogenLoad / agent.gPerDayExcrete * step / (destination.capacity * 1000);
+    destination.pathConc += agent.pathogenLoad / agent.kgPerDayExcrete * step / (destination.capacity * 1000);
   }
   agent.needsBathroom = 0;
   if (destination.status > destination.capacity) {
@@ -250,7 +261,7 @@ QActions.waitInLine = function(step, agent, destination) {
   } else {
     target = environment.getAgentById(destination.queue[placeInLine - 1]);
   }
-  if (agent.mesh.position.distanceTo(target.mesh.position) > 2) {
+  if (agent.mesh.position.distanceTo(target.mesh.position) > 1) {
     QActions.moveTo(step, agent, target);
   }
 };
@@ -264,11 +275,11 @@ QActions.drink = function(step, agent) {
 QActions.getWater = function(step, agent, watersource) {
   agent.waterAvailable += agent.dailyWaterRequired * 0.333; //needs to get water 3 times a day
   if (pathogen.waterBorne) {
-    agent.waterPathConcentration += watersource.pathConc * (agent.waterAvailable / 1000);
+    agent.waterPathConcentration += watersource.pathConc * agent.waterAvailable;
   }
 };
 QActions.checkWater = function(step, agent, watersource) {
-  if (agent.waterAvailable < 1) {
+  if (agent.waterAvailable < agent.dailyWaterRequired * step) {
     QActions.getWater(step, agent, watersource);
   } else {
     if (random.real(0, 1) > 0.75) {
@@ -277,7 +288,7 @@ QActions.checkWater = function(step, agent, watersource) {
   }
 };
 QActions.findWater = function(step, agent, watersources, key) {
-  if (agent.waterAvailable < 1) {
+  if (agent.waterAvailable < agent.dailyWaterRequired * step) {
     QActions.findClosest(step, agent, watersources, key);
     QActions.getWater(step, agent, agent[key]);
   } else {

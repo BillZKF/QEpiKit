@@ -1,233 +1,26 @@
 <html>
-
 <head>
-  <link href="libs/prism.css" rel="stylesheet"></link>
-  <link href="../bower_components/leaflet/dist/leaflet.css" rel="stylesheet"></link>
-  <link href="../bower_components/leaflet.markercluster/dist/MarkerCluster.Default.css" rel="stylesheet"></link>
-  <link href="../bower_components/leaflet.markercluster/dist/MarkerCluster.css" rel="stylesheet"></link>
   <link href="qepikit-render-style.css" rel="stylesheet"></link>
   <link href="style.css" rel="stylesheet"></link>
-  <script type='text/javascript' src='libs/prism.js'></script>
-  <script src="../bower_components/leaflet/dist/leaflet.js"></script>
-  <script src="../bower_components/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
-  <script src="../bower_components/d3/d3.min.js"></script>
-  <script src="../qepikit.js"></script>
-  <script src="qepikit-renderer.js"></script>
-  <script type='text/javascript' src='../bower_components/random/lib/random.min.js'></script>
 </head>
-<h1>Demos / Quickstart tutorial</h1>
+<h1>Demos</h1>
 <div class="container">
 <h2>Visual Examples</h2>
   <ul>
   <li><a href="visual-p2p-example.html">Person to Person Example</a></li>
-  <li><a href="visual-waterborne-example.html">Waterborne Illness Example</a></li>
-  <li><a href="visual-vectorborne-example.html">Vector Borne Example</a></li>
+  <li><a href="visual-camp-example.html">Waterborne Example</a></li>
+  <li><a href="visual-vectorborne-example.html">Vector-borne Example</a></li>
   <li><a href="visual-zoonotic-example.html">Animal to Water to Person Example</a></li>
-  <li><a href="visual-camp-example.html">Camp Example</a></li>
+
 </ul>
 <h2>Geospatial Examples</h2>
   <ul>
-  <li><a href="geo-waterborne-example.html">Waterborne Illness Example</a></li>
   <li><a href="geo-p2p-example.html">Person to Person Example</a></li>
-  <li><a href="geo-vectorborne-example.html">Vector Borne Example</a></li>
-  <li><a href="geo-zoonotic-example.html">Animal to Water to Person Example</a></li>
-  <li><a href="geo-camp-example.html">Camp Example</a></li>
-</ul>
+  </ul>
 <h2>Graph / Network Examples</h2>
   <ul>
-  <li><a href="geo-waterborne-example.html">Waterborne Illness Example</a></li>
-  <li><a href="geo-p2p-example.html">Person to Person Example</a></li>
-  <li><a href="geo-vectorborne-example.html">Vector Borne Example</a></li>
-  <li><a href="geo-zoonotic-example.html">Animal to Water to Person Example</a></li>
-  <li><a href="geo-camp-example.html">Camp Example</a></li>
-</ul>
+  </ul>
 <h2>Batch run / Experiment Examples</h2>
   <ul>
-  <li><a href="geo-waterborne-example.html">Waterborne Illness Example</a></li>
   <li><a href="geo-p2p-example.html">Person to Person Example</a></li>
-  <li><a href="geo-vectorborne-example.html">Vector Borne Example</a></li>
-  <li><a href="geo-zoonotic-example.html">Animal to Water to Person Example</a></li>
-  <li><a href="geo-camp-example.html">Camp Example</a></li>
-</ul>
-  <h1>Quickstart</h1>
-  <p>
-    In this example we'll create a simple SIR model abm of an Influenza-like illness in about 150 lines of code. Our main goal in this tutorial is to introduce some of the concepts within the QEpiKit library. In the next section we'll talk about running the
-    models in batches, using real world data, and some of the other features we can use. First we'll load QEpiKit and some additional libraries.
-  </p>
-  <h4 id="data-ex-1"></h4>
-</div>
-<div id="map-ex-1" style="height:260px"></div>
-</div>
-<div class="container">
-  <pre data-src="base-example1.js">
-    <code class="language-javascript">
-      importScripts('../qepikit.js', '../node_modules/turf/turf.min.js', '../bower_components/random/lib/random.min.js');
-      //use a mersene twister for pseudo-random number generation
-      var seed = 0x12345678;
-      var random = new Random(Random.engines.mt19937().seedWithArray([seed, 0x90abcdef]));
-      var distUnits = "miles";
-    </code>
-  </pre>
-  <p>
-    Next we'll generate a bunch of "agents". In this example we'll include just a few properties: sex, age, pathogen load, and state.illness. The "state" property is a javascript object with it's own property, "illness". In a more sophisticated example, we
-    could assign multiple states of different types.
-  </p>
-  <pre data-src="base-example1.js">
-    <code class="language-javascript">
-      var generatePopulation = function(numAgents, infectedAtStart) {
-        var pop = [];
-        var locs = turf.random('points', numAgents, {
-          bbox: [-75.1867, 39.9900, -75.1467, 39.9200] //randomly place points within this geobounding box
-        });
-        for (var a = 0; a < numAgents; a++) {
-          pop[a] = {
-            id: a,
-            sex: random.pick(['male', 'female']),
-            age: random.integer(0,85),
-            pathogenLoad: 0,
-            states: {
-              illness: 'succeptible'
-            },
-            timeInfectious: 0,
-            location: locs.features[a]
-          };
-          pop[a].location.properties.agentRefID = pop[a].id;
-          pop[a].moveRate = 4 - (Math.abs(43 - pop[a].age) / 43 * 4); // low movement rates for children and older people.
-          pop[a].physContact = (-pop[a].age - 3) * 0.05 + 120; // physical contact high for children, low for almost everyone else.
-        }
-        for (var r = 0; r < infectedAtStart; r++) {
-          var rIndex = random.integer(0, numAgents - 1);
-          pop[r].states.illness = 'infectious';
-          pop[r].pathogenLoad = 1e4;
-        }
-        return [pop, locs];
-      };
-    </code>
-  </pre>
-  <p>We're going to include a dose response model used in the Quantative Microbial Risk Assement framework to assign probabilities of infection based on pathogen load property defined above.</p>
-  <pre data-src="base-example1.js">
-    <code class="language-javascript">
-      //this is based on information about influenza
-      var pathogen = {
-        N50: 9.45e4,
-        shedRate: 7000,
-        recoveryTime: 6,
-        doseResponse: function(dose) {
-          var response = 1 - Math.pow((1 + (dose / this.N50) * (Math.pow(2, (1 / 5.81e-1)) - 1)), (-5.81e-1));
-          return response;
-        }
-      };
-    </code>
-  </pre>
-  <p>
-    Then we'll need to define the behavior of the agents. We're going to follow a 'state machine' pattern, and use QEpiKit's state machine class. There are a number of patterns / classes we could use, but this may be the most straight forward to start. This
-    means defining the actions performed in each state: 'succeptible', 'infectious', and 'removed'.
-  </p>
-  <pre data-src="base-example1.js">
-    <code class="language-javascript">
-      //some actions are shared across states.
-      var actions = {
-        move: function(step, agent) {
-          var randomBearing = random.integer(-180, 180);
-          var dest = turf.destination(agent.location, step * agent.moveRate, randomBearing, distUnits);
-          agent.location = dest;
-        },
-        contact: function(step, agent) {
-          var buffer = turf.buffer(agent.location, step * agent.moveRate, distUnits);
-          var agentsWithinBuffer = turf.within(locations, buffer);
-          var numContacts = Math.round(agent.physContact * step);
-          if (agentsWithinBuffer.features.length > 1) {
-            for (var i = 0; i < numContacts; i++) {
-              var rand = random.integer(0, agentsWithinBuffer.features.length - 1);
-              var randContact = agentsWithinBuffer.features[rand].properties.agentRefID;
-              var contactedAgent = population[randContact];
-              if (contactedAgent.states.illness === 'succeptible') {
-                contactedAgent.pathogenLoad += pathogen.shedRate * step;
-                contactedAgent.lastInfectedContact = agent.id;
-                contactedAgent.responseProb = pathogen.doseResponse(contactedAgent.pathogenLoad);
-              }
-            }
-          }
-        }
-      };
-
-      //at each step, based on the agent's current state, do one of these.
-      var states = {
-        'succeptible': function(step, agent) {
-          actions.move(step, agent);
-        },
-        'infectious': function(step, agent) {
-          actions.move(step, agent);
-          actions.contact(step, agent);
-          agent.timeInfectious += 1 * step;
-        },
-        'removed': function(step, agent) {
-          actions.move(step, agent);
-        }
-      };
-
-      //at each step, check if any of these conditions are met.
-      var conditions = {
-        'infection': {
-          key: 'responseProb',
-          value: function() {
-            random.real(1e-5, 1);
-          },
-          check: QEpiKit.Utils.gt
-        },
-        'recovery': {
-          key: 'timeInfectious',
-          value: pathogen.recoveryTime,
-          check: QEpiKit.Utils.gt
-        }
-      };
-
-      //transitions specify what happens if a condition is met.
-      var transitions = [{
-        name: 'infection',
-        from: 'succeptible',
-        to: 'infectious'
-      }, {
-        name: 'recovery',
-        from: 'infectious',
-        to: 'removed'
-      }];
-</code>
-</pre>
-</div>
-<script>
-if (typeof Worker !== 'undefined ') {
-  baseExWorker1 = new Worker('base-example1.js ');
-  baseExWorker1.onmessage = function(event) {
-    console.log(event.data);
-    exampleHistory1 = event.data[1];
-    locations1 = event.data[2];
-    startCenter = locations1[0].geometry.coordinates;
-    mapEx1 = L.map('map-ex-1').setView([startCenter[1], startCenter[0]], 13);
-    L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
-      attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
-      maxZoom: 18,
-      id: 'wzkflynn.dace8f89',
-      accessToken: 'pk.eyJ1Ijoid3prZmx5bm4iLCJhIjoiNjk0ZGM2ZDVmYTc1OWZjZDE4ZjE5NGQxMmIxN2ZiYTMifQ.iE0_Yuq1EJXoeEL5WhD7vg'
-    }).addTo(mapEx1);
-    var markers = new L.MarkerClusterGroup();
-    var geoJSONLayer = L.geoJson(locations1, {
-      onEachFeature: function(feature, layer) {
-        layer.bindPopup('<div><p>source:' + feature.properties.src + '</p><p>target: ' + feature.properties.target + '</p><p>srcAge: ' + feature.properties.srcAge + '</p><p>targetAge: ' + feature.properties.targetAge + '</p><p>time: ' + feature.properties.time + '</p><p>p of response: ' + feature.properties.responseProb + '</p></div>');
-      }
-    });
-    markers.addLayer(geoJSONLayer);
-    mapEx1.addLayer(markers);
-    mapEx1.fitBounds(markers.getBounds());
-    var a = d3.csv.format(exampleHistory1);
-    var csvURI = "data:text/csv;charset=utf-8," + encodeURI(a);
-    var link = document.createElement("a");
-    link.setAttribute("href", csvURI);
-    link.setAttribute("download", "qepikit_example_1.csv");
-    link.innerHTML = "CSV file";
-    document.getElementById('data-ex-1').appendChild(link);
-  }
-  } else {
-  document.getElementById('web-worker-msg').innerHTML = "<h4 style='background-color:#f00'>You need to use a browser (or machine) that supports web-workers</h4>"
-  }
-</script>
+  </ul>

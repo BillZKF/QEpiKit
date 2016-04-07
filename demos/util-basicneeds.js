@@ -1,7 +1,24 @@
+//assign each params
+BasicNeedsParams = [
+  {name:'bathroom', assign: null},
+  {name:'waterPump', assign: null},
+  {name:'tent', assign:null},
+  {name:'inQueue', assign: false},
+  {name:'useTime', assign: 0.000013},
+  {name:'kgPerDayExcrete', assign: 0.15},
+  {name:'needsBathroom', assign: function(agent){return random.real(0, 0.9);}},
+  {name:'needsSleep', assign: 0},
+  {name:'dailyWaterRequired', assign: function(agent){return random.real(0, 1.5);}},
+  {name:'waterPathConcentration', assign: 0},
+  {name:'waterAvailable', assign:function(agent){
+    return random.real(0, 1);
+  }},
+];
+
 cBored = {
   name: 'bored',
   x: function(subject, optionParams) {
-    return 0.8;
+    return 1 - subject.needsSleep;
   },
   extents: [0, 1],
   f: QEpiKit.linear,
@@ -14,9 +31,9 @@ oIdle = {
   name: 'idle',
   considerations: [cBored],
   action: function(step, person) {
-    QActions.move(step, person);
+    QActions.moveWithin(step, person, boundaries.people);
     QActions.drink(step, person);
-    person.needsSleep += step * 2;
+    person.needsSleep += step * 1.5;
   }
 };
 
@@ -43,9 +60,9 @@ oBathroom = {
 cNeedWater = {
   name: 'needWater',
   x: function(subject, optionParams) {
-    return Math.min(1, 1 - subject.waterAvailable / this.extents[1]);
+    return Math.min(1, 1 - subject.waterAvailable);
   },
-  extents: [0, 3000],
+  extents: [0, 1],
   f: QEpiKit.linear,
   m: 1,
   b: 0,

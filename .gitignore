@@ -1,7 +1,6 @@
 bin/
 obj/
 docs/
-dist/
 coverage/
 node_modules/
 bower_components/

@@ -1,5 +1,4 @@
-'use strict'
-let prefModels = [];
+'use strict';
 const myHeaders = new Headers();
 
 const cors = {
@@ -9,6 +8,8 @@ const cors = {
   cache: 'default'
 };
 const baseURL = `http://104.131.48.182:3000/`;
+let prefModels = [];
+
 window.fetch(`${baseURL}api/dataset/56e6fea96612902d330ae763`, cors).then(function (res) {
   return res.json();
 }).then(function (json) {

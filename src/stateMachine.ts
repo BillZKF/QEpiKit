@@ -6,7 +6,7 @@ module QEpiKit {
     public transitions: any[];
     public conditions: any;
     public data: any[];
-    public results: any[];
+    public results: any[]; 
 
     constructor(name: string, states: any, transitions: any[], conditions: any, data: any[]) {
       super(name);
