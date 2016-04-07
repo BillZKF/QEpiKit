@@ -25,7 +25,6 @@ function init(options) {
 
   pathogen = options.pathogen;
   pathogen.personToPerson = true;
-  pathogen.decayRate = 200;
   pathogen['beta-Poisson'] = function(dose) {
     let response = 1 - Math.pow((1 + (dose / pathogen.N50) * (Math.pow(2, (1 / pathogen.optParam)) - 1)), (-pathogen.optParam));
     return response;

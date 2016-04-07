@@ -44,7 +44,7 @@ function init(options){
     }));
     agents[i] = {
       id: i,
-      type: 'agent',
+      type: 'spatial',
       age: Math.round(random.real(0, 1) * 100) + 3,
       pathogenLoad: 0,
       states: {
@@ -65,8 +65,8 @@ function init(options){
     agents[i].movePerDay = 350 - Math.abs(43 - agents[i].age) / 43 * 350 + 500;
     agents[i].mesh.qId = i;
     agents[i].mesh.type = 'agent';
-    agents[i].mesh.position.x = random.real(boundaries.people.left, boundaries.people.right);
-    agents[i].mesh.position.y = random.real(boundaries.people.bottom, boundaries.people.top);
+    agents[i].mesh.position.x = random.real(boundaries.people.left + 1, boundaries.people.right);
+    agents[i].mesh.position.y = random.real(boundaries.people.bottom + 1, boundaries.people.top);
     scene.add(agents[i].mesh);
   }
 
@@ -140,7 +140,6 @@ function init(options){
     name:'personMovement',
     data: agents,
     update: function(agent, step){
-      //QActions.checkWater(step, agent, water);
       QActions.moveWithin(step, agent, boundaries.people);
       if(pathogen.vectorBorne){
         let dist = agent.mesh.position.distanceTo(mainPatch.mesh.position);

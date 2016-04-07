@@ -23,16 +23,14 @@ states = {
     if(typeof infectious === 'number'){
       infectious++;
     }
-
+    if(agent.type === 'spatial'){
+      agent.mesh.material.color.set(0xff0000);
+    }
     agent.timeInfectious += jStat.normal.inv(random.real(0, 1), 1 * step, step);
     if(pathogen.personToPerson){
       if(agent.type === 'geospatial'){
         QActions.geoContact(step, agent);
-      } else if(agent.type === 'spatial') {
-        agent.mesh.material.color.set(0xff0000);
-        QActions.contact(step, agent);
       } else {
-        agent.mesh.material.color.set(0xff0000);
         QActions.contactDis(step, agent);
       }
     }
@@ -41,10 +39,11 @@ states = {
     if(agent.type === 'spatial'){
       agent.mesh.material.color.set(0x0000ff);
     }
-    if (agent.pathogenLoad > 2) {
-      agent.pathogenLoad -= pathogen.decayRate * Math.log(agent.pathogenLoad) * step;
+    if (agent.pathogenLoad > 1) {
+      agent.pathogenLoad -= agent.pathogenLoad * (1 - pathogen.decayRate * step);
     } else {
       agent.pathogenLoad = 0;
+      agent.responseProb = 0;
     }
     agent.timeRecovered += 1 * step;
   }

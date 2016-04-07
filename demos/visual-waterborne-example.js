@@ -44,7 +44,7 @@ function init(opts) {
     }));
     agents[i] = {
       id: i,
-      type: 'agent',
+      type: 'spatial',
       age: Math.round(random.real(0, 1) * 100) + 3,
       pathogenLoad: 0,
       states: {

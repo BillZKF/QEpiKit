@@ -25,11 +25,12 @@ QActions.findNClosest = function(step, n, agent, array, key) {
   return array[nClosest];
 }
 
-QActions.within = function(step, agent, array, distance){
+//check what elements of an array are within distance
+QActions.within = function(step, agent, array, distance) {
   let within = [];
-  for(let i = 0; i < array.length; i++){
-    if(agent.mesh.position.distanceTo(array[i].mesh.position) < distance){
-      if(array[i].id !== agent.id ){
+  for (let i = 0; i < array.length; i++) {
+    if (agent.mesh.position.distanceTo(array[i].mesh.position) < distance) {
+      if (array[i].id !== agent.id) {
         within.push(array[i]);
       }
     }
@@ -80,8 +81,8 @@ QActions.useFacility = function(step, agent, facilities, key, success) {
   }
 };
 
-//move randomly
-QActions.move = function(step, agent) {
+//more convincing looking move randomly
+QActions.rmove = function(step, agent) {
   var dx = step * (agent.movePerDay * random.real(-1, 1) + (agent.prevX * 0.90));
   var dy = step * (agent.movePerDay * random.real(-1, 1) + (agent.prevY * 0.90));
   agent.mesh.position.y += dx;
@@ -89,6 +90,18 @@ QActions.move = function(step, agent) {
   agent.mesh.rotation.z = Math.atan2(dx, dy);
   agent.prevX = dx / step;
   agent.prevY = dy / step;
+};
+
+//move randomly
+QActions.move = function(step, agent) {
+  let d = step * agent.movePerDay;
+  let dir = Math.atan2(random.real(-0.8, 0.8) + agent.prevX * 0.95, random.real(-0.8, 0.8) + agent.prevY * 0.95);
+  let dVec = new THREE.Vector3(Math.sin(dir), Math.cos(dir), 0);
+  agent.mesh.position.x += dVec.x * d;
+  agent.mesh.position.y += dVec.y * d;
+  //agent.mesh.rotation.z = Math.atan2(dx, dy);
+  agent.prevX = dVec.x;
+  agent.prevY = dVec.y;
 };
 
 QActions.moveTo = function(step, agent, destination) {
@@ -103,28 +116,25 @@ QActions.moveTo = function(step, agent, destination) {
 
 //move randomly within a rectangle
 QActions.moveWithin = function(step, agent, boundary) {
-
-  var dx = step * (agent.movePerDay * random.real(-1, 1) + (agent.prevX * 0.90));
-  var dy = step * (agent.movePerDay * random.real(-1, 1) + (agent.prevY * 0.90));
-  var nextX = agent.mesh.position.x + dx;
-  var nextY = agent.mesh.position.y + dy;
-  if (nextX > boundary.right) {
-    dx = 0;
+  let d = step * agent.movePerDay;
+  var current = new THREE.Vector3().copy(agent.mesh.position);
+  QActions.move(step, agent);
+  if (agent.mesh.position.x > boundary.right) {
+    agent.mesh.position.x = current.x;
+    agent.prevX = 0;
   }
-  if (nextX < boundary.left) {
-    dx = 0;
+  if (agent.mesh.position.x < boundary.left) {
+    agent.mesh.position.x = current.x;
+    agent.prevX = 0;
   }
-  if (nextY > boundary.top) {
-    dy = 0;
+  if (agent.mesh.position.y > boundary.top) {
+    agent.mesh.position.y = current.y;
+    agent.prevY = 0;
   }
-  if (nextY < boundary.bottom) {
-    dy = 0;
+  if (agent.mesh.position.y < boundary.bottom) {
+    agent.mesh.position.y = current.y;
+    agent.prevY = 0;
   }
-  agent.mesh.position.x += dx;
-  agent.mesh.position.y += dy;
-  //agent.mesh.rotation.z = Math.atan2(dx, dy);
-  agent.prevX = dx / step;
-  agent.prevY = dy / step;
 };
 
 //move randomly using geo solvers
@@ -169,20 +179,20 @@ QActions.contact = function(step, agent) {
 };
 
 //contact using similar method to geo one below
-QActions.contactDis = function(step, agent){
+QActions.contactDis = function(step, agent) {
   let contactAttempts = agent.contactAttempts * step;
   agent.newAttempt += contactAttempts;
-  if(agent.newAttempt < 1){
+  if (agent.newAttempt < 1) {
     contactAttempts = 0;
   }
-  if(agent.newAttempt >= 1){
-    agent.newAttempt = 0;
+  if (agent.newAttempt >= 1) {
     contactAttempts = 1;
   }
-  if(contactAttempts > 0){
+  if (contactAttempts > 0) {
     let near = QActions.within(step, agent, agents, step * agent.movePerDay + 1);
     if (near.length > 0) {
-    for (var j = 0; j < contactAttempts; j++) {
+      for (var j = 0; j < contactAttempts; j++) {
+        agent.newAttempt = 0;
         agent.madeAttempts += 1;
         var rand = random.integer(0, near.length - 1);
         var contactedAgent = near[rand];
@@ -212,7 +222,7 @@ QActions.geoContact = function(step, agent) {
       if (contactedAgent.states.illness === 'succeptible') {
         contactedAgent.pathogenLoad += pathogen.shedRate * step;
         contactedAgent.lastInfectedContact = agent.id;
-        contactedAgent.responseProb =  pathogen[pathogen.bestFitModel](contactedAgent.pathogenLoad);
+        contactedAgent.responseProb = pathogen[pathogen.bestFitModel](contactedAgent.pathogenLoad);
       }
     }
   }
@@ -261,7 +271,7 @@ QActions.checkWater = function(step, agent, watersource) {
   if (agent.waterAvailable < 1) {
     QActions.getWater(step, agent, watersource);
   } else {
-    if(random.real(0,1) > 0.75){
+    if (random.real(0, 1) > 0.75) {
       QActions.drink(step, agent);
     }
   }
@@ -271,7 +281,7 @@ QActions.findWater = function(step, agent, watersources, key) {
     QActions.findClosest(step, agent, watersources, key);
     QActions.getWater(step, agent, agent[key]);
   } else {
-    if(random.real(0,1) > 0.5){
+    if (random.real(0, 1) > 0.5) {
       QActions.drink(step, agent);
     }
   }

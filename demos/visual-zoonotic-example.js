@@ -73,7 +73,7 @@ function init(options) {
     }));
     agents[i] = {
       id: i,
-      type: 'agent',
+      type: 'spatial',
       age: Math.round(random.real(0, 1) * 100) + 3,
       pathogenLoad: 0,
       states: {
@@ -105,6 +105,7 @@ function init(options) {
       age : 5,
       prevX: 0,
       prevY: 0,
+      type: 'spatial',
       mesh : new THREE.Mesh(new THREE.CubeGeometry(2, 1, 0.5), new THREE.MeshBasicMaterial({color: 0xcc44cc})),
       pathogenLoad: 0,
       needsBathroom: 0,
@@ -134,8 +135,8 @@ function init(options) {
     livestock[rIndex].pathogenLoad = 1e4;
   }
 
-  SEIRModel = new QEpiKit.StateMachine('sir-model', states, transitions, conditions, agents);
-  SEIRLivestockModel = new QEpiKit.StateMachine('sir-livestock-model', states, transitions, conditions, livestock);
+  SEIRModel = new QEpiKit.StateMachine('seir-model', states, transitions, conditions, agents);
+  SEIRLivestockModel = new QEpiKit.StateMachine('seir-livestock-model', states, transitions, conditions, livestock);
   PeopleMovementModel = {
     data: agents,
     update: function(agent, step){
