@@ -52,17 +52,12 @@ function init(options){
       },
       prevX: 0,
       prevY: 0,
-      needsBathroom: 0,
       timeInfectious: 0,
       timeRecovered: 0,
       mesh: mesh,
-      waterAvailable: 100,
-      waterPathConcentration: 0,
-      dailyWaterRequired: 3000,
       boundaryGroup: 'people'
     };
-    agents[i].physContact = -0.0135 * (Math.pow(agents[i].age - 43, 2)) + 8;
-    agents[i].movePerDay = 350 - Math.abs(43 - agents[i].age) / 43 * 350 + 500;
+    agents[i].movePerDay = jStat.normal.inv(random.real(0, 1), 2500 * 24, 1000); // m/day
     agents[i].mesh.qId = i;
     agents[i].mesh.type = 'agent';
     agents[i].mesh.position.x = random.real(boundaries.people.left + 1, boundaries.people.right);
@@ -116,7 +111,7 @@ function init(options){
     opacity: 0.4
   }))
   mainPatch.mesh.rotation.x = Math.PI / 180 * 90;
-  mainPatch.movePerDay = 300;
+  mainPatch.movePerDay = 10000;
   mainPatch.shedOnBite = pathogen.shedRate;
   mainPatch.prevX = 0;
   mainPatch.prevY = 0;
@@ -142,9 +137,11 @@ function init(options){
     update: function(agent, step){
       QActions.moveWithin(step, agent, boundaries.people);
       if(pathogen.vectorBorne){
-        let dist = agent.mesh.position.distanceTo(mainPatch.mesh.position);
+        let dist = agent.mesh.position.distanceTo(mainPatch.mesh.position) + 1e-16;
         if(dist < r){
-          agent.pathogenLoad += I.pop / dist * mainPatch.shedOnBite * step;
+          if(random.real(0, 1) < I.pop / dist){
+            agent.pathogenLoad += mainPatch.shedOnBite * step;
+          }
         }
       }
     }
@@ -158,6 +155,5 @@ function init(options){
   environment.add(SEIRModel);
   environment.add(PeopleMovementModel);
   environment.init();
-  console.log(environment);
   render();
 }

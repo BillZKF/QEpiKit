@@ -47,7 +47,7 @@ var genPop = function(numAgents, infectedAtStart) {
     locs.features[a] = turf.point([random.real(-75.1467,-75.1867), random.real(39.9200, 39.9900)]);
     pop[a] = {
       id: a,
-      type: 'discrete',
+      type: 'geospatial',
       mesh: new THREE.Mesh(new THREE.TetrahedronGeometry(1, 1), new THREE.MeshBasicMaterial({
         color: 0x00ff00
       })),
@@ -196,8 +196,8 @@ self.onmessage = function(event){
   }
 
   var experiment = new QEpiKit.Experiment(environment, prepare, report);
-  //create the experiment plans. how many runs each param.
 
+  //create the experiment plans. how many runs each param.
   experiment.sweep(expParams, perParam);
   //start the experiment for: number of runs, by step (days), until time
   experiment.start(experiment.plans.length, step, duration);

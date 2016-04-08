@@ -273,7 +273,7 @@ QActions.excrete = function(step, agent, destination) {
       agent.pathogenLoad += random.real(0, destination.pathConc) * 0.001;
     }
   }
-  destination.mesh.material.color.r = destination.status / destination.capacity;
+  destination.mesh.material.color.r = Math.min(destination.pathConc * 1000);
   destination.mesh.material.color.b = 1 - destination.status / destination.capacity;
   destination.mesh.material.color.g = destination.status / destination.capacity;
 };

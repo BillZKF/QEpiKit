@@ -1,51 +1,54 @@
 <html>
 <title>Experiment / Batch Run Example of Person to Person Transmission</title>
-
 <head>
-  <link href="qepikit-render-style.css" rel="stylesheet"></link>
-  <link href="style.css" rel="stylesheet"></link>
-  <script src="../bower_components/d3/d3.min.js"></script>
-  <script src="qepikit-renderer.js"></script>
-  <script type='text/javascript' src='../node_modules/plotly.js/dist/plotly.min.js'></script>
+    <link href="qepikit-render-style.css" rel="stylesheet"></link>
+    <link href="style.css" rel="stylesheet"></link>
+    <script src="../bower_components/d3/d3.min.js"></script>
+    <script src="qepikit-renderer.js"></script>
+    <script type='text/javascript' src='../node_modules/plotly.js/dist/plotly.min.js'></script>
 </head>
 <div id="ex-1" class="full-window"></div>
 <div class="container">
-  <h1>Experiment / Batch Run Example of Person to Person Transmission</h1>
-  <div class="col-10">
-    <button onclick="setOptions(runExperiment)">Run person to person</button>
-    <div id="status"></div>
-    <label>Number of Runs</label>
-    <div id="script-name">experiment-p2p-example</div>
-    <input type="number" id="exp-runs" value=60 max=100 step=1/>
-    <pre id="debug"></pre>
-    <label>Agent</label>
-    <select onchange="showPathogen(event)" id="select-pathogen"></select>
-    <label>Model</label>
-    <div id="model" /></div>
-  <label>N50</label>
-  <input type="number" id="N50" />
-  <label>Optimized Parameter</label>
-  <input type="number" id="opt-param" />
-  <label>Reduction Percent</label>
-  <input type="number" id="decay-rate" value=0.99998 />
-  <label>Shed Amount</label>
-  <input type="number" id="shed-rate" value=1000 />
-  <label>Recovery Time</label>
-  <input type="number" id="recovery-time" value=6 />
-  <label>Step</label>
-  <input type="number" id="model-step" value=0.042 max=1/>
-  <label>Population</label>
-  <input type="number" id="number-agents" value=700 max=3000/>
-  <label>Number infected at start (pumps or people)</label>
-  <input type="number" id="number-at-start" value=1 step=1/>
-  <label>Shed Range</label>
-  <input type="number" id="shed-range" value=3 max=5 step=0.1/>
-  <label>Mutation Rate</label>
-  <input type="number" id="mutation-time" value=14 max=30 step=1/>
+    <h1>Experiment / Batch Run Example of Person to Person Transmission</h1>
+    <div id="trendlines" class="col-75"></div>
+    <div class="col-10">
+      <ul>
+          <li>The geospatial person-to-person SEIR model is run to completion multiple times across multiple cores.</li>
+          <li>Each experiment run will test a param config based one of the *Experiment* parameters below. (random normal using that mean, and 0.5 * mean as sd)</li>
+          <li>Each *Experimental* param config is run (total runs / 4 / 3) times</li>
+      </ul>
+      <button onclick="setOptions(runExperiment)">Run person to person</button>
+      <div id="status"></div>
+      <label>Number of exp configs</label>
+      <div id="script-name">experiment-p2p-example</div>
+      <input type="number" id="exp-runs" value=60 max=100 step=1/>
+      <pre id="debug"></pre>
+      <label>Agent</label>
+      <select onchange="showPathogen(event)" id="select-pathogen"></select>
+      <label>Model</label>
+      <div id="model" /></div>
+      <label>N50</label>
+      <input type="number" id="N50" />
+      <label>Optimized Parameter</label>
+      <input type="number" id="opt-param" />
+      <label>Mean Reduction Percent *Experimental*</label>
+      <input type="number" id="decay-rate" value=0.99998 />
+      <label>Mean Shed Amount *Experimental*</label>
+      <input type="number" id="shed-rate" value=1000 />
+      <label>Mean Recovery Time *Experimental*</label>
+      <input type="number" id="recovery-time" value=6 />
+      <label>Step</label>
+      <input type="number" id="model-step" value=0.042 max=1/>
+      <label>Population</label>
+      <input type="number" id="number-agents" value=700 max=3000/>
+      <label>Number infected at start (pumps or people)</label>
+      <input type="number" id="number-at-start" value=1 step=1/>
+      <label>Shed Range</label>
+      <input type="number" id="shed-range" value=3 max=5 step=0.1/>
+      <label>Mutation Rate</label>
+      <input type="number" id="mutation-time" value=14 max=30 step=1/>
+    </div>
 </div>
-</div>
-</div>
-<div id="trendlines"></div>
 <script src="experiment-example-common.js"></script>
 <script src="example-form-handler.js"></script>
 </script>

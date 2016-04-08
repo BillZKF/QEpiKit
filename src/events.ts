@@ -34,6 +34,12 @@ module QEpiKit {
       this.schedule(events);
     }
 
+    /**
+    * schedule an event with the same trigger multiple times.
+    * @param qevent is the event to be scheduled. The at parameter should contain the time at first instance.
+    * @param every interval for each occurnce
+    * @param end until
+    */
     scheduleRecurring(qevent: QEvent, every: number, end: number) {
       var recur = [];
       var duration = end - qevent.at;
@@ -46,7 +52,10 @@ module QEpiKit {
       }
       this.schedule(recur);
     }
-
+    /*
+    * schedule a one time events. this arranges the event queue in chronological order.
+    * @param qevents an array of events to be schedules.
+    */
     schedule(qevents: QEvent[]) {
       qevents.forEach(function(d){
         d.until = d.until || d.at;
@@ -68,7 +77,7 @@ module QEpiKit {
       this.swap(array, minEnd, right - 1);
       return minEnd;
     }
-
+    
     swap(array, i, j) {
       var temp = array[i];
       array[i] = array[j];

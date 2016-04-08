@@ -61,7 +61,7 @@ function setOptions(callback) {
   options.pathogen.decayRate = Number(document.querySelector('#decay-rate').value);
 
   //experiment params
-  options.runs = Number(document.querySelector('#exp-runs').value);
+  options.runs = Number(document.querySelector('#exp-runs').value); 
 
   //run as webworker
   var script;
