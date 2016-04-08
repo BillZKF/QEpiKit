@@ -50,9 +50,9 @@ var QEpiKit;
         };
         Environment.prototype.init = function () {
             this._agentIndex = {};
-            var _loop_1 = function() {
+            var _loop_1 = function(c) {
                 var alreadyIn = [];
-                for (d = 0; d < this_1.models[c].data.length; d++) {
+                for (var d = 0; d < this_1.models[c].data.length; d++) {
                     var id = this_1.models[c].data[d].id;
                     if (id in this_1._agentIndex) {
                         this_1.models[c].data[d].models.push(this_1.models[c].name);
@@ -74,9 +74,8 @@ var QEpiKit;
                 this_1.agents = this_1.agents.concat(this_1.models[c].data);
             };
             var this_1 = this;
-            var d;
             for (var c = 0; c < this.models.length; c++) {
-                _loop_1();
+                _loop_1(c);
             }
         };
         Environment.prototype.update = function (step) {

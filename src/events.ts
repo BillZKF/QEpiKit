@@ -29,7 +29,7 @@ module QEpiKit {
   export class Events {
     public queue: QEvent[];
 
-    constructor(events: QEvent[]) {
+    constructor(events: QEvent[] = []) {
       this.queue = [];
       this.schedule(events);
     }
@@ -84,6 +84,5 @@ module QEpiKit {
       }
       return events;
     }
-
   }
 }

@@ -1,7 +1,7 @@
 /**
 *The QEpi main module and namespace.
 *@preferred
-*/ 
+*/
 module QEpiKit {
   /**
   *Environments are the executable environment containing the model components,
@@ -110,10 +110,10 @@ module QEpiKit {
     */
     init() {
       this._agentIndex = {};
-      for (var c = 0; c < this.models.length; c++) {
+      for (let c = 0; c < this.models.length; c++) {
         let alreadyIn = [];
         //assign each agent model indexes to handle agents assigned to multiple models
-        for (var d = 0; d < this.models[c].data.length; d++) {
+        for (let d = 0; d < this.models[c].data.length; d++) {
           let id = this.models[c].data[d].id;
           if (id in this._agentIndex) {
             //this agent belongs to multiple models.

@@ -73,7 +73,8 @@ describe('An environment contains resources, a population, and model components'
       at: 3,
       trigger: function() {
         env.resources[1].amount += 1
-      }, triggered : false
+      },
+      triggered: false
     }]);
     env = new QEpiKit.Environment(resources, facilties, events.queue);
     env.add(model);
@@ -168,5 +169,52 @@ describe('An environment contains resources, a population, and model components'
     env.add(model);
     env.run(1, 1, 1);
     expect(shotsWanted).toBe(1);
+  });
+
+  it('should handle interaction between agents and events', function(){
+    /*
+    * open the office, start scheduling appts. when appt is triggered, agent is no longer ill.
+    */
+    events = new QEpiKit.Events([{
+      name: 'doctor-opens',
+      at: 7,
+      trigger: function() {
+
+      }
+    }]);
+
+    env = new QEpiKit.Environment([], [], events.queue);
+
+    function scheduleAppointment(step, agent) {
+      let soonest = events.queue[events.queue.length - 1].at || step;
+      let event = {
+        name: 'appt-for-' + agent.id,
+        at: soonest + step,
+        trigger: function() {
+          seeDoctor(agent);
+        }
+      };
+      events.schedule([event]);
+      env.eventsQueue = events.queue;
+      agent.scheduled = true;
+    }
+
+    function seeDoctor(agent){
+      agent.ill = false;
+    }
+
+    model = {
+      data: agents,
+      update: function(agent, step) {
+        if (!agent.scheduled) {
+          agent.ill = true;
+          scheduleAppointment(step, agent);
+        }
+      }
+    };
+
+    env.add(model);
+    env.run(1, 20, 0);
+    expect(agents[0].ill).toBe(false);
   });
 });

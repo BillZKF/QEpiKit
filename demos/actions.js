@@ -1,4 +1,29 @@
 QActions = {};
+//check if the agent has exceeded the duration amount for an action
+QActions.timeout = function(step, agent, key, duration) {
+  if (agent[key] >= duration) {
+    agent[key] = 0; //reset
+    return true;
+  } else {
+    agent[key] += step;
+    return false;
+  }
+};
+
+//shorthand to schedule an event at time
+QActions.timeoutEvent = function(step, agent, time, callback) {
+  let event = {
+    name: 'event-for-' + agent.id,
+    at: time,
+    trigger: function() {
+      callback(agent);
+    }
+  };
+  events.schedule([event]);
+  environment.eventsQueue = events.queue;
+};
+
+
 //find closest in array
 QActions.findClosest = function(step, agent, array, key) {
   let closest = 1e15;
@@ -8,7 +33,7 @@ QActions.findClosest = function(step, agent, array, key) {
       closest = dist;
       agent[key] = d;
     }
-  })
+  });
 }
 
 //find n closest in array. example: find the second closest bathroom.
@@ -45,11 +70,11 @@ QActions.useFacility = function(step, agent, facilities, key, success) {
     QActions.findClosest(step, agent, facilities, key);
   }
   let distToFacil = agent.mesh.position.distanceTo(agent[key].mesh.position);
-  if (!agent.inQueue && distToFacil < 50) {
+  if (!agent.inQueue && distToFacil < (agent[key].queue.length + 1) * 10) {
     let nChoice = 1;
     while (!agent.inQueue && nChoice < facilities.length) {
       let waitLine = agent[key].queue.length * agent[key].wait;
-      let waitTravel = distToFacil /( agent.movePerDay * step);
+      let waitTravel = distToFacil / agent.movePerDay;
       //if not inline see if the wait is long
       if (waitLine < waitTravel) {
         agent[key].queue.push(agent.id);
@@ -65,15 +90,15 @@ QActions.useFacility = function(step, agent, facilities, key, success) {
   if (agent.inQueue) {
     //once in line
     if (agent[key].queue[0] === agent.id) {
-      if (distToFacil > 0.1 || agent.useTime < agent[key].wait) {
-        QActions.moveTo(step, agent, agent[key]);
-        agent.useTime += step;
+      if (distToFacil < 0.1) {
+        if (QActions.timeout(step, agent, 'useTime', agent[key].wait)) {
+          success(step, agent, agent[key]);
+          agent[key].queue.shift();
+          agent.inQueue = false;
+          agent[key] = null;
+        }
       } else {
-        success(step, agent, agent[key]);
-        agent[key].queue.shift();
-        agent.inQueue = false;
-        agent.useTime = 0;
-        agent[key] = null;
+        QActions.moveTo(step, agent, agent[key]);
       }
     } else {
       QActions.waitInLine(step, agent, agent[key]);
@@ -183,10 +208,10 @@ QActions.contact = function(step, agent) {
 };
 
 /**
-*discrete contacts using similar method to geo one below
-*limits the number of contact attempts per day to the contactAttempts param (~10).
-*probably could be fixed
-*/
+ *discrete contacts using similar method to geo one below
+ *limits the number of contact attempts per day to the contactAttempts param (~10).
+ *probably could be fixed
+ */
 QActions.contactDis = function(step, agent) {
   let contactAttempts = agent.contactAttempts * step;
   //if step size < 1 accumalate until newAttempt > 1
@@ -194,8 +219,7 @@ QActions.contactDis = function(step, agent) {
 
   if (agent.newAttempt < 1) {
     contactAttempts = 0;
-  }
-  if (agent.newAttempt >= 1) {
+  } else {
     //new attempt is greater than 1
     contactAttempts = 1;
   }

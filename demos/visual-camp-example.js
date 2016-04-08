@@ -86,7 +86,7 @@ function init(opts) {
     waterPumps[wp] = {
       id: wp,
       working: true,
-      wait: 0.00005,
+      wait: 0.00008,
       capacity: 1,
       queue: [],
       pathConc: 0
@@ -104,7 +104,7 @@ function init(opts) {
   for (var b = 0; b < numBathrooms; b++) {
     bathrooms[b] = {
       id: b,
-      wait: 0.00005,
+      wait: 0.00008,
       label: "ventilated improved pit latrine",
       working: true,
       capacity: 0.1, //cubic meter

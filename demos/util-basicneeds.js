@@ -4,7 +4,7 @@ BasicNeedsParams = [
   {name:'waterPump', assign: null},
   {name:'tent', assign:null},
   {name:'inQueue', assign: false},
-  {name:'useTime', assign: 0.000013},
+  {name:'useTime', assign: 0},
   {name:'kgPerDayExcrete', assign: 0.15},
   {name:'needsBathroom', assign: function(agent){return random.real(0, 0.9);}},
   {name:'needsSleep', assign: 0},
