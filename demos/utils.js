@@ -1,4 +1,5 @@
 QUtils = {
+  currentAgentId : 0,
   //place objects within a boundary in rows and cols
   arrangeEvenWithin(array, footprint, margin, boundaries) {
     let full = footprint + margin;
@@ -12,16 +13,18 @@ QUtils = {
   },
 
   //generate population using boilerplate params for movement, contacts, etc.
-  generatePop: function(numAgents, options, type) {
+  generatePop: function(numAgents, options, type, boundariesGroup) {
+
     var pop = [];
     var locs = {
       type: 'FeatureCollection',
       features: []
     };
     type = type || 'spatial';
+    boundariesGroup = boundariesGroup || 'people';
     for (var a = 0; a < numAgents; a++) {
       pop[a] = {
-        id: a,
+        id: QUtils.currentAgentId,
         type: type,
         sex: random.pick(['male', 'female']),
         age: random.integer(5, 85),
@@ -36,10 +39,10 @@ QUtils = {
         pop[a].mesh = new THREE.Mesh(new THREE.TetrahedronGeometry(1, 1), new THREE.MeshBasicMaterial({
           color: 0x00ff00
         }));
-        pop[a].mesh.qId = a;
+        pop[a].mesh.qId = pop[a].id;
         pop[a].mesh.type = 'agent';
-        pop[a].mesh.position.x = random.real(boundaries.people.left, boundaries.people.right);
-        pop[a].mesh.position.y = random.real(boundaries.people.bottom, boundaries.people.top);
+        pop[a].mesh.position.x = random.real(boundaries[boundariesGroup].left, boundaries[boundariesGroup].right);
+        pop[a].mesh.position.y = random.real(boundaries[boundariesGroup].bottom, boundaries[boundariesGroup].top);
         scene.add(pop[a].mesh);
       }
 
@@ -56,6 +59,7 @@ QUtils = {
           pop[a][d.name] = d.assign;
         }
       });
+      QUtils.currentAgentId++;
     }
     return [pop, locs];
   }

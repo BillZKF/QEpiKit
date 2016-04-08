@@ -1,0 +1,58 @@
+<head>
+  <link href="../bower_components/leaflet/dist/leaflet.css" rel="stylesheet"></link>
+  <link href="../bower_components/leaflet.markercluster/dist/MarkerCluster.Default.css" rel="stylesheet"></link>
+  <link href="../bower_components/leaflet.markercluster/dist/MarkerCluster.css" rel="stylesheet"></link>
+  <link href="qepikit-render-style.css" rel="stylesheet"></link>
+  <link href="style.css" rel="stylesheet"></link>
+  <script type='text/javascript' src='libs/prism.js'></script>
+  <script src="../bower_components/leaflet/dist/leaflet.js"></script>
+  <script src="../bower_components/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+  <script src="../bower_components/d3/d3.min.js"></script>
+  <script src="../qepikit.js"></script>
+  <script src="qepikit-renderer.js"></script>
+</head>
+<div class="container">
+<h1>Geospatial Example using Refbook</h1>
+
+<h4 id="data-ex-1">Loading</h4>
+</div>
+<div id="map-ex-1" style="height:260px"></div>
+</div>
+
+</div>
+<script>
+if (typeof Worker !== 'undefined ') {
+baseExWorker1 = new Worker('base-example1.js ');
+baseExWorker1.onmessage = function(event) {
+  console.log(event.data);
+  exampleHistory1 = event.data[1];
+  locations1 = event.data[2];
+  startCenter = locations1[0].geometry.coordinates;
+  mapEx1 = L.map('map-ex-1').setView([startCenter[1], startCenter[0]], 13);
+  L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+    attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
+    maxZoom: 18,
+    id: 'wzkflynn.dace8f89',
+    accessToken: 'pk.eyJ1Ijoid3prZmx5bm4iLCJhIjoiNjk0ZGM2ZDVmYTc1OWZjZDE4ZjE5NGQxMmIxN2ZiYTMifQ.iE0_Yuq1EJXoeEL5WhD7vg'
+  }).addTo(mapEx1);
+  var markers = new L.MarkerClusterGroup();
+  var geoJSONLayer = L.geoJson(locations1, {
+    onEachFeature: function(feature, layer) {
+      layer.bindPopup('<div><p>source:' + feature.properties.src + '</p><p>target: ' + feature.properties.target + '</p><p>srcAge: ' + feature.properties.srcAge + '</p><p>targetAge: ' + feature.properties.targetAge + '</p><p>time: ' + feature.properties.time + '</p><p>p of response: ' + feature.properties.responseProb + '</p></div>');
+    }
+  });
+  markers.addLayer(geoJSONLayer);
+  mapEx1.addLayer(markers);
+  mapEx1.fitBounds(markers.getBounds());
+  var a = d3.csv.format(exampleHistory1);
+  var csvURI = "data:text/csv;charset=utf-8," + encodeURI(a);
+  var link = document.createElement("a");
+  link.setAttribute("href", csvURI);
+  link.setAttribute("download", "qepikit_example_1.csv");
+  link.innerHTML = "CSV file";
+  document.getElementById('data-ex-1').appendChild(link);
+}
+} else {
+document.getElementById('web-worker-msg').innerHTML = "<h4 style='background-color:#f00'>You need to use a browser (or machine) that supports web-workers</h4>"
+}
+</script>

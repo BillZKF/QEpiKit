@@ -17,10 +17,13 @@
 <div id="ex-1" class="full-window"></div>
 <div class="container">
   <h1>Visual Example  of Person to Person Transmission Using Refbook</h1>
-  <div>
-    units: time = days, dist = meters,
-  </div>
   <div class="col-10">
+    <ul>
+      <li>This is a person-to-person Succeptible, Exposed, Infected, Removed model</li>
+      <li>Here Exposed means that an individual has had at least one contact with an Infected individual.</li>
+      <li>Each "contact" between an Infected and Succeptible (or Exposed) individual transfers some pathogen load to that individual. (Think a cough in someones face.)</li>
+      <li>At each step, the prob of response for an Exposed individual is calculated for their pathogen load and compared against a random (min:0,max:1) draw. If the p of response is greater than the draw, the individual is infected.</li>
+    </ul>
     <button onclick="setOptions()">Run person to person</button>
     <div id="status"></div>
     <label>Agent</label>

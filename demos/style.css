@@ -27,9 +27,8 @@ label{
 }
 .col-75{
   width:75%;
-  display:inline;
-  float:left;
-  margin:5px;
+  display:block;
+  float:right;
 }
 
 .full-window{
