@@ -1,0 +1,123 @@
+<head>
+    <link href="qepikit-render-style.css" rel="stylesheet"></link>
+    <link href="style.css" rel="stylesheet"></link>
+    <script type='text/javascript' src='../bower_components/random/lib/random.min.js'></script>
+    <script src="../bower_components/three.js/three.min.js"></script>
+    <script src="../node_modules/cytoscape/dist/cytoscape.min.js"></script>
+    <script type='text/javascript' src='./libs/jstat.min.js'></script>
+    <script src="../qepikit.js"></script>
+    <script src="actions.js"></script>
+    <script src="utils.js"></script>
+    <style>
+        body {
+            font-family: helvetica, sans-serif;
+            font-size: 14px;
+        }
+
+        #cy {
+            position: absolute;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 999;
+        }
+
+        h1 {
+            opacity: 0.5;
+            font-size: 1em;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="status"></div>
+    <div id="cy"></div>
+    <script>
+        let seed = 0x12345678;
+        let boundaries = {
+            'people': {
+                top: 100,
+                bottom: 0,
+                left: 0,
+                right: 100
+            }
+        };
+        let scene = new THREE.Scene();
+        let random = new Random(Random.engines.mt19937().seedWithArray([seed, 0x90abcdef]));
+        let agents = QUtils.generatePop(300)[0];
+        let networks = QUtils.generateGraph(agents, {
+            num: 50,
+            min: 1,
+            max: 10,
+            unique: true,
+            type: 'households',
+            color:'#5555ff',
+            relTypes: ['sibling', 'parent', 'child', 'partner'],
+            likelihood: 1
+        });
+
+        networks = networks.concat(QUtils.generateGraph(agents, {
+            num: 30,
+            min: 5,
+            max: 25,
+            unique: true,
+            type: 'workplaces',
+            color:'#ff5555',
+            relTypes: ['coworker', 'boss', 'subordinate'],
+            likelihood: 0.40
+        }));
+        networks = networks.concat(agents.map(function(a, i) {
+            return {
+                group: 'nodes',
+                data: {
+                    id: a.id
+                },
+                position: {
+                    x: i % 10 * 50,
+                    y: Math.floor(i / 10) * 50
+                }
+            };
+        }));
+        document.addEventListener('DOMContentLoaded', function() {
+
+                let cy = window.cy = cytoscape({
+                    container: document.getElementById('cy'),
+                    layout: {
+                        name: 'cose'
+                    },
+                    // initial viewport state:
+                    zoom: 1,
+                    pan: {
+                        x: 100,
+                        y: 100
+                    },
+                    style: [ // the stylesheet for the graph
+                        {
+                            selector: 'node',
+                            style: {
+                                'background-color': '#E91E63',
+                                'label': 'data(id)'
+                            }
+                        },
+
+                        {
+                            selector: 'edge',
+                            style: {
+                                'width': 3,
+                                'line-color': 'data(color)',
+                                'target-arrow-color': '#2196F3',
+                                'target-arrow-shape': 'triangle'
+                            }
+                        }
+                    ],
+                    // interaction options:
+                    elements: networks,
+                    boxSelectionEnabled: false,
+                    userPanning: true,
+                    autounselectify: true,
+                });
+            })
+            //cy.add(households);
+    </script>
+</body>
