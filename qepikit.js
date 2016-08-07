@@ -41,16 +41,19 @@ var QEpiKit;
         }
         BDIAgent.prototype.update = function (agent, step) {
             var policy, intent, evaluation;
-            policy = this.policySelector(this.plans, this.planHistory);
+            policy = this.policySelector(this.plans, this.planHistory, agent);
             intent = this.plans[policy];
             intent(agent, step);
-            evaluation = this.evaluateGoals();
+            evaluation = this.evaluateGoals(agent);
             this.planHistory.push({ time: this.time, id: agent.id, intention: policy, goals: evaluation.achievements, barriers: evaluation.barriers, r: evaluation.successes / this.goals.length });
         };
-        BDIAgent.prototype.evaluateGoals = function () {
+        BDIAgent.prototype.evaluateGoals = function (agent) {
             var achievements = [], barriers = [], successes = 0, c, matcher;
             for (var i = 0; i < this.goals.length; i++) {
                 c = this.goals[i].condition;
+                if (typeof c.data === 'undefined' || c.data === "agent") {
+                    c.data = agent;
+                }
                 achievements[i] = this.goals[i].temporal(c.check(c.data[c.key], c.value));
                 if (achievements[i] === BDIAgent.SUCCESS) {
                     successes += 1;
@@ -68,7 +71,7 @@ var QEpiKit;
             }
             return { successes: successes, barriers: barriers, achievements: achievements };
         };
-        BDIAgent.stochasticSelection = function (plans, planHistory) {
+        BDIAgent.stochasticSelection = function (plans, planHistory, agent) {
             var policy, score, max = 0;
             for (var plan in plans) {
                 score = Math.random();
@@ -79,7 +82,7 @@ var QEpiKit;
             }
             return policy;
         };
-        BDIAgent.lazyPolicySelection = function (plans, planHistory) {
+        BDIAgent.lazyPolicySelection = function (plans, planHistory, agent) {
             var options, selection;
             if (this.time > 0) {
                 options = Object.keys(plans);
