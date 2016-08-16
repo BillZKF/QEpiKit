@@ -1,6 +1,6 @@
 {
   "name": "qepikit",
-  "version": "0.0.9",
+  "version": "0.1.1",
   "description": "dynamic models",
   "main": "qepikit.js",
   "directories": {
@@ -8,19 +8,24 @@
     "test": "tests"
   },
   "dependencies": {
-    "cytoscape": "^2.6.7",
-    "gulp": "^3.9.0",
+    "cytoscape": "^2.7.7",
+    "d3": "^4.2.2",
+    "gulp": "^3.9.1",
     "gulp-concat": "^2.6.0",
-    "gulp-connect": "^2.2.0",
-    "gulp-minify": "^0.0.5",
+    "gulp-connect": "^5.0.0",
+    "gulp-minify": "^0.0.14",
     "gulp-rename": "^1.2.2",
-    "gulp-uglify": "^1.2.0",
-    "karma": "^0.13.11",
-    "karma-chrome-launcher": "^0.2.0",
-    "karma-coverage": "^0.5.2",
-    "karma-jasmine": "^0.2.2",
-    "plotly.js": "^1.7.1",
-    "turf": "^2.0.2"
+    "gulp-uglify": "^2.0.0",
+    "karma": "^1.2.0",
+    "karma-chrome-launcher": "^1.0.1*",
+    "karma-coverage": "^1.1.1",
+    "karma-jasmine": "^1.0.2",
+    "leaflet": "^0.7.7",
+    "leaflet.markercluster": "^0.5.0",
+    "plotly.js": "^1.16.2",
+    "random-js": "^1.0.8",
+    "three": "^0.79.0",
+    "turf": "^3.0.14"
   },
   "devDependencies": {},
   "scripts": {

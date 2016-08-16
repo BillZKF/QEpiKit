@@ -1,4 +1,6 @@
-importScripts('../qepikit.js', '../node_modules/turf/turf.min.js', '../bower_components/random/lib/random.min.js');
+importScripts('../qepikit.js', '../node_modules/turf/turf.js', '../node_modules/random-js/lib/random.min.js');
+
+
 //use a mersene twister for pseudo-random number generation
 var seed = 0x12345678;
 var random = new Random(Random.engines.mt19937().seedWithArray([seed, 0x90abcdef]));
@@ -62,16 +64,19 @@ var pathogen = {
 //some actions are shared across states.
 var actions = {
     move: function(step, agent) {
+
       var randomBearing = random.integer(-180, 180);
       var dest = turf.destination(agent.location, step * agent.moveRate, randomBearing, distUnits);
       agent.location = dest;
     },
     contact: function(step, agent) {
       var contactPoint;
-      var buffer = turf.buffer(agent.location, step * agent.moveRate, distUnits);
+      var buffer = {type:'FeatureCollection', features:[turf.buffer(agent.location, step * agent.moveRate, distUnits)]};
       var agentsWithinBuffer = turf.within(locations, buffer);
+
       var numContacts = Math.round(agent.physContact * step);
       if (agentsWithinBuffer.features.length > 1) {
+
         for (var i = 0; i < numContacts; i++) {
           var rand = random.integer(0, agentsWithinBuffer.features.length - 1);
           var randContactId = agentsWithinBuffer.features[rand].properties.agentRefID;
@@ -148,6 +153,7 @@ var actions = {
     }];
 
     var popAndLocations = generatePopulation(500, 3);
+
     var population = popAndLocations[0];
     var locations = popAndLocations[1];
     var contactLocations = [];
@@ -155,6 +161,8 @@ var actions = {
     var SIRModel = new QEpiKit.StateMachine('sir-model', states, transitions, conditions, population);
 
     environment.add(SIRModel);
+
     environment.run(1 / 24, 7, 1);
+
     self.postMessage(['complete', environment.history, contactLocations]);
     self.close();
