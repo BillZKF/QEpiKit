@@ -1,0 +1,16 @@
+<head>
+  <link href="style.css" rel="stylesheet"></link>
+  <script src="../qepikit.js"></script>
+  <script type='text/javascript' src='../node_modules/plotly.js/dist/plotly.min.js'></script>
+  <script src="./libs/mllearn.js"></script>
+</head>
+<body>
+  <h1>Experiment / Batch Run Example of Fitting A Compartmental Model to Data</h1>
+  <ul>
+      <li>This is Succeptible, Exposed, Infected, Hospitalized, Funeral, and Removed model for Ebola in Liberia adapted from CM Rivers, 2014.</li>
+      <li>Plausible ranges for all parameters are defined, and a genetic algorithm is used to fit the model to the real Ebola case count data.</li>
+      <li>The genetic algorithm mutates parameter combinations by random mutation (towards the best fitting, using the gradient), and mates the top ten percent of combinations</li>
+  </ul>
+  <div id="display"></div>
+  <script src="experiment-compartment-optimization.js"></script>
+</body>
