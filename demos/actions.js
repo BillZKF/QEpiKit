@@ -216,8 +216,8 @@ QActions.contactDis = function(step, agent) {
   let contactAttempts = agent.contactAttempts * step;
   //if step size < 1 accumalate until newAttempt > 1
   agent.newAttempt += contactAttempts;
-
   if (agent.newAttempt < 1) {
+    console.log(agent.newAttempt);
     contactAttempts = 0;
   } else {
     //new attempt is greater than 1

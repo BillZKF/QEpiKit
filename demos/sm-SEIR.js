@@ -99,7 +99,7 @@ SEIRparams = [
   {name:'contactAttempts',
    assign: function(agent){
      //how many physical contacts per day: mean 10 sd 4 with a floor of 1
-    return Math.max(1, jStat.normal.inv(random.real(0,1), 10, 4));
+    return Math.max(1, jStat.normal.sample(30, 6));
   }},
   {name:'newAttempt', assign:0},
   {name:'madeAttempts', assign:0},

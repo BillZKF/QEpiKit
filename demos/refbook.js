@@ -8,31 +8,31 @@ const cors = {
   mode: 'cors',
   cache: 'default'
 };
-const baseURL = `http://104.131.48.182:3000/`;
-window.fetch(`${baseURL}api/dataset/56e6fea96612902d330ae763`, cors).then(function (res) {
+const baseURL = `reference_data.json`;
+window.fetch(`${baseURL}`, cors).then(function (res) {
   return res.json();
 }).then(function (json) {
-  prefModels = json.entries;
+  prefModels = json.organisms;
   prefModels.forEach(model => {
     let el = document.createElement('option');
-    el.innerHTML = el.name = model["Agent"];
+    el.innerHTML = el.name = model.name;
     document.querySelector('#select-pathogen').appendChild(el)
   })
-  showPathogen({target:{value:prefModels[0]["Agent"]}});
+  showPathogen({target:{value:prefModels[0].name}});
 })
 
 function showPathogen(event) {
   let pathogenName = event.target.value;
   let pathogen = prefModels.filter(model => {
-    if (model["Agent"] === pathogenName) {
+    if (model.name === pathogenName) {
       return true;
     }
     return false;
   })
   pathogen = pathogen[0];
-  document.querySelector('#model').innerHTML = pathogen['Best fit model'];
-  document.querySelector('#N50').value = pathogen['N50/LD50/ID50'];
-  document.querySelector('#opt-param').value = pathogen["Optimized parameter"];
+  document.querySelector('#model').innerHTML = pathogen['model'];
+  document.querySelector('#N50').value = pathogen['N50'];
+  document.querySelector('#opt-param').value = pathogen.optimizedParam;
 }
 
 function setOptions(model) {
@@ -44,7 +44,7 @@ function setOptions(model) {
   options.shedRange = Number(document.querySelector('#shed-range').value);
   options.infectedAtStart = Number(document.querySelector('#number-at-start').value);
   options.pathogen = prefModels.filter(model => {
-    if (model["Agent"] === pathogenName) {
+    if (model.name === pathogenName) {
       return true;
     }
     return false;
@@ -53,10 +53,10 @@ function setOptions(model) {
   //rename badly named params
   options.pathogen.shedRate = Number(document.querySelector('#shed-rate').value);
   options.pathogen.mutationTime = Number(document.querySelector('#mutation-time').value);
-  options.pathogen.recoveryTime = Number(document.querySelector('#recovery-time').value);;
-  options.pathogen.N50 = Number(options.pathogen["N50/LD50/ID50"]);
-  options.pathogen.bestFitModel = options.pathogen["Best fit model"];
-  options.pathogen.optParam = Number(options.pathogen["Optimized parameter"]);
+  options.pathogen.recoveryTime = Number(document.querySelector('#recovery-time').value);
+  options.pathogen.N50 = Number(options.pathogen["N50"]);
+  options.pathogen.bestFitModel = options.pathogen["model"];
+  options.pathogen.optParam = Number(options.pathogen["optimizedParam"]);
   options.pathogen.decayRate = Number(document.querySelector('#decay-rate').value);
   init(options);
 }

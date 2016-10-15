@@ -1,0 +1,148 @@
+{
+	"coagulation": [{
+		"name": "Coag only (inline)",
+		"short": "coag",
+		"effect": "removal",
+		"crypto": {
+			"est": 0,
+			"sd": 0
+		},
+		"giardia": {
+			"est": 0,
+			"sd": 0
+		},
+		"rota": {
+			"est": 0,
+			"sd": 0
+		},
+		"campy": {
+			"est": 0,
+			"sd": 0
+		},
+		"eColi": {
+			"est": 0,
+			"sd": 0
+		}
+	}],
+	"filtration":[{
+		"name": "Rapid Granular (coag/sed)",
+		"short": "rapidGranCoagSed",
+		"effect": "removal",
+		"crypto": {
+			"est": 2.41,
+			"sd": 1.27
+		},
+		"giardia": {
+			"est": 1.92,
+			"sd": 1.07
+		},
+		"rota": {
+			"est": 1.11,
+			"sd": 0.70
+		},
+		"campy": {
+			"est": 0.87,
+			"sd": 0.38
+		},
+		"eColi": {
+			"est": 0.87,
+			"sd": 0.38
+		}
+	}],
+	"organisms": [{
+		"name":"Bacillus Anthracis",
+		"N50": 42000,
+		"optimizedParam":1.65e-6,
+		"model":"exponential"
+		},{
+		"name": "Cryptosporidium",
+		"short": "crypto",
+		"N50": 12.1,
+		"optimizedParam": 0.0572,
+		"model": "exponential",
+		"illGivenInfect": 0.7,
+		"mildDiarrhea": {
+			"proportion": 0.99999,
+			"duration": 0.01918
+		},
+		"bloodyDiarrhea": {
+			"proportion": 0,
+			"duration": 0
+		},
+		"GBSclinicRes": {
+			"proportion": 0,
+			"duration": 0
+		},
+		"GBSRes": {
+			"proportion": 0,
+			"duration": 0
+		},
+		"reactiveArth": {
+			"proportion": 0,
+			"duration": 0
+		},
+		"HUS": {
+			"proportion": 0,
+			"duration": 0
+		},
+		"ESRD": {
+			"proportion": 0,
+			"duration": 0
+		},
+		"deathGBS": {
+			"proportion": 0,
+			"duration": 0
+		},
+		"death": {
+			"proportion": 0.00001,
+			"duration": 0
+		}
+
+	}],
+	"DALY": [{
+		"name": "Mild Diarrhea",
+		"short": "mildDiarrhea",
+		"weight": 0.067
+	}, {
+		"name": "Bloody Diarrhea",
+		"short": "bloodyDiarrhea",
+		"weight": 0.39
+	}, {
+		"name": "HUS",
+		"short": "HUS",
+		"weight": 0.93
+	}, {
+		"name": "ESRD",
+		"short": "ESRD",
+		"weight": 0.95
+	}, {
+		"name": "Reactive Arthritis",
+		"short": "reactiveArth",
+		"weight": 0.21
+	}, {
+		"name": "GBS clinical effects",
+		"short": "GBSclinicRes",
+		"weight": 0.29
+	}, {
+		"name": "GBS residual effects",
+		"short": "GBSRes",
+		"weight": 5.8
+	}],
+	"populations": [{
+		"name": "Canada",
+		"year": "2013",
+		"total": 33476690,
+		"male": {
+			"total": 16414230,
+			"prop0to14": 0.17,
+			"prop15to64": 0.69,
+			"prop65plus": 0.13
+		},
+		"female": {
+			"total": 17062460,
+			"prop0to14": 0.16,
+			"prop15to64": 0.68,
+			"prop65plus": 0.16
+		}
+	}]
+}
