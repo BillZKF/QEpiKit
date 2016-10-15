@@ -1,4 +1,5 @@
 //visualization objects
+/* jshint esversion: 6*/
 let scene = new THREE.Scene();
 let raycaster = new THREE.Raycaster();
 let camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 5000);
@@ -29,7 +30,7 @@ function prepRender(){
   camera.rotation.x = 8 * Math.PI / 180;
   document.querySelector('#ex-1').appendChild(renderer.domElement);
   renderer.setSize(screen.width, screen.height);
-  renderer.setClearColor(0xffffff, 0)
+  renderer.setClearColor(0xffffff, 0);
 
   //timeline setup (lazy global scope)
   svg = d3.select("body").append("svg")
@@ -38,13 +39,13 @@ function prepRender(){
     .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-  x = d3.scale.linear()
+  x = d3.scaleLinear()
     .range([0, width]);
 
-  y = d3.scale.linear()
+  y = d3.scaleLinear()
     .range([height, 0]);
 
-  line = d3.svg.line()
+  line = d3.line()
     .x(function(d) {
       return x(d.time);
     })
@@ -52,13 +53,9 @@ function prepRender(){
       return y(d.infectious);
     });
 
-  xAxis = d3.svg.axis()
-    .scale(x)
-    .orient("bottom");
+  xAxis = d3.axisBottom(x);
 
-  yAxis = d3.svg.axis()
-    .scale(y)
-    .orient("left");
+  yAxis = d3.axisLeft(y);
 }
 
 function render() {
@@ -92,7 +89,7 @@ function render() {
 
 function drawTimeline(data) {
   let maxInfect = d3.max(data, function(d) {
-    return d.infectious
+    return d.infectious;
   });
   d3.select("g").selectAll("*").remove();
   x.domain([0, duration]);

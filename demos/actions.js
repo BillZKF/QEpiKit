@@ -246,7 +246,7 @@ QActions.contactDis = function(step, agent) {
 //contact using turf within
 QActions.geoContact = function(step, agent) {
   var contactPoint;
-  var buffer = turf.buffer(agent.location, step * agent.movePerDay, distUnits);
+  var buffer = {type:'FeatureCollection', features:[turf.buffer(agent.location, step * agent.movePerDay, distUnits)]};
   var agentsWithinBuffer = turf.within(locations, buffer);
   var numContacts = Math.round(agent.contactAttempts * step);
   if (agentsWithinBuffer.features.length > 1) {

@@ -12,7 +12,7 @@ var step = 1/24;
 var duration = 30;
 var seed, startSeed, random, options;
 
-importScripts('../bower_components/three.js/three.min.js','../qepikit.js', './libs/jstat.min.js','../node_modules/turf/turf.min.js', '../bower_components/random/lib/random.min.js', 'sm-seir.js', 'actions.js');
+importScripts('../node_modules/three/build/three.min.js','../qepikit.js', './libs/jstat.min.js','../node_modules/turf/turf.min.js', '../node_modules/random-js/lib/random.min.js', 'sm-seir.js', 'actions.js');
 var scene = new THREE.Scene();
 var raycaster = new THREE.Raycaster();
 var boundaries = {

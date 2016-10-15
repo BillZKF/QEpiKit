@@ -1,16 +1,16 @@
-'use strict()'
+/* jshint esversion:6*/
 //for simple examples, just do global scope
-let seed = 0x12345678;
+const seed = 0x12345678;
 let random = new Random(Random.engines.mt19937().seedWithArray([seed, 0x90abcdef]));
-let bounds = [400, 300]; // keep everything on screen
-let boundaries = {
+const bounds = [400, 300]; // keep everything on screen
+const boundaries = {
   "people": {
     top: bounds[1],
     left: 10,
     bottom: 10,
     right: bounds[0]
   }
-}
+};
 let agents = [];
 let actions,
   options,

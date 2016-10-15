@@ -2,8 +2,7 @@
     <link href="qepikit-render-style.css" rel="stylesheet"></link>
     <link href="style.css" rel="stylesheet"></link>
     <script type='text/javascript' src='../bower_components/random/lib/random.min.js'></script>
-    <script src="../bower_components/three.js/three.min.js"></script>
-    <script src="../node_modules/cytoscape/dist/cytoscape.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/2.7.7/cytoscape.min.js"></script>
     <script type='text/javascript' src='./libs/jstat.min.js'></script>
     <script src="../qepikit.js"></script>
     <script src="actions.js"></script>
@@ -31,6 +30,11 @@
 </head>
 
 <body>
+    <h1>Graph Example Person to Person Transmission</h1>
+    <ul>
+        <li>An artficial network based on Zaida, 2012 is generated</li>
+        <li>Each agent (node) is part of a househould clique, and potentially a workplace clique.</li>
+    </ul>
     <div id="status"></div>
     <div id="cy"></div>
     <script>
@@ -43,7 +47,7 @@
                 right: 100
             }
         };
-        let scene = new THREE.Scene();
+        //let scene = new THREE.Scene();
         let random = new Random(Random.engines.mt19937().seedWithArray([seed, 0x90abcdef]));
         let agents = QUtils.generatePop(300)[0];
         let networks = QUtils.generateGraph(agents, {
