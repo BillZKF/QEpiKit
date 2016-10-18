@@ -15,8 +15,23 @@ var QEpiKit;
             }
             this.gamma = gamma;
         }
+        QLearner.prototype.grow = function (state, actions) {
+            for (var i = 0; i < actions.length; i++) {
+                this.R[state][actions[i]] = null;
+            }
+        };
+        QLearner.prototype.explore = function (prom) {
+        };
         QLearner.prototype.transition = function (state, action) {
-            var bestAction = this.max(action);
+            var examined = true;
+            var bestAction;
+            for (action in this.R[state]) {
+                if (this.R[state][action] === null) {
+                    bestAction = action;
+                    examined = false;
+                }
+            }
+            bestAction = this.max(action);
             this.Q[state][action] = this.R[state][action] + (this.gamma * this.Q[action][bestAction]);
         };
         QLearner.prototype.max = function (state) {

@@ -24,8 +24,29 @@ module QEpiKit {
       this.gamma = gamma;
     }
 
+    grow(state, actions) {
+      for(let i = 0; i < actions.length; i++){
+        //reward is currently unknown
+        this.R[state][actions[i]] = null;
+      }
+    }
+
+    explore(prom){
+
+    }
+
     transition(state, action) {
-      var bestAction = this.max(action);
+      //is the state unexamined
+      let examined = true;
+      let bestAction;
+      for(action in this.R[state]){
+        if(this.R[state][action] === null){
+          bestAction = action;
+          examined = false;
+        }
+      }
+
+      bestAction = this.max(action);
       this.Q[state][action] = this.R[state][action] + (this.gamma * this.Q[action][bestAction]);
     }
 
