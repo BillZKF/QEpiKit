@@ -1,17 +1,26 @@
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var QEpiKit;
 (function (QEpiKit) {
+    /**
+    * Behavior Tree
+    **/
     var BehaviorTree = (function (_super) {
         __extends(BehaviorTree, _super);
         function BehaviorTree(name, root, data) {
-            _super.call(this, name);
-            this.root = root;
-            this.data = data;
-            this.results = [];
+            var _this = _super.call(this, name) || this;
+            _this.root = root;
+            _this.data = data;
+            _this.results = [];
+            return _this;
         }
         BehaviorTree.tick = function (node, agent) {
             var state = node.operate(agent);
@@ -28,7 +37,7 @@ var QEpiKit;
             return state;
         };
         return BehaviorTree;
-    })(QEpiKit.QComponent);
+    }(QEpiKit.QComponent));
     QEpiKit.BehaviorTree = BehaviorTree;
     var BTNode = (function () {
         function BTNode(name) {
@@ -36,36 +45,38 @@ var QEpiKit;
             this.name = name;
         }
         return BTNode;
-    })();
+    }());
     QEpiKit.BTNode = BTNode;
     var BTControlNode = (function (_super) {
         __extends(BTControlNode, _super);
         function BTControlNode(name, children) {
-            _super.call(this, name);
-            this.children = children;
+            var _this = _super.call(this, name) || this;
+            _this.children = children;
+            return _this;
         }
         return BTControlNode;
-    })(BTNode);
+    }(BTNode));
     QEpiKit.BTControlNode = BTControlNode;
     var BTRoot = (function (_super) {
         __extends(BTRoot, _super);
         function BTRoot(name, children) {
-            _super.call(this, name, children);
-            this.type = "root";
-            this.operate = function (agent) {
+            var _this = _super.call(this, name, children) || this;
+            _this.type = "root";
+            _this.operate = function (agent) {
                 var state = BehaviorTree.tick(this.children[0], agent);
                 return state;
             };
+            return _this;
         }
         return BTRoot;
-    })(BTControlNode);
+    }(BTControlNode));
     QEpiKit.BTRoot = BTRoot;
     var BTSelector = (function (_super) {
         __extends(BTSelector, _super);
         function BTSelector(name, children) {
-            _super.call(this, name, children);
-            this.type = "selector";
-            this.operate = function (agent) {
+            var _this = _super.call(this, name, children) || this;
+            _this.type = "selector";
+            _this.operate = function (agent) {
                 var childState;
                 for (var child in this.children) {
                     childState = BehaviorTree.tick(this.children[child], agent);
@@ -78,16 +89,17 @@ var QEpiKit;
                 }
                 return BehaviorTree.FAILED;
             };
+            return _this;
         }
         return BTSelector;
-    })(BTControlNode);
+    }(BTControlNode));
     QEpiKit.BTSelector = BTSelector;
     var BTSequence = (function (_super) {
         __extends(BTSequence, _super);
         function BTSequence(name, children) {
-            _super.call(this, name, children);
-            this.type = "sequence";
-            this.operate = function (agent) {
+            var _this = _super.call(this, name, children) || this;
+            _this.type = "sequence";
+            _this.operate = function (agent) {
                 var childState;
                 for (var child in this.children) {
                     childState = BehaviorTree.tick(this.children[child], agent);
@@ -100,17 +112,18 @@ var QEpiKit;
                 }
                 return BehaviorTree.SUCCESS;
             };
+            return _this;
         }
         return BTSequence;
-    })(BTControlNode);
+    }(BTControlNode));
     QEpiKit.BTSequence = BTSequence;
     var BTParallel = (function (_super) {
         __extends(BTParallel, _super);
         function BTParallel(name, children, successes) {
-            _super.call(this, name, children);
-            this.type = "parallel";
-            this.successes = successes;
-            this.operate = function (agent) {
+            var _this = _super.call(this, name, children) || this;
+            _this.type = "parallel";
+            _this.successes = successes;
+            _this.operate = function (agent) {
                 var succeeded = [], failures = [], childState, majority;
                 for (var child in this.children) {
                     childState = BehaviorTree.tick(this.children[child], agent);
@@ -131,33 +144,35 @@ var QEpiKit;
                     return BehaviorTree.FAILED;
                 }
             };
+            return _this;
         }
         return BTParallel;
-    })(BTControlNode);
+    }(BTControlNode));
     QEpiKit.BTParallel = BTParallel;
     var BTCondition = (function (_super) {
         __extends(BTCondition, _super);
         function BTCondition(name, condition) {
-            _super.call(this, name);
-            this.type = "condition";
-            this.condition = condition;
-            this.operate = function (agent) {
+            var _this = _super.call(this, name) || this;
+            _this.type = "condition";
+            _this.condition = condition;
+            _this.operate = function (agent) {
                 var state;
                 state = condition.check(agent[condition.key], condition.value);
                 return state;
             };
+            return _this;
         }
         return BTCondition;
-    })(BTNode);
+    }(BTNode));
     QEpiKit.BTCondition = BTCondition;
     var BTAction = (function (_super) {
         __extends(BTAction, _super);
         function BTAction(name, condition, action) {
-            _super.call(this, name);
-            this.type = "action";
-            this.condition = condition;
-            this.action = action;
-            this.operate = function (agent) {
+            var _this = _super.call(this, name) || this;
+            _this.type = "action";
+            _this.condition = condition;
+            _this.action = action;
+            _this.operate = function (agent) {
                 var state;
                 state = condition.check(agent[condition.key], condition.value);
                 if (state === BehaviorTree.SUCCESS) {
@@ -165,9 +180,10 @@ var QEpiKit;
                 }
                 return state;
             };
+            return _this;
         }
         return BTAction;
-    })(BTNode);
+    }(BTNode));
     QEpiKit.BTAction = BTAction;
 })(QEpiKit || (QEpiKit = {}));
 //# sourceMappingURL=behaviorTree.js.map

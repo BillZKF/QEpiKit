@@ -134,5 +134,47 @@ QUtils = {
                 clique: clique
             }
         };
-    }
+    },
+
+    renderGraph:function() {
+            let elements = [];
+            this.values.forEach((layer, lIdx) => {
+                layer.forEach((node, nIdx) => {
+                    elements.push({ data: { id: "l" + lIdx + 'n' + nIdx, label: node + ' : ' + this.der[lIdx][nIdx] } });
+                })
+            });
+
+            this.weights.forEach((wg, wgIdx) => {
+                let srcLy = wgIdx;
+                let dstLy = wgIdx + 1;
+                wg.forEach((src, srcIdx) => {
+                    src.forEach((dst, dstIdx) => {
+                        elements.push({ data: { id: "wg" + wgIdx + 'src' + srcIdx + 'dst' + dstIdx, source: 'l' + srcLy + 'n' + srcIdx, target: 'l' + dstLy + 'n' + dstIdx, label: dst + " : " + this.weightChanges[wgIdx][srcIdx][dstIdx] } });
+                    })
+                })
+            });
+            cytoscape({
+                container: document.getElementById("graph"),
+                elements: elements,
+                layout: {
+                    name: 'grid',
+                    rows: this.values.length
+                },
+                style: [
+                    {
+                        selector: 'node',
+                        style: {
+                            'background-color': '#666',
+                            'label': 'data(label)'
+                        }
+                    }, {
+                        selector: 'edge',
+                        style: {
+                            'background-color': '#333',
+                            'label': 'data(label)'
+                        }
+                    }]
+            })
+        }
+
 };

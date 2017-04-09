@@ -72,9 +72,9 @@ var QEpiKit;
                 }
             }
         };
-        ContactPatch.WIWArray = [];
         return ContactPatch;
-    })();
+    }());
+    ContactPatch.WIWArray = [];
     QEpiKit.ContactPatch = ContactPatch;
 })(QEpiKit || (QEpiKit = {}));
 //# sourceMappingURL=contactPatch.js.map

@@ -2,6 +2,7 @@ bin/
 obj/
 docs/
 coverage/
+dist/
 node_modules/
 bower_components/
 *.csproj

@@ -6,7 +6,7 @@ module QEpiKit{
   }
 
   export class Matrix {
-    constructor(arrays:number[],rows:number, columns:number){
+    constructor(mat:number[][]){
 
     }
   }

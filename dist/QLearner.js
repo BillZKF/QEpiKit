@@ -1,6 +1,7 @@
 var QEpiKit;
 (function (QEpiKit) {
     var QLearner = (function () {
+        //TODO - change episode to update
         function QLearner(R, gamma, goal) {
             this.rawMax = 1;
             this.R = R;
@@ -17,12 +18,14 @@ var QEpiKit;
         }
         QLearner.prototype.grow = function (state, actions) {
             for (var i = 0; i < actions.length; i++) {
+                //reward is currently unknown
                 this.R[state][actions[i]] = null;
             }
         };
         QLearner.prototype.explore = function (prom) {
         };
         QLearner.prototype.transition = function (state, action) {
+            //is the state unexamined
             var examined = true;
             var bestAction;
             for (action in this.R[state]) {

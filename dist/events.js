@@ -1,11 +1,20 @@
 var QEpiKit;
 (function (QEpiKit) {
+    /** Events class includes methods for organizing events.
+    *
+    */
     var Events = (function () {
         function Events(events) {
             if (events === void 0) { events = []; }
             this.queue = [];
             this.schedule(events);
         }
+        /**
+        * schedule an event with the same trigger multiple times.
+        * @param qevent is the event to be scheduled. The at parameter should contain the time at first instance.
+        * @param every interval for each occurnce
+        * @param end until
+        */
         Events.prototype.scheduleRecurring = function (qevent, every, end) {
             var recur = [];
             var duration = end - qevent.at;
@@ -18,6 +27,10 @@ var QEpiKit;
             }
             this.schedule(recur);
         };
+        /*
+        * schedule a one time events. this arranges the event queue in chronological order.
+        * @param qevents an array of events to be schedules.
+        */
         Events.prototype.schedule = function (qevents) {
             qevents.forEach(function (d) {
                 d.until = d.until || d.at;

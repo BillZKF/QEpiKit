@@ -1,17 +1,26 @@
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var QEpiKit;
 (function (QEpiKit) {
+    /*
+    * Utility Systems class
+    */
     var USys = (function (_super) {
         __extends(USys, _super);
         function USys(name, options, data) {
-            _super.call(this, name);
-            this.options = options;
-            this.results = [];
-            this.data = data;
+            var _this = _super.call(this, name) || this;
+            _this.options = options;
+            _this.results = [];
+            _this.data = data;
+            return _this;
         }
         USys.prototype.update = function (agent, step) {
             var tmp = [], max = 0, avg, top;

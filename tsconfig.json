@@ -1,4 +1,5 @@
 {
+  "compileOnSave": true,
   "compilerOptions": {
     "target": "es5",
     "module": "commonjs",
@@ -19,10 +20,15 @@
     "src/contactPatch.ts",
     "src/events.ts",
     "src/epi.ts",
-    "src/geoPatch.ts",
     "src/ha.ts",
     "src/htn.ts",
     "src/USys.ts",
-    "src/stateMachine.ts"
+    "src/stateMachine.ts",
+    "src/network.ts",
+    "src/knn.ts",
+    "src/kmean.ts",
+    "src/regression.ts",
+    "src/genetic.ts",
+    "src/evolutionary.ts"
   ]
 }

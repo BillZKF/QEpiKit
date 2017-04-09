@@ -25,11 +25,17 @@ var QEpiKit;
             }
             return range;
         };
+        /**
+        * shuffle - fisher-yates shuffle
+        */
         Utils.shuffle = function (array, randomF) {
             var currentIndex = array.length, temporaryValue, randomIndex;
+            // While there remain elements to shuffle...
             while (0 !== currentIndex) {
+                // Pick a remaining element...
                 randomIndex = Math.floor(randomF() * currentIndex);
                 currentIndex -= 1;
+                // And swap it with the current element.
                 temporaryValue = array[currentIndex];
                 array[currentIndex] = array[randomIndex];
                 array[randomIndex] = temporaryValue;
@@ -37,6 +43,7 @@ var QEpiKit;
             return array;
         };
         Utils.generateUUID = function () {
+            // http://www.broofa.com/Tools/Math.uuid.htm
             var chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split('');
             var uuid = new Array(36);
             var rnd = 0, r;
@@ -221,11 +228,105 @@ var QEpiKit;
                 }
             }
         };
-        Utils.SUCCESS = 1;
-        Utils.FAILED = 2;
-        Utils.RUNNING = 3;
+        Utils.dataToMatrix = function (items, stdized) {
+            if (stdized === void 0) { stdized = false; }
+            var data = [];
+            for (var i = 0; i < items.length; i++) {
+                var item = items[i];
+                if (stdized) {
+                    item = Utils.standardized(item);
+                }
+                item.forEach(function (x, ii) {
+                    if (typeof data[ii] === 'undefined') {
+                        data[ii] = [1, x];
+                    }
+                    else {
+                        data[ii].push(x);
+                    }
+                });
+            }
+            return data;
+        };
+        /*
+        * relative to the mean, how many standard deviations
+        */
+        Utils.standardized = function (arr) {
+            var std = jStat.stdev(arr);
+            var mean = jStat.mean(arr);
+            var standardized = arr.map(function (d) {
+                return (d - mean) / std;
+            });
+            return standardized;
+        };
+        /*
+        * between 0 and 1 when min and max are known
+        */
+        Utils.normalize = function (x, min, max) {
+            var val = x - min;
+            return val / (max - min);
+        };
+        /*
+        * give the real unit value
+        */
+        Utils.invNorm = function (x, min, max) {
+            return (x * max - x * min) + min;
+        };
+        /*
+        *
+        */
+        Utils.randRange = function (min, max) {
+            return (max - min) * Math.random() + min;
+        };
+        Utils.prototype.getRange = function (data, prop) {
+            var range = {
+                min: 1e15,
+                max: -1e15
+            };
+            for (var i = 0; i < data.length; i++) {
+                if (range.min > data[i][prop]) {
+                    range.min = data[i][prop];
+                }
+                if (range.max < data[i][prop]) {
+                    range.max = data[i][prop];
+                }
+            }
+            return range;
+        };
         return Utils;
     }());
+    Utils.SUCCESS = 1;
+    Utils.FAILED = 2;
+    Utils.RUNNING = 3;
     QEpiKit.Utils = Utils;
+    var Match = (function () {
+        function Match() {
+        }
+        Match.gt = function (a, b) {
+            if (a > b) {
+                return true;
+            }
+            return false;
+        };
+        Match.ge = function (a, b) {
+            if (a >= b) {
+                return true;
+            }
+            return false;
+        };
+        Match.lt = function (a, b) {
+            if (a < b) {
+                return true;
+            }
+            return false;
+        };
+        Match.le = function (a, b) {
+            if (a <= b) {
+                return true;
+            }
+            return false;
+        };
+        return Match;
+    }());
+    QEpiKit.Match = Match;
 })(QEpiKit || (QEpiKit = {}));
 //# sourceMappingURL=utils.js.map

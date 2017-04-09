@@ -1,6 +1,6 @@
 QActions = {};
 //check if the agent has exceeded the duration amount for an action
-QActions.timeout = function(step, agent, key, duration) {
+QActions.timeout = function (agent, step, key, duration) {
   if (agent[key] >= duration) {
     agent[key] = 0; //reset
     return true;
@@ -11,11 +11,11 @@ QActions.timeout = function(step, agent, key, duration) {
 };
 
 //shorthand to schedule an event at time
-QActions.timeoutEvent = function(step, agent, time, callback) {
+QActions.timeoutEvent = function (agent, step, time, callback) {
   let event = {
     name: 'event-for-' + agent.id,
     at: time,
-    trigger: function() {
+    trigger: function () {
       callback(agent);
     }
   };
@@ -23,12 +23,17 @@ QActions.timeoutEvent = function(step, agent, time, callback) {
   environment.eventsQueue = events.queue;
 };
 
+QActions.distance = function(a, b){
+  let sqDist = Math.pow(b.x - a.x, 2) + Math.pow(b.y - a.y, 2) + Math.pow(b.z - a.z, 2);
+  return Math.sqrt(sqDist);
+}
+
 
 //find closest in array
-QActions.findClosest = function(step, agent, array, key) {
+QActions.findClosest = function (agent, step, array, key) {
   let closest = 1e15;
-  array.forEach(function(d) {
-    let dist = agent.mesh.position.distanceTo(d.mesh.position);
+  array.forEach(function (d) {
+    let dist = QActions.distance(agent.position, d.position);
     if (dist < closest) {
       closest = dist;
       agent[key] = d;
@@ -37,13 +42,13 @@ QActions.findClosest = function(step, agent, array, key) {
 }
 
 //find n closest in array. example: find the second closest bathroom.
-QActions.findNClosest = function(step, n, agent, array, key) {
+QActions.findNClosest = function (step, n, agent, array, key) {
   let closest = 1e15;
-  let dist = array.map(function(d) {
-    return agent.mesh.position.distanceTo(d.mesh.position);
+  let dist = array.map(function (d) {
+    return QActions.distance(agent.position, d.position);
   });
   let sortedDist = JSON.parse(JSON.stringify(dist));
-  sortedDist.sort(function(a, b) {
+  sortedDist.sort(function (a, b) {
     return a - b;
   });
 
@@ -52,10 +57,11 @@ QActions.findNClosest = function(step, n, agent, array, key) {
 }
 
 //check return subset of array of elements within distance
-QActions.within = function(step, agent, array, distance) {
+QActions.within = function (agent, step, array, distance) {
   let within = [];
   for (let i = 0; i < array.length; i++) {
-    if (agent.mesh.position.distanceTo(array[i].mesh.position) < distance) {
+    
+    if (QActions.distance(agent.position, array[i].position) < distance) {
       if (array[i].id !== agent.id) {
         within.push(array[i]);
       }
@@ -64,12 +70,12 @@ QActions.within = function(step, agent, array, distance) {
   return within;
 }
 
-QActions.useFacility = function(step, agent, facilities, key, success) {
+QActions.useFacility = function (agent, step, facilities, key, success) {
   //first, think of the closest bathroom
   if (agent[key] === null) {
-    QActions.findClosest(step, agent, facilities, key);
+    QActions.findClosest(agent, step, facilities, key);
   }
-  let distToFacil = agent.mesh.position.distanceTo(agent[key].mesh.position);
+  let distToFacil = QActions.distance(agent.position, agent[key].position);
   if (!agent.inQueue && distToFacil < (agent[key].queue.length + 1) * 10) {
     let nChoice = 1;
     while (!agent.inQueue && nChoice < facilities.length) {
@@ -83,7 +89,7 @@ QActions.useFacility = function(step, agent, facilities, key, success) {
         //if it is pick a different bathroom;
         nChoice++;
         agent[key] = QActions.findNClosest(step, nChoice, agent, facilities);
-        distToFacil = agent.mesh.position.distanceTo(agent[key].mesh.position);
+        distToFacil = QActions.distance(agent.position, agent[key].position);
       }
     }
   }
@@ -91,83 +97,90 @@ QActions.useFacility = function(step, agent, facilities, key, success) {
     //once in line
     if (agent[key].queue[0] === agent.id) {
       if (distToFacil < 0.1) {
-        if (QActions.timeout(step, agent, 'useTime', agent[key].wait)) {
-          success(step, agent, agent[key]);
+        if (QActions.timeout(agent, step, 'useTime', agent[key].wait)) {
+          success(agent, step, agent[key]);
           agent[key].queue.shift();
           agent.inQueue = false;
           agent[key] = null;
         }
       } else {
-        QActions.moveTo(step, agent, agent[key]);
+        QActions.moveTo(agent, step, agent[key]);
       }
     } else {
-      QActions.waitInLine(step, agent, agent[key]);
+      QActions.waitInLine(agent, step, agent[key]);
     }
   } else {
-    QActions.moveTo(step, agent, agent[key]);
+    QActions.moveTo(agent, step, agent[key]);
   }
 };
 
 //more convincing looking random move, but it makes no sense
-QActions.rmove = function(step, agent) {
+QActions.rmove = function (agent, step) {
   var dx = step * (agent.movePerDay * random.real(-1, 1) + (agent.prevX * 0.90));
   var dy = step * (agent.movePerDay * random.real(-1, 1) + (agent.prevY * 0.90));
-  agent.mesh.position.y += dx;
-  agent.mesh.position.x += dy;
-  agent.mesh.rotation.z = Math.atan2(dx, dy);
+  agent.position.y += dx;
+  agent.position.x += dy;
+
+  agent.mesh.position.x = agent.position.x;
+  agent.mesh.position.y = agent.position.x;
   agent.prevX = dx / step;
   agent.prevY = dy / step;
 };
 
 //move randomly
-QActions.move = function(step, agent) {
+QActions.move = function (agent, step) {
+  //console.log(agent);
   let d = step * agent.movePerDay;
   let dir = Math.atan2(random.real(-0.5, 0.5) + agent.prevX * 0.5, random.real(-0.5, 0.5) + agent.prevY * 0.5);
-  let dVec = new THREE.Vector3(Math.sin(dir), Math.cos(dir), 0);
-  agent.mesh.position.x += dVec.x * d;
-  agent.mesh.position.y += dVec.y * d;
-  //agent.mesh.rotation.z = Math.atan2(dVec.x, dVec.y); this screws up cylinders
+  let dVec = {x:Math.sin(dir), y: Math.cos(dir), z: 0};
+  agent.position.x += dVec.x * d;
+  agent.position.y += dVec.y * d;
+  agent.mesh.position.x = agent.position.x;
+  agent.mesh.position.y = agent.position.y;
   agent.prevX = dVec.x;
   agent.prevY = dVec.y;
 };
 
-QActions.moveTo = function(step, agent, destination) {
+QActions.moveTo = function (agent, step, destination) {
   let d = step * agent.movePerDay;
-  if (agent.mesh.position.distanceTo(destination.mesh.position) > d) {
-    let dir = Math.atan2(destination.mesh.position.x - agent.mesh.position.x, destination.mesh.position.y - agent.mesh.position.y);
-    let dVec = new THREE.Vector3(Math.sin(dir), Math.cos(dir), 0);
-    agent.mesh.position.x += dVec.x * d;
-    agent.mesh.position.y += dVec.y * d;
+  if (QActions.distance(agent.position, destination.position) > d) {
+    let dir = Math.atan2(destination.position.x - agent.position.x, destination.position.y - agent.position.y);
+    let dVec = {x:Math.sin(dir), y: Math.cos(dir), z: 0};
+    agent.position.x += dVec.x * d;
+    agent.position.y += dVec.y * d;
+
+    agent.mesh.position.x = agent.position.x;
+    agent.mesh.position.y = agent.position.x;
   } else {
-    agent.mesh.position.copy(destination.mesh.position);
+    agent.position = Object.create(destination.position);
   }
 };
 
 //move randomly within a rectangle
-QActions.moveWithin = function(step, agent, boundary) {
+QActions.moveWithin = function (agent, step, boundary) {
   let d = step * agent.movePerDay;
-  var current = new THREE.Vector3().copy(agent.mesh.position);
-  QActions.move(step, agent);
-  if (agent.mesh.position.x > boundary.right) {
-    agent.mesh.position.x = current.x;
+  var current = {x:agent.position.x, y: agent.position.y, z:agent.position.z};
+  QActions.move(agent, step);
+  if (agent.position.x > boundary.right) {
+    agent.position.x = current.x;
     agent.prevX = 0;
   }
-  if (agent.mesh.position.x < boundary.left) {
-    agent.mesh.position.x = current.x;
+  if (agent.position.x < boundary.left) {
+    agent.position.x = current.x;
     agent.prevX = 0;
   }
-  if (agent.mesh.position.y > boundary.top) {
-    agent.mesh.position.y = current.y;
+  if (agent.position.y > boundary.top) {
+    agent.position.y = current.y;
     agent.prevY = 0;
   }
-  if (agent.mesh.position.y < boundary.bottom) {
-    agent.mesh.position.y = current.y;
+  if (agent.position.y < boundary.bottom) {
+    agent.position.y = current.y;
     agent.prevY = 0;
   }
 };
 
 //move randomly using geo solvers
-QActions.geoMove = function(step, agent) {
+QActions.geoMove = function (agent, step) {
   var randomBearing = random.integer(-180, 180);
   var dest = turf.destination(agent.location, step * agent.movePerDay, randomBearing, distUnits);
   agent.movedTotal += step * agent.movePerDay;
@@ -175,18 +188,17 @@ QActions.geoMove = function(step, agent) {
 };
 
 //move to a desination
-QActions.geoMoveTo = function(step, agent, destination) {
+QActions.geoMoveTo = function (agent, step, destination) {
   var bearing = turf.bearing(agent.location, destination.location);
   var distance = turf.distance(agent.location, destination.location, distUnits);
   if (distance > agent.movePerDay * step) {
     var dest = turf.destination(agent.location, step * agent.movePerDay, bearing, distUnits);
     agent.location = dest;
   }
-
 };
 
 //contact using three raycasting
-QActions.contact = function(step, agent) {
+QActions.contact = function (agent, step) {
   let contactAttempts = agent.contactAttempts * step;
   for (var j = 0; j < contactAttempts; j++) {
     let dir = new THREE.Vector3(random.real(-1, 1), random.real(-1, 1), 0);
@@ -212,26 +224,26 @@ QActions.contact = function(step, agent) {
  *limits the number of contact attempts per day to the contactAttempts param (~10).
  *probably could be fixed
  */
-QActions.contactDis = function(step, agent) {
+QActions.contactDis = function (agent, step) {
   let contactAttempts = agent.contactAttempts * step;
   //if step size < 1 accumalate until newAttempt > 1
   agent.newAttempt += contactAttempts;
   if (agent.newAttempt < 1) {
-    console.log(agent.newAttempt);
+    //console.log(agent.newAttempt);
     contactAttempts = 0;
   } else {
     //new attempt is greater than 1
     contactAttempts = 1;
   }
-  if (contactAttempts > 0) {
+  if (contactAttempts > 0) {  
     agent.newAttempt = 0;
     agent.madeAttempts += 1;
-    let near = QActions.within(step, agent, agents, step * agent.movePerDay + 1);
+    let near = QActions.within(agent, step, env.agents, step * agent.movePerDay + 1);
     if (near.length > 0) {
       for (var j = 0; j < contactAttempts; j++) {
         var rand = random.integer(0, near.length - 1);
         var contactedAgent = near[rand];
-        if (contactedAgent.mesh.type === 'agent') {
+        if (typeof contactedAgent.states.illness !== 'undefined') {
           if (contactedAgent.states.illness === 'succeptible' || contactedAgent.states.illness === 'exposed') {
             contactedAgent.pathogenLoad += jStat.normal.inv(random.real(0, 1), pathogen.shedRate, pathogen.shedRate * 0.3);
             contactedAgent.lastInfectedContact = agent.id;
@@ -244,9 +256,9 @@ QActions.contactDis = function(step, agent) {
 }
 
 //contact using turf within
-QActions.geoContact = function(step, agent) {
+QActions.geoContact = function (agent, step) {
   var contactPoint;
-  var buffer = {type:'FeatureCollection', features:[turf.buffer(agent.location, step * agent.movePerDay, distUnits)]};
+  var buffer = { type: 'FeatureCollection', features: [turf.buffer(agent.location, step * agent.movePerDay, distUnits)] };
   var agentsWithinBuffer = turf.within(locations, buffer);
   var numContacts = Math.round(agent.contactAttempts * step);
   if (agentsWithinBuffer.features.length > 1) {
@@ -262,7 +274,8 @@ QActions.geoContact = function(step, agent) {
     }
   }
 };
-QActions.excrete = function(step, agent, destination) {
+
+QActions.excrete = function (agent, step, destination) {
   destination.status += agent.kgPerDayExcrete * 0.001;
   if (pathogen.fecalOral) {
     destination.pathConc += agent.pathogenLoad / agent.kgPerDayExcrete * step / (destination.capacity * 1000);
@@ -278,47 +291,93 @@ QActions.excrete = function(step, agent, destination) {
   destination.mesh.material.color.g = destination.status / destination.capacity;
 };
 
-QActions.waitInLine = function(step, agent, destination) {
+QActions.waitInLine = function (agent, step, destination) {
   let target, placeInLine = destination.queue.indexOf(agent.id);
   if (placeInLine === 0) {
     target = destination;
   } else {
     target = environment.getAgentById(destination.queue[placeInLine - 1]);
   }
-  if (agent.mesh.position.distanceTo(target.mesh.position) > 1) {
-    QActions.moveTo(step, agent, target);
+  if (QActions.distance(agent.position, target.position) > 1) {
+    QActions.moveTo(agent, step, target);
   }
 };
-QActions.drink = function(step, agent) {
+QActions.drink = function (agent, step) {
   agent.waterAvailable -= agent.dailyWaterRequired * step;
   agent.needsBathroom += agent.dailyWaterRequired * step / (agent.dailyWaterRequired * 0.3);
   if (pathogen.waterBorne) {
     agent.pathogenLoad += agent.waterPathConcentration * step;
   }
 };
-QActions.getWater = function(step, agent, watersource) {
+QActions.getWater = function (agent, step, watersource) {
   agent.waterAvailable += agent.dailyWaterRequired * 0.333; //needs to get water 3 times a day
   if (pathogen.waterBorne) {
     agent.waterPathConcentration += watersource.pathConc * agent.waterAvailable;
   }
 };
-QActions.checkWater = function(step, agent, watersource) {
+QActions.checkWater = function (agent, step, watersource) {
   if (agent.waterAvailable < agent.dailyWaterRequired * step) {
-    QActions.getWater(step, agent, watersource);
+    QActions.getWater(agent, step, watersource);
   } else {
     if (random.real(0, 1) > 0.75) {
-      QActions.drink(step, agent);
+      QActions.drink(agent, step);
     }
   }
 };
-QActions.findWater = function(step, agent, watersources, key) {
+QActions.findWater = function (agent, step, watersources, key) {
   if (agent.waterAvailable < agent.dailyWaterRequired * step) {
-    QActions.findClosest(step, agent, watersources, key);
-    QActions.getWater(step, agent, agent[key]);
+    QActions.findClosest(agent, step, watersources, key);
+    QActions.getWater(agent, step, agent[key]);
   } else {
     if (random.real(0, 1) > 0.5) {
-      QActions.drink(step, agent);
+      QActions.drink(agent, step);
     }
   }
-
+};
+QActions.succeptible = function (agent, step) {
+  if (agent.type === 'continuous') {
+    agent.mesh.material.color.set(0x00ff00);
+  }
+  agent.timeRecovered = 0;
+  agent.timeInfectious = 0;
+};
+QActions.exposed = function (agent, step) {
+  if (agent.type === 'continuous') {
+    agent.mesh.material.color.set(0xff00ff);
+  }
+  if (agent.pathogenLoad > 1) {
+    agent.responseProb = pathogen[pathogen.bestFitModel](agent.pathogenLoad);
+    agent.pathogenLoad = agent.pathogenLoad * (1 - pathogen.decayRate * step);
+  } else {
+    agent.responseProb = 0;
+    agent.pathogenLoad = 0;
+  }
+};
+QActions.infectious = function (agent, step) {
+  if (agent.type === 'continuous') {
+    agent.mesh.material.color.set(0xff0000);
+  }
+  if (typeof infectious === 'number') {
+    infectious++;
+  }
+  agent.timeInfectious += jStat.normal.inv(random.real(0, 1), 1 * step, step);
+  if (pathogen.personToPerson) {
+    if (agent.type === 'geospatial') {
+      QActions.geoContact(agent, step);
+    } else {
+      QActions.contactDis(agent, step);
+    }
+  }
+};
+QActions.removed = function (agent, step) {
+  if (agent.type === 'continuous') {
+    agent.mesh.material.color.set(0x0000ff);
+  }
+  if (agent.pathogenLoad > 1) {
+    agent.pathogenLoad -= agent.pathogenLoad * (1 - pathogen.decayRate * step);
+  } else {
+    agent.pathogenLoad = 0;
+    agent.responseProb = 0;
+  }
+  agent.timeRecovered += 1 * step;
 };

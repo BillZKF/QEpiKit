@@ -58,7 +58,7 @@ var QEpiKit;
             }
         };
         return Epi;
-    })();
+    }());
     QEpiKit.Epi = Epi;
 })(QEpiKit || (QEpiKit = {}));
 //# sourceMappingURL=epi.js.map

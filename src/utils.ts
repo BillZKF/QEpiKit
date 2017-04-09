@@ -1,3 +1,4 @@
+declare var jStat:any;
 module QEpiKit {
   export class Utils {
     public static SUCCESS: number = 1;
@@ -9,7 +10,7 @@ module QEpiKit {
       var URI;
       var csvContent = "data:text/csv;charset=utf-8,";
       var csvContentArray = [];
-      data.forEach(function(infoArray) {
+      data.forEach(function (infoArray) {
         dataString = infoArray.join(",");
         csvContentArray.push(dataString);
       });
@@ -233,5 +234,100 @@ module QEpiKit {
         }
       }
     }
+
+    public static dataToMatrix(items: any[], stdized = false) {
+      let data = [];
+      for (let i = 0; i < items.length; i++) {
+        let item = items[i];
+        if (stdized) {
+          item = Utils.standardized(item);
+        }
+        item.forEach((x, ii) => {
+          if (typeof data[ii] === 'undefined') {
+            data[ii] = [1, x];
+          } else {
+            data[ii].push(x);
+          }
+        });
+      }
+      return data;
+    }
+
+    /*
+    * relative to the mean, how many standard deviations
+    */
+    public static standardized(arr: number[]) {
+      let std = jStat.stdev(arr);
+      let mean = jStat.mean(arr);
+      let standardized = arr.map((d) => {
+        return (d - mean) / std;
+      })
+      return standardized;
+    }
+
+    /*
+    * between 0 and 1 when min and max are known
+    */
+    public static  normalize(x: number, min: number, max: number) {
+        let val = x - min;
+        return val / (max - min);
+    }
+
+    /*
+    * give the real unit value
+    */
+    public static invNorm(x: number, min: number, max: number) {
+        return (x * max - x * min) + min;
+    }
+
+    /*
+    *
+    */
+    public static randRange(min: number, max: number) {
+        return (max - min) * Math.random() + min;
+    }
+
+    public getRange(data:any[], prop:string){
+      let range = {
+          min: 1e15,
+          max: -1e15
+      };
+      for(let i = 0; i < data.length; i++){
+        if (range.min > data[i][prop]) {
+            range.min = data[i][prop];
+        }
+        if (range.max < data[i][prop]) {
+            range.max = data[i][prop];
+        }
+      }
+      return range;
+    }
+  }
+
+  export class Match {
+      static gt(a: number, b: number) {
+          if (a > b) {
+              return true;
+          }
+          return false
+      }
+      static ge(a: number, b: number) {
+          if (a >= b) {
+              return true;
+          }
+          return false
+      }
+      static lt(a: number, b: number) {
+          if (a < b) {
+              return true;
+          }
+          return false
+      }
+      static le(a: number, b: number) {
+          if (a <= b) {
+              return true;
+          }
+          return false
+      }
   }
 }

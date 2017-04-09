@@ -1,0 +1,359 @@
+<head>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+
+<body>
+    <div id="app" class="container-fluid">
+      <div class="col-lg-4">
+        <h1>QHealthLab</h1>
+        <experiment-form></experiment-form>
+        <environment-form></environment-form>
+        <agents-form></agents-form>
+        <div class="btn btn-success btn-lg" @click="compile()">Prepare</div>
+      </div>
+      <div class="col-lg-8" id="ex-1"></div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.2.5/vue.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.7.3/d3.js"></script>
+    <script src="./libs/jStat.min.js"></script>
+    <script src="actions.js"></script>
+    <script src="../qepikit.js"></script>
+    <script>
+        var bus = new Vue({
+          data:{
+
+          }
+        });
+
+        Vue.component('experiment-form', {
+            template: `<div><h2>Experiment Parameters</h2>
+      <div class="form-group">
+        <label>Total Iterations</label>
+        <input class="form-control" type="number" v-model="iterations" />
+      </div>
+      <div class="form-group">
+          <label>Experiment Type</label>
+          <select class="form-control" v-model="experimentType">
+            <option v-for="type in experimentTypes">{{type}}</option>
+          </select>
+      </div>
+      </div>`,
+            data: function() {
+                return {
+                    iterations: 1,
+                    experimentType: 'Change Seed',
+                    experimentTypes: ['Change Seed', 'Parameter Sweep', 'Optimization (Evolutionary)']
+                }
+            }
+        });
+
+
+        Vue.component('environment-form', {
+            template: `<div><h2>Environment Parameters</h2>
+      <div class="form-group">
+      <label>Step Size (days)</label>
+          <input class="form-control" type="number" v-model="step" />
+      </div>
+      <div class="form-group">
+          <label>Until (days)</label>
+          <input class="form-control" type="number" v-model="until" />
+      </div>
+      <div class="form-group">
+          <label>Spatial Type</label>
+          <select class="form-control" v-model="spatialType">
+            <option v-for="type in spatialTypes">{{type}}</option>
+          </select>
+      </div>
+      </div>`,
+            data: function() {
+                return {
+                    step: 0.0007, //1 /24 / 60
+                    until: 3,
+                    spatialType: 'Continuous (3d)',
+                    spatialTypes: ['Continuous (3d)', 'Geospatial']
+                }
+            }
+        });
+
+        Vue.component('agents-form', {
+            template: `<div><h2>Agents</h2>
+      <div class="form-group">
+          <label># Agents</label>
+          <input class="form-control" type="number" v-model="numAgents" />
+      </div>
+
+      <h3>Parameters</h3>
+      <new-var :obs-count.sync="numAgents" :obs.sync="paramSet[i]" :name.sync="paramLabels[i]" :idx="i" v-for="(prm, i) in paramSet"></new-var>
+      <div class="btn btn-primary" @click="addParam()">Add Parameter</div>
+      <components-form :params="paramLabels"></components-form>
+      </div>`,
+            data: function() {
+                return {
+                    numAgents: 1000,
+                    paramSet: [],
+                    paramLabels: [],
+                    agents: []
+                }
+            },
+            methods: {
+                updateParam: function(param) {
+                    let idx = param[0];
+                    this.paramLabels[idx] = param[2];
+                    this.paramSet[idx] = param[1];
+                },
+                addParam: function() {
+                    this.paramSet.push([0]);
+                    this.paramLabels.push('test');
+                }
+            }
+        });
+
+        Vue.component('components-form', {
+            props:['params'],
+            template: `<div><h3>Components</h3>
+            <state-machine :name="sm.name" :params="params" v-for="sm in stateMachines"></state-machine>
+            <div class="row">
+            <div class="form-group col-lg-6">
+            <label>Component Name</label>
+            <input class="form-control" v-model="newCompName" />
+            </div>
+            <div class="form-group col-lg-6">
+            <label>Component Type</label>
+            <select class="form-control" v-model="newCompType">
+              <option v-for="type in componentTypes">{{type}}</option>
+            </select>
+            </div>
+            </div>
+            <button class="btn btn-primary" @click="addComponent()">Add Component</button>
+            </div>`,
+            data: function() {
+                return {
+                    newCompName: 'new-component',
+                    newCompType:'State Machine',
+                    componentTypes: ['State Machine', 'Behavior Tree', 'Hierarchal Task Network'],
+                    stateMachines: []
+                }
+            },
+            methods: {
+              addComponent: function(){
+                switch(this.newCompType){
+                  case 'State Machine':
+                    this.stateMachines.push({name:this.newCompName})
+                  default: break;
+                }
+              }
+            }
+        })
+
+        Vue.component('new-var', {
+            props: ['obs-count', 'obs', "idx", "name"],
+            template: `
+                  <div class="row">
+                  <div class="form-group col-lg-4">
+                    <label class="control-label">Name</label>
+                    <input class="form-control" v-model="name"/>
+                  </div>
+                  <div class="form-group col-lg-4">
+                    <label class="control-label">Distribution</label>
+                    <select class="form-control" v-model="distribution">
+                      <option v-for="(dist,key) in distributions">{{key}}</option>
+                    </select>
+                  </div>
+                  <div class="form-group col-lg-2" v-for="(param,idx) in distributions[distribution]">
+                      <label class="control-label">{{param}}</label>
+                      <input stylev-model.number="params[idx]" class="form-control" type="number" value="0" />
+                  </div>
+                  </div>`,
+            data: function() {
+                return {
+                    name: '',
+                    obs: [0],
+                    distributions: {
+                        uniform: ["min", "max"],
+                        normal: ["mean", "sd"],
+                        gamma: ["shape", "scale"],
+                        lognormal: ["mean", "sd"],
+                        poisson: ["k", "lambda"]
+                    },
+                    distribution: 'normal',
+                    params: [0, 0]
+                }
+            },
+            methods: {
+                generate: function() {
+                    this.obs = [];
+                    let dstb = this.distribution;
+                    for (let i = 0; i < this.obsCount; i++) {
+                        this.obs[i] = jStat[dstb].sample(this.params[0], this.params[1]);
+                    }
+                }
+            }
+        });
+
+
+
+
+
+        Vue.component('state-machine', {
+            props: ['name', 'params'],
+            template: `<div class="panel panel-body panel-default">
+        <h3>{{name}}</h3>
+        <label>States</label>
+        <state :name="state.name" v-for="state in states"></state><input class="form-control" v-model="newStateName" />
+        <span class="btn btn-default btn-sm" @click="addState()">Add State</span>
+        <div>
+          <label>Conditions</label>
+          <condition :name="cond.name" :params="params" v-for="cond in conditions"></condition><input class="form-control" v-model="newConditionName"/>
+          <span class="btn btn-default btn-sm" @click="addCondition()" :disabled="params.length < 1">Add Condition</span>
+        </div>
+        <div>
+          <label>Transition</label>
+          <transition :name="newTransitionName" :states="states" :conditions="conditions" v-for="transition in transitions"></transition>
+          <input class="form-control" v-model="newTransitionName"/>
+          <span class="btn btn-default btn-sm" @click="addTransition()"  :disabled="Object.keys(states).length < 2">Add Transition</span>
+        </div>
+        </div>`,
+            data: function() {
+                return {
+                    newConditionName: '',
+                    newStateName: '',
+                    newTransitionName: '',
+                    conditions: {},
+                    transitions: [],
+                    states: {}
+                }
+            },
+            methods: {
+                addCondition: function() {
+                    if (this.newConditionName !== '' && this.newConditionName !== null) {
+                        this.$set(this.conditions, this.newConditionName, {});
+                        this.newConditionName = '';
+                        this.$forceUpdate();
+                    }
+
+                },
+                addTransition: function() {
+                    if (this.newTransitionName !== '') {
+                        this.transitions.push({
+                            name: this.newTransitionName
+                        });
+                        this.newStateName = '';
+                        this.$forceUpdate();
+                    }
+                },
+                addState: function() {
+                    if (this.newStateName !== '' && this.newStateName !== null) {
+                        this.$set(this.states, this.newStateName, {
+                            name: this.newStateName
+                        });
+                        this.newStateName = '';
+                        this.$forceUpdate();
+                    }
+                }
+            }
+        })
+
+
+        Vue.component('condition', {
+            props: ['params', 'name'],
+            template: `<div>
+      <div class="form-group form-inline">
+      <label class="control-label">{{name}}</label>
+      <label>Parameter</label>
+      <div class="form-group">
+        <select class="form-control" v-model="key">
+          <option v-for="paramName in params">{{paramName}}</option>
+        </select>
+      </div>
+      <label>Check</label>
+      <div class="form-group">
+        <select class="form-control" v-model="check">
+          <option v-for="matcher in Object.keys(QEpiKit.Match)">{{matcher}}</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="control-label">Value</label>
+        <input class="form-control" v-model.number="value"/>
+      </div>`,
+            data: function() {
+                return {
+                    key: null,
+                    check: null,
+                    value: null
+                }
+            }
+        });
+
+        Vue.component('state', {
+            props: ['name'],
+            template: `<div class="form-group">
+                    <label class="control-label">{{name}}</label>
+                    <select class="form-control" v-model="action">
+                      <option v-for="(action, key) in source">{{key}}</option>
+                    </select>
+                  </div>`,
+            data: function() {
+                return {
+                    source: QActions,
+                    action: null
+                }
+            },
+            methods: {
+
+            }
+        });
+
+        Vue.component('transition', {
+            props: ['states', 'conditions', 'name'],
+            template: `<div class="panel panel-default panel-body">
+        <label>{{name}}</label>
+      <div class="form-group form-inline">
+      <label class="control-label">On</label>
+      <div class="form-group">
+        <select class="form-control" v-model="on">
+          <option v-for="cond in conditions">{{cond.name}}</option>
+        </select>
+      </div>
+      <label>From</label>
+      <div class="form-group">
+        <select class="form-control" v-model="to">
+          <option v-for="state in states">{{state.name}}</option>
+        </select>
+      </div>
+      <label>To</label>
+      <div class="form-group">
+        <select class="form-control" v-model="from">
+          <option v-for="state in states">{{state.name}}</option>
+        </select>
+      </div>
+      </div>`,
+            data: function() {
+                return {
+                    on: null,
+                    from: null,
+                    to: null
+                }
+            }
+        });
+
+        let app = new Vue({
+            el: '#app',
+            data: {
+                experiment: null, //new QEpiKit.Experiment(),
+                environment: null
+            },
+            created: function() {
+                //bus.$on('update-param', this.updateParam)
+            },
+            methods: {
+                compile() {
+
+                }
+            }
+        });
+
+    </script>
+    <script src="../node_modules/random-js/lib/random.min.js"></script>
+    <script src="../node_modules/three/build/three.min.js"></script>
+    <script src="./data/seir-declarative.js"></script>
+</body>

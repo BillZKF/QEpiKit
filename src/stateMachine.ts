@@ -6,7 +6,7 @@ module QEpiKit {
     public transitions: any[];
     public conditions: any;
     public data: any[];
-    public results: any[]; 
+    public results: any[];
 
     constructor(name: string, states: any, transitions: any[], conditions: any, data: any[]) {
       super(name);
@@ -19,7 +19,7 @@ module QEpiKit {
     update(agent:any, step: number) {
         for (var s in agent.states) {
           let state = agent.states[s];
-          this.states[state](step, agent);
+          this.states[state](agent, step);
           for (var i = 0; i < this.transitions.length; i++) {
             for (var j = 0; j < this.transitions[i].from.length; j++) {
               let trans = this.transitions[i].from[j];
@@ -34,6 +34,7 @@ module QEpiKit {
                 let r = cond.check(agent[cond.key], value);
                 if (r === StateMachine.SUCCESS) {
                   agent.states[s] = this.transitions[i].to;
+                  agent[s] = agent.states[s]; //for easier reporting
                 }
               }
             }
