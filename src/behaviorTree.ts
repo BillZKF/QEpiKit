@@ -1,4 +1,6 @@
-module QEpiKit {
+import {QComponent} from './QComponent';
+import {generateUUID} from './utils';
+import {Condition} from './interfaces';
   /**
   * Behavior Tree
   **/
@@ -39,7 +41,7 @@ module QEpiKit {
     public type: string;
     public operate: Function;
     constructor(name: string) {
-      this.id = QEpiKit.Utils.generateUUID();
+      this.id = generateUUID();
       this.name = name;
     }
   }
@@ -162,4 +164,3 @@ module QEpiKit {
       }
     }
   }
-}

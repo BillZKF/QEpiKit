@@ -1,4 +1,5 @@
-module QEpiKit {
+import {QComponent} from './QComponent';
+import {getMatcherString} from './utils';
     /**
     * Belief Desire Intent agents are simple planning agents with modular plans / deliberation processes.
     */
@@ -45,7 +46,7 @@ module QEpiKit {
                 if (achievements[i] === BDIAgent.SUCCESS) {
                     successes += 1;
                 } else {
-                    matcher = Utils.getMatcherString(c.check);
+                    matcher = getMatcherString(c.check);
                     barriers.push({
                         label: c.label,
                         key: c.key,
@@ -83,4 +84,3 @@ module QEpiKit {
             return options[selection];
         };
     }
-}

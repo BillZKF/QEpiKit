@@ -1,4 +1,3 @@
-module QEpiKit{
 export class KNN {
 
   setNeighbors(point:any, data:any[], param:any, classifier:string) {
@@ -106,5 +105,4 @@ export class KNN {
 
     return data;
   }
-}
 }

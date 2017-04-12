@@ -1,8 +1,8 @@
 {
   "compileOnSave": true,
   "compilerOptions": {
-    "target": "es5",
-    "module": "commonjs",
+    "target": "es6",
+    "module": "es6",
     "outDir": "dist/",
     "watch": true,
     "sourceMap": true
@@ -29,6 +29,8 @@
     "src/kmean.ts",
     "src/regression.ts",
     "src/genetic.ts",
-    "src/evolutionary.ts"
+    "src/evolutionary.ts",
+    "src/main.ts",
+    "src/qepikit.ts"
   ]
 }

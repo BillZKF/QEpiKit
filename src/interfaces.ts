@@ -1,4 +1,3 @@
-module QEpiKit{
 
   /**Action to be performed by a QComponent by calling operate
   */
@@ -36,4 +35,3 @@ module QEpiKit{
     amount: number;
     unit: string;
   }
-}

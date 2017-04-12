@@ -1,4 +1,4 @@
-module QEpiKit {
+import {QComponent} from './QComponent';
   /*
   * Utility Systems class
   */
@@ -53,25 +53,3 @@ module QEpiKit {
     k: number;
     f(x,m,b,k): number;
   }
-
-  export function logistic(x: number, m: number, b: number, k: number) {
-    var y = 1 / (m + Math.exp(-k * (x - b)));
-    return y;
-  }
-
-  export function logit(x: number, m: number, b: number, k: number) {
-    var y = 1 / Math.log(x / (1 - x));
-    return y;
-  }
-
-  export function linear(x: number, m: number, b: number, k: number) {
-    var y =  m * x + b;
-    return y;
-  }
-
-  export function exponential(x: number, m: number, b: number, k: number) {
-    var y = 1 - Math.pow(x, k) / Math.pow(1, k);
-    return y;
-  }
-
-}

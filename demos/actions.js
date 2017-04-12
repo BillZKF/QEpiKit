@@ -60,7 +60,7 @@ QActions.findNClosest = function (step, n, agent, array, key) {
 QActions.within = function (agent, step, array, distance) {
   let within = [];
   for (let i = 0; i < array.length; i++) {
-    
+
     if (QActions.distance(agent.position, array[i].position) < distance) {
       if (array[i].id !== agent.id) {
         within.push(array[i]);
@@ -129,7 +129,6 @@ QActions.rmove = function (agent, step) {
 
 //move randomly
 QActions.move = function (agent, step) {
-  //console.log(agent);
   let d = step * agent.movePerDay;
   let dir = Math.atan2(random.real(-0.5, 0.5) + agent.prevX * 0.5, random.real(-0.5, 0.5) + agent.prevY * 0.5);
   let dVec = {x:Math.sin(dir), y: Math.cos(dir), z: 0};
@@ -225,6 +224,7 @@ QActions.contact = function (agent, step) {
  *probably could be fixed
  */
 QActions.contactDis = function (agent, step) {
+  
   let contactAttempts = agent.contactAttempts * step;
   //if step size < 1 accumalate until newAttempt > 1
   agent.newAttempt += contactAttempts;
@@ -235,10 +235,10 @@ QActions.contactDis = function (agent, step) {
     //new attempt is greater than 1
     contactAttempts = 1;
   }
-  if (contactAttempts > 0) {  
+  if (contactAttempts > 0) {
     agent.newAttempt = 0;
     agent.madeAttempts += 1;
-    let near = QActions.within(agent, step, env.agents, step * agent.movePerDay + 1);
+    let near = QActions.within(agent, step, exp.environment.agents, step * agent.movePerDay + 1);
     if (near.length > 0) {
       for (var j = 0; j < contactAttempts; j++) {
         var rand = random.integer(0, near.length - 1);

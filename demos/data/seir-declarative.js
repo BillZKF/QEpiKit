@@ -102,24 +102,24 @@ let setup = {
             'exposure': {
                 key: 'pathogenLoad',
                 value: 0,
-                check: QEpiKit.Utils.gt
+                check: QEpiKit.gt
             },
             'infection': {
                 key: 'responseProb',
                 value: () => {
                     return Math.random()
                 },
-                check: QEpiKit.Utils.gt
+                check: QEpiKit.gt
             },
             'recovery': {
                 key: 'timeInfectious',
                 value: 5, //pathogen.recoveryTime,
-                check: QEpiKit.Utils.gt
+                check: QEpiKit.gt
             },
             'resucceptible': {
                 key: 'timeRecovered',
                 value: 4, //pathogen.mutationTime,
-                check: QEpiKit.Utils.gt
+                check: QEpiKit.gt
             }
         },
         transitions: [{
@@ -183,7 +183,7 @@ function compile(r, cfg) {
                 break;
             case 'every-step':
                 env.add({
-                    id: QEpiKit.Utils.generateUUID(),
+                    id: QEpiKit.generateUUID(),
                     name: cmp.name,
                     update: cmp.action,
                     data: groups[cmp.agents][0]

@@ -1,6 +1,5 @@
-module QEpiKit {
-
-  export class StateMachine extends QComponent {
+import {QComponent} from './QComponent';
+export class StateMachine extends QComponent {
     public states: any;
     public actions: any;
     public transitions: any[];
@@ -34,7 +33,8 @@ module QEpiKit {
                 let r = cond.check(agent[cond.key], value);
                 if (r === StateMachine.SUCCESS) {
                   agent.states[s] = this.transitions[i].to;
-                  agent[s] = agent.states[s]; //for easier reporting
+                  agent[this.transitions[i].to] = true;
+                  agent[this.transitions[i].from] = false; //for easier reporting
                 }
               }
             }
@@ -53,4 +53,3 @@ module QEpiKit {
       return transitions;
     }
   }
-}

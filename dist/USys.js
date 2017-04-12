@@ -1,68 +1,32 @@
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-var QEpiKit;
-(function (QEpiKit) {
-    /*
-    * Utility Systems class
-    */
-    var USys = (function (_super) {
-        __extends(USys, _super);
-        function USys(name, options, data) {
-            var _this = _super.call(this, name) || this;
-            _this.options = options;
-            _this.results = [];
-            _this.data = data;
-            return _this;
-        }
-        USys.prototype.update = function (agent, step) {
-            var tmp = [], max = 0, avg, top;
-            for (var i = 0; i < this.options.length; i++) {
-                tmp[i] = 0;
-                for (var j = 0; j < this.options[i].considerations.length; j++) {
-                    var c = this.options[i].considerations[j];
-                    var x = c.x(agent, this.options[i].params);
-                    tmp[i] += c.f(x, c.m, c.b, c.k);
-                }
-                avg = tmp[i] / this.options[i].considerations.length;
-                this.results.push({ point: agent.id, opt: this.options[i].name, result: avg });
-                if (avg > max) {
-                    agent.top = { name: this.options[i].name, util: avg };
-                    top = i;
-                    max = avg;
-                }
+import { QComponent } from './QComponent';
+/*
+* Utility Systems class
+*/
+export class USys extends QComponent {
+    constructor(name, options, data) {
+        super(name);
+        this.options = options;
+        this.results = [];
+        this.data = data;
+    }
+    update(agent, step) {
+        var tmp = [], max = 0, avg, top;
+        for (var i = 0; i < this.options.length; i++) {
+            tmp[i] = 0;
+            for (var j = 0; j < this.options[i].considerations.length; j++) {
+                let c = this.options[i].considerations[j];
+                let x = c.x(agent, this.options[i].params);
+                tmp[i] += c.f(x, c.m, c.b, c.k);
             }
-            this.options[top].action(step, agent);
-        };
-        return USys;
-    }(QEpiKit.QComponent));
-    QEpiKit.USys = USys;
-    function logistic(x, m, b, k) {
-        var y = 1 / (m + Math.exp(-k * (x - b)));
-        return y;
+            avg = tmp[i] / this.options[i].considerations.length;
+            this.results.push({ point: agent.id, opt: this.options[i].name, result: avg });
+            if (avg > max) {
+                agent.top = { name: this.options[i].name, util: avg };
+                top = i;
+                max = avg;
+            }
+        }
+        this.options[top].action(step, agent);
     }
-    QEpiKit.logistic = logistic;
-    function logit(x, m, b, k) {
-        var y = 1 / Math.log(x / (1 - x));
-        return y;
-    }
-    QEpiKit.logit = logit;
-    function linear(x, m, b, k) {
-        var y = m * x + b;
-        return y;
-    }
-    QEpiKit.linear = linear;
-    function exponential(x, m, b, k) {
-        var y = 1 - Math.pow(x, k) / Math.pow(1, k);
-        return y;
-    }
-    QEpiKit.exponential = exponential;
-})(QEpiKit || (QEpiKit = {}));
+}
 //# sourceMappingURL=USys.js.map

@@ -1,8 +1,8 @@
-module QEpiKit {
-  /**
-  *QComponents are the base class for many model components.
-  */
-  export class QComponent {
+import {generateUUID} from './utils';
+/**
+*QComponents are the base class for many model components.
+*/
+export class QComponent {
     public static SUCCESS: number = 1;
     public static FAILED: number = 2;
     public static RUNNING: number = 3;
@@ -15,17 +15,16 @@ module QEpiKit {
     public history: any[];
 
     constructor(name: string) {
-      this.id = QEpiKit.Utils.generateUUID();
-      this.name = name;
-      this.time = 0;
-      this.history = [];
+        this.id = generateUUID();
+        this.name = name;
+        this.time = 0;
+        this.history = [];
     }
 
     /** Take one time step forward (most subclasses override the base method)
     * @param step size of time step (in days by convention)
     */
-    update(agent:any, step: number) {
-      //something super!
+    update(agent: any, step: number) {
+        //something super!
     }
-  }
 }

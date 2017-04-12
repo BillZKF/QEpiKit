@@ -1,125 +1,147 @@
-var QEpiKit;
-(function (QEpiKit) {
-    /**Batch run environments
-    *
-    */
-    var Experiment = (function () {
-        function Experiment(environment, setup, target) {
-            this.environment = environment;
-            this.setup = setup;
-            this.target = setup.target;
-            this.experimentLog = [];
+import { generateUUID } from './utils';
+import { Patch, CompartmentModel } from './compartment';
+import { Environment } from './environment';
+import { StateMachine } from './stateMachine';
+import { generatePop } from './utils';
+/**
+*Batch run environments
+*/
+export class Experiment {
+    constructor(environment, setup, target) {
+        this.environment = environment;
+        this.setup = setup;
+        this.target = setup.target;
+        this.experimentLog = [];
+    }
+    start(runs, step, until) {
+        var r = 0;
+        while (r < runs) {
+            this.prep(r, this.setup);
+            this.environment.time = 0; //
+            this.environment.run(step, until, 0);
+            this.experimentLog[r] = this.report(r, this.setup);
+            r++;
         }
-        Experiment.prototype.start = function (runs, step, until) {
-            var r = 0;
-            while (r < runs) {
-                this.prep(r, this.setup);
-                this.environment.time = 0; //
-                this.environment.run(step, until, 0);
-                this.experimentLog[r] = this.report(r, this.setup);
-                r++;
-            }
-        };
-        Experiment.prototype.prep = function (r, cfg, agents, visualize) {
-            var _this = this;
-            var groups = {};
-            var currentAgentId = 0;
-            this.environment = new QEpiKit.Environment();
-            cfg.agents.forEach(function (group) {
-                //groups[group.name] = generatePop(group.count, group.params, cfg.environment.spatialType, group.boundaries, currentAgentId)
+    }
+    prep(r, cfg, agents, visualize) {
+        let groups = {};
+        let currentAgentId = 0;
+        this.environment = new Environment();
+        if (typeof cfg.agents !== 'undefined') {
+            cfg.agents.forEach((group) => {
+                groups[group.name] = generatePop(group.count, group.params, cfg.environment.spatialType, group.boundaries, currentAgentId);
                 currentAgentId = groups[group.name][groups[group.name].length - 1].id;
             });
-            cfg.components.forEach(function (cmp) {
-                switch (cmp.type) {
-                    case 'state-machine':
-                        var sm = new QEpiKit.StateMachine(cmp.name, cmp.states, cmp.transitions, cmp.conditions, groups[cmp.agents][0]);
-                        _this.environment.add(sm);
-                        break;
-                    case 'every-step':
-                        _this.environment.add({
-                            id: QEpiKit.Utils.generateUUID(),
-                            name: cmp.name,
-                            update: cmp.action,
-                            data: groups[cmp.agents][0]
-                        });
-                        break;
-                    default:
-                        break;
-                }
-            });
-            switch (cfg.experiment) {
+        }
+        cfg.components.forEach((cmp) => {
+            switch (cmp.type) {
+                case 'state-machine':
+                    let sm = new StateMachine(cmp.name, cmp.states, cmp.transitions, cmp.conditions, groups[cmp.agents][0]);
+                    this.environment.add(sm);
+                    break;
+                case 'compartmental':
+                    let patches = [];
+                    cfg.patches.forEach((patch) => {
+                        if (cmp.patches.indexOf(patch.name) != -1) {
+                            patches.push(new Patch(patch.name, cmp.compartments));
+                        }
+                    });
+                    let cModel = new CompartmentModel('cmp.name', patches);
+                    this.environment.add(cModel);
+                    break;
+                case 'every-step':
+                    this.environment.add({
+                        id: generateUUID(),
+                        name: cmp.name,
+                        update: cmp.action,
+                        data: groups[cmp.agents][0]
+                    });
+                    break;
                 default:
-                    if (r == null) {
-                        visualize();
-                    }
-                    else {
-                        agents = this.environment.agents;
-                        this.environment.run(cfg.environment.step, cfg.environment.until, 0);
-                    }
                     break;
             }
-        };
-        Experiment.prototype.report = function (r, cfg) {
-            var _this = this;
-            var sums = {};
-            var means = {};
-            var freq = {};
-            var model = {};
-            cfg.report.sum = cfg.report.sum.concat(cfg.report.mean);
-            this.environment.agents.forEach(function (d, i) {
-                cfg.report.sum.forEach(function (s) {
-                    sums[s] = sums[s] == undefined ? d[s] : d[s] + sums[s];
-                });
-                cfg.report.freq.forEach(function (f) {
-                    freq[f] = freq[f] || {};
-                    freq[f][d[f]] = freq[f][d[f]] == undefined ? 1 : freq[f][d[f]] + 1;
-                });
+        });
+        switch (cfg.experiment) {
+            default:
+                if (r == null) {
+                    visualize();
+                }
+                else {
+                    //agents = this.environment.agents;
+                    this.environment.run(cfg.environment.step, cfg.environment.until, 0);
+                }
+                break;
+        }
+    }
+    report(r, cfg) {
+        let sums = {};
+        let means = {};
+        let freqs = {};
+        let model = {};
+        let count = this.environment.agents.length;
+        //cfg.report.sum = cfg.report.sum.concat(cfg.report.mean);
+        for (let i = 0; i < this.environment.agents.length; i++) {
+            let d = this.environment.agents[i];
+            cfg.report.sums.forEach((s) => {
+                sums[s] = sums[s] == undefined ? d[s] : d[s] + sums[s];
             });
-            cfg.report.mean.forEach(function (m) {
-                means[m] = sums[m] / _this.environment.agents.length;
+            cfg.report.freqs.forEach((f) => {
+                if (!isNaN(d[f]) && typeof d[f] != 'undefined') {
+                    freqs[f] = freqs[f] == undefined ? d[f] : d[f] + freqs[f];
+                }
             });
-            return {
-                count: this.environment.agents.length,
-                sums: sums,
-                means: means,
-                freq: freq,
-                model: model
-            };
-        };
-        //on each run, change one param, hold others constant
-        Experiment.prototype.sweep = function (params, runsPer, baseline) {
-            if (baseline === void 0) { baseline = true; }
-            var expPlan = [];
-            if (baseline === true) {
-                params.baseline = [true];
+            if ('compartments' in d) {
+                cfg.report.compartments.forEach((cm) => {
+                    d.compartments.forEach((pcm) => {
+                        if (pcm.name === cm) {
+                            model[cm] = model[cm] == undefined ? pcm.pop : pcm.pop + model[cm];
+                        }
+                    });
+                });
             }
-            for (var prop in params) {
-                for (var i = 0; i < params[prop].length; i++) {
-                    for (var k = 0; k < runsPer; k++) {
-                        expPlan.push({
-                            param: prop,
-                            value: params[prop][i],
-                            run: k
-                        });
-                    }
+        }
+        ;
+        cfg.report.means.forEach((m) => {
+            means[m] = sums[m] / count;
+        });
+        return {
+            count: count,
+            sums: sums,
+            means: means,
+            freqs: freqs,
+            model: model
+        };
+    }
+    //on each run, change one param, hold others constant
+    sweep(params, runsPer, baseline = true) {
+        var expPlan = [];
+        if (baseline === true) {
+            params.baseline = [true];
+        }
+        for (var prop in params) {
+            for (var i = 0; i < params[prop].length; i++) {
+                for (var k = 0; k < runsPer; k++) {
+                    expPlan.push({
+                        param: prop,
+                        value: params[prop][i],
+                        run: k
+                    });
                 }
             }
-            this.plans = expPlan;
-        };
-        Experiment.prototype.boot = function (params) {
-            var runs;
-            for (var param in params) {
-                if (typeof runs === 'undefined') {
-                    runs = params[param].length;
-                }
-                if (params[param].length !== runs) {
-                    throw "length of parameter arrays did not match";
-                }
+        }
+        this.plans = expPlan;
+    }
+    boot(params) {
+        let runs;
+        for (let param in params) {
+            if (typeof runs === 'undefined') {
+                runs = params[param].length;
             }
-            this.plans = params;
-        };
-        return Experiment;
-    }());
-    QEpiKit.Experiment = Experiment;
-})(QEpiKit || (QEpiKit = {}));
+            if (params[param].length !== runs) {
+                throw "length of parameter arrays did not match";
+            }
+        }
+        this.plans = params;
+    }
+}
 //# sourceMappingURL=experiment.js.map

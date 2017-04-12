@@ -1,26 +1,22 @@
-var QEpiKit;
-(function (QEpiKit) {
-    /**
-    *QComponents are the base class for many model components.
+import { generateUUID } from './utils';
+/**
+*QComponents are the base class for many model components.
+*/
+export class QComponent {
+    constructor(name) {
+        this.id = generateUUID();
+        this.name = name;
+        this.time = 0;
+        this.history = [];
+    }
+    /** Take one time step forward (most subclasses override the base method)
+    * @param step size of time step (in days by convention)
     */
-    var QComponent = (function () {
-        function QComponent(name) {
-            this.id = QEpiKit.Utils.generateUUID();
-            this.name = name;
-            this.time = 0;
-            this.history = [];
-        }
-        /** Take one time step forward (most subclasses override the base method)
-        * @param step size of time step (in days by convention)
-        */
-        QComponent.prototype.update = function (agent, step) {
-            //something super!
-        };
-        return QComponent;
-    }());
-    QComponent.SUCCESS = 1;
-    QComponent.FAILED = 2;
-    QComponent.RUNNING = 3;
-    QEpiKit.QComponent = QComponent;
-})(QEpiKit || (QEpiKit = {}));
+    update(agent, step) {
+        //something super!
+    }
+}
+QComponent.SUCCESS = 1;
+QComponent.FAILED = 2;
+QComponent.RUNNING = 3;
 //# sourceMappingURL=QComponent.js.map

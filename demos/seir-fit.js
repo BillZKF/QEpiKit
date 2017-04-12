@@ -1,8 +1,8 @@
 let setup = {
     experiment: {
-        iterations: 50,
+        iterations: 10,
         type: 'evolution',
-        size: 5
+        size: 3
     },
     environment: {
         step: 0.001,
@@ -27,7 +27,7 @@ let setup = {
             },
             {
                 name: 'contactAttempts',
-                assign: 10
+                assign: 0
             },
             {
                 name: 'newAttempt',
@@ -77,24 +77,24 @@ let setup = {
             'exposure': {
                 key: 'pathogenLoad',
                 value: 0,
-                check: QEpiKit.Utils.gt
+                check: QEpiKit.gt
             },
             'infection': {
                 key: 'responseProb',
                 value: () => {
                     return Math.random()
                 },
-                check: QEpiKit.Utils.gt
+                check: QEpiKit.gt
             },
             'recovery': {
                 key: 'timeInfectious',
                 value: 5, //pathogen.recoveryTime,
-                check: QEpiKit.Utils.gt
+                check: QEpiKit.gt
             },
             'resucceptible': {
                 key: 'timeRecovered',
                 value: 4, //pathogen.mutationTime,
-                check: QEpiKit.Utils.gt
+                check: QEpiKit.gt
             }
         },
         transitions: [{
@@ -121,19 +121,19 @@ let setup = {
         action: QActions.move
     }],
     report: {
-        sum: ['pathogenLoad', 'madeAttempts'],
-        mean: ['pathogenLoad', 'madeAttempts'],
-        freq: ['illness']
+        sums: ['pathogenLoad', 'madeAttempts', 'contactAttempts'],
+        means: ['pathogenLoad', 'madeAttempts', 'contactAttempts'],
+        freqs: ['succeptible','infectious']
     },
     evolution: {
         params: [{
             group: 'people',
             name: 'contactAttempts',
-            range: [1, 500]
+            range: [1, 100]
         }],
         target: {
-            mean: {
-                pathogenLoad: 1200
+            freqs: {
+                infectious: 66
             }
         }
     }
@@ -143,7 +143,7 @@ let pathogen = {
     N50: 4200,
     optParam: 0.000165,
     bestFitModel: 'exponential',
-    decayRate: 0.01,
+    decayRate: 0.1,
     recoveryTime: 6,
     shedRate: 700,
     mutationTime: 12
@@ -162,6 +162,7 @@ pathogen['exponential'] = function(dose) {
 pathogen.personToPerson = true;
 
 let seed = 5437;
+let random = new Random(Random.engines.mt19937().seedWithArray([seed, 0x90abcdef]));
 let env = new QEpiKit.Environment();
 let agents;
 let exp;
@@ -169,5 +170,5 @@ let infectedAtStart = 8;
 
 function launch(cfg) {
     exp = new QEpiKit.Evolutionary(env, cfg);
-    exp.start(cfg.experiment.iterations, cfg.environment.step, cfg.environment.until)
+    exp.start(cfg.experiment.iterations, cfg.environment.step, cfg.environment.until);
 }
