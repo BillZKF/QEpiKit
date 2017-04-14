@@ -53,10 +53,10 @@ export class Experiment {
                     let patches = [];
                     cfg.patches.forEach((patch) => {
                         if (cmp.patches.indexOf(patch.name) != -1) {
-                            patches.push(new Patch(patch.name, cmp.compartments));
+                            patches.push(new Patch(patch.name, cmp.compartments, patch.populations));
                         }
                     })
-                    let cModel = new CompartmentModel('cmp.name', patches);
+                    let cModel = new CompartmentModel('cmp.name', cmp.compartments, patches);
                     this.environment.add(cModel);
                     break;
                 case 'every-step':
@@ -100,14 +100,10 @@ export class Experiment {
                     freqs[f] = freqs[f] == undefined ? d[f] : d[f] + freqs[f];
                 }
             })
-            if('compartments' in d){
-              cfg.report.compartments.forEach((cm) => {
-                d.compartments.forEach((pcm) => {
-                  if(pcm.name === cm){
-                    model[cm] = model[cm] == undefined ? pcm.pop : pcm.pop + model[cm];
-                  }
+            if ('compartments' in d) {
+                cfg.report.compartments.forEach((cm) => {
+                    model[cm] = model[cm] == undefined ? d.populations[cm] : d.populations[cm] + model[cm];
                 });
-              });
             }
         };
         cfg.report.means.forEach((m) => {

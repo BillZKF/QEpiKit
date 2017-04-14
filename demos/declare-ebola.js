@@ -3,7 +3,7 @@
 
 let setup = {
     experiment: {
-        iterations: 1,
+        iterations: 100,
         type: 'evolution',
         size: 5
     },
@@ -13,7 +13,7 @@ let setup = {
         saveInterval: 1,
         spatialType: 'compartmental',
         params: {
-            ebola: {
+            pathogen: {
                 contactRate: 0,
                 hospitalContactRate: 0,
                 funeralContactRate: 0,
@@ -27,141 +27,165 @@ let setup = {
                 probOfHosp: 0,
                 caseFatalityRate: 0,
                 hospitalCaseFatalityRate: 0
-            },
-            vitals: {
-                births: function(total) {
-                    return total * 0.0000002;
-                },
-                deaths: function(total) {
-                    return -total * 0.0000001;
-                }
             }
         }
     },
     patches: [{
         name: 'liberia',
+        populations: {
+            succeptible: 4502992 / 4503000,
+            exposed: 8 / 4503000,
+            infectious:  0,
+            hospitalized: 0,
+            funeral: 0,
+            removed: 0
+        }
     }],
     components: [{
         name: 'ebola-liberia',
         type: 'compartmental',
         patches: ['liberia'],
-        compartments: [
-            {
-                name:'succeptible',
-                pop: 4502992 / 4503000,
+        compartments: {
+            'succeptible': {
                 operation: (patch, step) => {
-                    let S = patch[0]; let E = patch[1]; let I = patch[2]; let H = patch[3]; let F = patch[4]; let R = patch[5];
-                    return (ebola.contactRate * S.pop * I.pop * step) + (ebola.hospitalContactRate * S.pop * H.pop * step) + (ebola.funeralContactRate * S.pop * F.pop * step);
+                    let S = patch.succeptible;
+                    let E = patch.exposed;
+                    let I = patch.infectious;
+                    let H = patch.hospitalized;
+                    let F = patch.funeral;
+                    let R = patch.removed;
+                    return -((pathogen.contactRate * S * I * step) + (pathogen.hospitalContactRate * S * H * step) + (pathogen.funeralContactRate * S * F * step));
                 }
-            },{
-                name: 'exposed',
-                pop: 8 / 4503000,
+            },
+            'exposed': {
                 operation: (patch, step) => {
-                  let S = patch[0]; let E = patch[1]; let I = patch[2]; let H = patch[3]; let F = patch[4]; let R = patch[5];
-                  return (ebola.contactRate * S.pop * I.pop * step) + (ebola.hospitalContactRate * S.pop * H.pop * step) + (ebola.funeralContactRate * S.pop * F.pop * step) - (E.pop * ebola.incubationPeriod * step);
+                    let S = patch.succeptible;
+                    let E = patch.exposed;
+                    let I = patch.infectious;
+                    let H = patch.hospitalized;
+                    let F = patch.funeral;
+                    let R = patch.removed;
+                    return (pathogen.contactRate * S * I * step) + (pathogen.hospitalContactRate * S * H * step) + (pathogen.funeralContactRate * S * F * step) - (E * pathogen.incubationPeriod * step);
                 }
-            },{
-                name: 'infectious',
-                pop: 0,
+            },
+            'infectious': {
                 operation: (patch, step) => {
-                  let S = patch[0]; let E = patch[1]; let I = patch[2]; let H = patch[3]; let F = patch[4]; let R = patch[5];
-                  return (E.pop * ebola.incubationPeriod * step) - ((I.pop * ebola.timeUntilHospital * step) + (ebola.durationOfInfection * (1 - ebola.caseFatalityRate) * I.pop * step) + (I.pop * ebola.caseFatalityRate * ebola.timeFromInfToDeath * step));
+                    let S = patch.succeptible;
+                    let E = patch.exposed;
+                    let I = patch.infectious;
+                    let H = patch.hospitalized;
+                    let F = patch.funeral;
+                    let R = patch.removed;
+                    return (E * pathogen.incubationPeriod * step) - ((I * pathogen.timeUntilHospital * step) + (pathogen.durationOfInfection * (1 - pathogen.caseFatalityRate) * I * step) + (I * pathogen.caseFatalityRate * pathogen.timeFromInfToDeath * step));
                 }
-            },{
-                name:'hospitalized',
-                pop: 0,
-                operation: (patch,step) => {
-                  let S = patch[0]; let E = patch[1]; let I = patch[2]; let H = patch[3]; let F = patch[4]; let R = patch[5];
-                  return (I.pop * ebola.timeUntilHospital * step) - ((ebola.timeFromHospToDeath * ebola.hospitalCaseFatalityRate * H.pop * step) + (ebola.timeFromHospToRecov * (1 - ebola.hospitalCaseFatalityRate) * H.pop * step));
+            },
+            'hospitalized': {
+                operation: (patch, step) => {
+                    let S = patch.succeptible;
+                    let E = patch.exposed;
+                    let I = patch.infectious;
+                    let H = patch.hospitalized;
+                    let F = patch.funeral;
+                    let R = patch.removed;
+                    return (I * pathogen.timeUntilHospital * step) - ((pathogen.timeFromHospToDeath * pathogen.hospitalCaseFatalityRate * H * step) + (pathogen.timeFromHospToRecov * (1 - pathogen.hospitalCaseFatalityRate) * H * step));
                 }
-            },{
-                name: 'funeral',
-                pop: 0,
-                operation: (patch,step) => {
-                  let S = patch[0]; let E = patch[1]; let I = patch[2]; let H = patch[3]; let F = patch[4]; let R = patch[5];
-                  return (I.pop * ebola.caseFatalityRate * ebola.timeFromInfToDeath * step) + (ebola.timeFromHospToDeath * ebola.hospitalCaseFatalityRate * H.pop * step) - (F.pop * ebola.durationOfFuneral * step);
+            },
+            'funeral': {
+                operation: (patch, step) => {
+                    let S = patch.succeptible;
+                    let E = patch.exposed;
+                    let I = patch.infectious;
+                    let H = patch.hospitalized;
+                    let F = patch.funeral;
+                    let R = patch.removed;
+                    return (I * pathogen.caseFatalityRate * pathogen.timeFromInfToDeath * step) + (pathogen.timeFromHospToDeath * pathogen.hospitalCaseFatalityRate * H * step) - (F * pathogen.durationOfFuneral * step);
                 }
-            },{
-                name:'removed',
-                pop : 0,
-                operation: (patch,step) => {
-                  let S = patch[0]; let E = patch[1]; let I = patch[2]; let H = patch[3]; let F = patch[4]; let R = patch[5];
-                  return (I.pop * ebola.durationOfInfection * (1 - ebola.caseFatalityRate) * step) + (ebola.timeFromHospToRecov * (1 - ebola.hospitalCaseFatalityRate) * H.pop * step) + (F.pop * ebola.durationOfFuneral * step);
+            },
+            'removed': {
+                operation: (patch, step) => {
+                    let S = patch.succeptible;
+                    let E = patch.exposed;
+                    let I = patch.infectious;
+                    let H = patch.hospitalized;
+                    let F = patch.funeral;
+                    let R = patch.removed;
+                    return (I * pathogen.durationOfInfection * (1 - pathogen.caseFatalityRate) * step) + (pathogen.timeFromHospToRecov * (1 - pathogen.hospitalCaseFatalityRate) * H * step) + (F * pathogen.durationOfFuneral * step);
                 }
             }
-        ]
+        }
     }],
     report: {
         sums: [],
         means: [],
-        freqs:[],
+        freqs: [],
         model: [],
-        compartments:['succeptible']
+        history: [],
+        compartments: ['succeptible']
     },
     evolution: {
         params: [{
             level: 'environment',
-            group: 'ebola',
+            group: 'pathogen',
             name: 'contactRate',
             range: [0.1, 0.3]
         }, {
             level: 'environment',
-            group: 'ebola',
+            group: 'pathogen',
             name: 'hospitalContactRate',
             range: [0.05, 0.1]
         }, {
             level: 'environment',
-            group: 'ebola',
+            group: 'pathogen',
             name: 'funeralContactRate',
             range: [0.3, 0.5]
         }, {
             level: 'environment',
-            group: 'ebola',
+            group: 'pathogen',
             name: 'incubationPeriod',
             range: [0.5, 1 / 21]
         }, {
             level: 'environment',
-            group: 'ebola',
+            group: 'pathogen',
             name: 'timeUntilHospital',
             range: [1 / 2, 1 / 5]
         }, {
             level: 'environment',
-            group: 'ebola',
+            group: 'pathogen',
             name: 'timeFromHospToDeath',
             range: [1 / 5, 1 / 10]
         }, {
             level: 'environment',
-            group: 'ebola',
+            group: 'pathogen',
             name: 'durationOfFuneral',
             range: [1 / 2, 1 / 6]
         }, {
             level: 'environment',
-            group: 'ebola',
+            group: 'pathogen',
             name: 'durationOfInfection',
             range: [1 / 15, 1 / 21]
         }, {
             level: 'environment',
-            group: 'ebola',
+            group: 'pathogen',
             name: 'timeFromInfToDeath',
             range: [1 / 9, 1 / 14]
         }, {
             level: 'environment',
-            group: 'ebola',
+            group: 'pathogen',
             name: 'timeFromHospToRecov',
             range: [1 / 14, 1 / 16]
         }, {
             level: 'environment',
-            group: 'ebola',
+            group: 'pathogen',
             name: 'probOfHosp',
             range: [0.15, 0.2]
         }, {
             level: 'environment',
-            group: 'ebola',
+            group: 'pathogen',
             name: 'caseFatalityRate',
             range: [0.5, 0.8]
         }, {
             level: 'environment',
-            group: 'ebola',
+            group: 'pathogen',
             name: 'hospitalCaseFatalityRate',
             range: [0.25, 0.6]
         }],
@@ -175,7 +199,7 @@ let setup = {
 
 
 let env = new QEpiKit.Environment();
-let ebola = setup.environment.params.ebola;
+let pathogen = setup.environment.params.pathogen;
 let exp;
 
 function launch(cfg) {

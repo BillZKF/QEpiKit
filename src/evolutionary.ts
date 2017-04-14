@@ -2,6 +2,8 @@ import {Experiment} from './experiment';
 import {Environment} from './environment';
 import {Chromasome, Gene} from './genetic';
 import {invNorm, randRange} from './utils';
+
+declare var jStat: any;
 export class Evolutionary extends Experiment {
     public environment: Environment;
     public setup: any;
@@ -44,7 +46,7 @@ export class Evolutionary extends Experiment {
             this.prep(r, this.setup);
             this.population.sort(this.ascSort);
             this.population = this.population.slice(0, this.size);
-            console.log('best: ', this.population[0].score.toFixed(2));
+            console.log('best: ', this.population[0].score);
             r++;
         }
         return this.experimentLog;
@@ -73,7 +75,6 @@ export class Evolutionary extends Experiment {
         if (this.mating) {
             let topPercent = Math.round(0.1 * this.size) + 2; //ten percent of original size + 2
             let children = this.mate(topPercent);
-            console.log(this.mating, children, topPercent);
             this.population = this.population.concat(children);
         }
         for (let i = 0; i < this.population.length; i++) {
@@ -105,7 +106,6 @@ export class Evolutionary extends Experiment {
             let predict = this.report(r, cfg);
             this.population[j].score = this.cost(predict, this.target);
             this.experimentLog.push(predict);
-            console.log(r, j);
         }
     }
 
@@ -165,7 +165,7 @@ export class Evolutionary extends Experiment {
             let upOrDown = diff > 0 ? 1 : -1;
             if (!this.discrete) {
                 if (diff == 0) {
-                    gene.code += Math.random() * this.mutateRate;
+                    gene.code += jStat.normal.sample(0, 0.2) * this.mutateRate;
                 } else {
                     gene.code += diff * this.mutateRate;
                 }
