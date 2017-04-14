@@ -1,10 +1,12 @@
 import {Experiment} from './experiment';
 import {Environment} from './environment';
 import {Chromasome, Gene} from './genetic';
-import {invNorm, randRange} from './utils';
+import {RNGBurtle} from './random';
+import {invNorm} from './utils';
 
 declare var jStat: any;
 export class Evolutionary extends Experiment {
+    public rng: any;
     public environment: Environment;
     public setup: any;
     public experimentLog: any[];
@@ -34,7 +36,7 @@ export class Evolutionary extends Experiment {
         for (let i = 0; i < this.size; i++) {
             let chroma = new Chromasome();
             for (let k = 0; k < this.ranges.length; k++) {
-                chroma.genes.push(new Gene(this.ranges[k].range, this.discrete));
+                chroma.genes.push(new Gene(this.ranges[k].range, this.discrete, this.rng));
             }
             this.population.push(chroma);
         }
@@ -46,10 +48,25 @@ export class Evolutionary extends Experiment {
             this.prep(r, this.setup);
             this.population.sort(this.ascSort);
             this.population = this.population.slice(0, this.size);
-            console.log('best: ', this.population[0].score);
+            this.experimentLog[this.experimentLog.length - 1].best = this.population[0].score;
+            console.log('best: ', this.experimentLog[this.experimentLog.length - 1].best);
             r++;
         }
         return this.experimentLog;
+    }
+
+    getParams(chroma:Chromasome, cfg:any){
+      let out = {};
+      for (let pm = 0; pm < this.ranges.length; pm++) {
+          let cfgPm = this.ranges[pm];
+          if (cfgPm.level === 'agents' || typeof cfgPm.level === 'undefined') {
+            out[cfgPm.level+"_"+cfgPm.name] = invNorm(chroma.genes[pm].code, cfgPm.range[0], cfgPm.range[1]);
+          } else {
+            console.log(chroma.genes[pm].code)
+            out[cfgPm.level+"_"+cfgPm.name] = invNorm(chroma.genes[pm].code, cfgPm.range[0], cfgPm.range[1]);
+          }
+      }
+      return out;
     }
 
     dscSort(a: Chromasome, b: Chromasome) {
@@ -77,7 +94,7 @@ export class Evolutionary extends Experiment {
             let children = this.mate(topPercent);
             this.population = this.population.concat(children);
         }
-        for (let i = 0; i < this.population.length; i++) {
+        for (let i = 1; i < this.population.length; i++) {
             this.mutate(this.population[i], 1);
         }
         for (let j = 0; j < this.population.length; j++) {
@@ -85,18 +102,7 @@ export class Evolutionary extends Experiment {
                 let cfgPm = this.ranges[pm];
                 let groupIdx;
                 if (cfgPm.level === 'agents' || typeof cfgPm.level === 'undefined') {
-                    for (let ii = 0; ii < cfg.agents.length; ii++) {
-                        if (cfg.agents[ii].name == cfgPm.group) {
-                            groupIdx = ii;
-                        }
-                    }
-                    let paramIdx;
-                    for (let jj = 0; jj < cfg.agents[groupIdx].params.length; jj++) {
-                        if (cfg.agents[groupIdx].params[jj].name == cfgPm.name) {
-                            paramIdx = jj;
-                        }
-                    }
-                    cfg.agents[groupIdx].params[paramIdx].assign = invNorm(this.population[j].genes[pm].code, cfgPm.range[0], cfgPm.range[1]);
+                    cfg.agents[cfgPm.group].params[cfgPm.name].assign = invNorm(this.population[j].genes[pm].code, cfgPm.range[0], cfgPm.range[1]);
                 } else {
                   cfg[cfgPm.level].params[cfgPm.group][cfgPm.name] = invNorm(this.population[j].genes[pm].code, cfgPm.range[0], cfgPm.range[1]);
                 }
@@ -137,8 +143,8 @@ export class Evolutionary extends Experiment {
         for (let i = 0; i < numChildren; i++) {
             let child = new Chromasome();
             for (let j = 0; j < this.ranges.length; j++) {
-                let gene = new Gene([this.ranges[j].range[0], this.ranges[j].range[1]], this.discrete);
-                let rand = Math.floor(Math.random() * parents);
+                let gene = new Gene([this.ranges[j].range[0], this.ranges[j].range[1]], this.discrete, this.rng);
+                let rand = Math.floor(this.rng.random() * parents);
                 let expressed = this.population[rand].genes.slice(j, j + 1);
                 gene.code = expressed[0].code;
                 child.genes.push(gene);
@@ -149,7 +155,7 @@ export class Evolutionary extends Experiment {
     }
 
     mutate(chroma: Chromasome, chance: number) {
-        if (Math.random() > chance) {
+        if (this.rng.random() > chance) {
             return;
         }
         let best = this.population[0].genes;
@@ -159,13 +165,13 @@ export class Evolutionary extends Experiment {
             if (this.gradient) {
                 diff = best[j].code - gene.code;
             } else {
-                diff = randRange(-1, 1);
+                diff = this.rng.randRange(-1, 1);
             }
 
             let upOrDown = diff > 0 ? 1 : -1;
             if (!this.discrete) {
                 if (diff == 0) {
-                    gene.code += jStat.normal.sample(0, 0.2) * this.mutateRate;
+                    gene.code += this.rng.normal( 0, 0.2) * this.mutateRate;
                 } else {
                     gene.code += diff * this.mutateRate;
                 }

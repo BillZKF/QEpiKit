@@ -20,6 +20,7 @@ export {Network} from './network';
 export {QLearner} from './QLearner';
 export * from './regression';
 export {StateMachine} from './stateMachine';
-export * from './USys'
+export * from './USys';
+export * from './random';
 
-export var version = '0.0.1';
+export var version = '0.0.5';

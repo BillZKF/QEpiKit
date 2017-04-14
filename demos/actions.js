@@ -116,8 +116,8 @@ QActions.useFacility = function (agent, step, facilities, key, success) {
 
 //more convincing looking random move, but it makes no sense
 QActions.rmove = function (agent, step) {
-  var dx = step * (agent.movePerDay * random.real(-1, 1) + (agent.prevX * 0.90));
-  var dy = step * (agent.movePerDay * random.real(-1, 1) + (agent.prevY * 0.90));
+  var dx = step * (agent.movePerDay * random.randRange(-1, 1) + (agent.prevX * 0.90));
+  var dy = step * (agent.movePerDay * random.randRange(-1, 1) + (agent.prevY * 0.90));
   agent.position.y += dx;
   agent.position.x += dy;
 
@@ -130,7 +130,7 @@ QActions.rmove = function (agent, step) {
 //move randomly
 QActions.move = function (agent, step) {
   let d = step * agent.movePerDay;
-  let dir = Math.atan2(random.real(-0.5, 0.5) + agent.prevX * 0.5, random.real(-0.5, 0.5) + agent.prevY * 0.5);
+  let dir = Math.atan2(random.randRange(-0.5, 0.5) + agent.prevX * 0.5, random.randRange(-0.5, 0.5) + agent.prevY * 0.5);
   let dVec = {x:Math.sin(dir), y: Math.cos(dir), z: 0};
   agent.position.x += dVec.x * d;
   agent.position.y += dVec.y * d;
@@ -180,7 +180,7 @@ QActions.moveWithin = function (agent, step, boundary) {
 
 //move randomly using geo solvers
 QActions.geoMove = function (agent, step) {
-  var randomBearing = random.integer(-180, 180);
+  var randomBearing = Math.round(random.randRange(-180, 180));
   var dest = turf.destination(agent.location, step * agent.movePerDay, randomBearing, distUnits);
   agent.movedTotal += step * agent.movePerDay;
   agent.location = dest;
@@ -200,7 +200,7 @@ QActions.geoMoveTo = function (agent, step, destination) {
 QActions.contact = function (agent, step) {
   let contactAttempts = agent.contactAttempts * step;
   for (var j = 0; j < contactAttempts; j++) {
-    let dir = new THREE.Vector3(random.real(-1, 1), random.real(-1, 1), 0);
+    let dir = new THREE.Vector3(random.randRange(-1, 1), random.randRange(-1, 1), 0);
     raycaster.far = step * agent.movePerDay + 1;
     raycaster.set(agent.mesh.position, dir);
     let intersects = raycaster.intersectObjects(scene.children);
@@ -209,7 +209,7 @@ QActions.contact = function (agent, step) {
       if (d.object.type === 'agent') {
         let contactedAgent = environment.getAgentById(d.object.qId);
         if (contactedAgent.states.illness === 'succeptible' || contactedAgent.states.illness === 'exposed') {
-          contactedAgent.pathogenLoad += jStat.normal.inv(random.real(0, 1), pathogen.shedRate, pathogen.shedRate * 0.3);
+          contactedAgent.pathogenLoad += jStat.normal.inv(random.randRange(0, 1), pathogen.shedRate, pathogen.shedRate * 0.3);
           contactedAgent.lastInfectedContact = agent.id;
           contactedAgent.responseProb = step * pathogen[pathogen.bestFitModel](contactedAgent.pathogenLoad);
         }
@@ -224,7 +224,7 @@ QActions.contact = function (agent, step) {
  *probably could be fixed
  */
 QActions.contactDis = function (agent, step) {
-  
+
   let contactAttempts = agent.contactAttempts * step;
   //if step size < 1 accumalate until newAttempt > 1
   agent.newAttempt += contactAttempts;
@@ -241,11 +241,11 @@ QActions.contactDis = function (agent, step) {
     let near = QActions.within(agent, step, exp.environment.agents, step * agent.movePerDay + 1);
     if (near.length > 0) {
       for (var j = 0; j < contactAttempts; j++) {
-        var rand = random.integer(0, near.length - 1);
+        var rand = Math.floor(random.random() * near.length);
         var contactedAgent = near[rand];
         if (typeof contactedAgent.states.illness !== 'undefined') {
           if (contactedAgent.states.illness === 'succeptible' || contactedAgent.states.illness === 'exposed') {
-            contactedAgent.pathogenLoad += jStat.normal.inv(random.real(0, 1), pathogen.shedRate, pathogen.shedRate * 0.3);
+            contactedAgent.pathogenLoad += jStat.normal.inv(random.randRange(0, 1), pathogen.shedRate, pathogen.shedRate * 0.3);
             contactedAgent.lastInfectedContact = agent.id;
             contactedAgent.responseProb = pathogen[pathogen.bestFitModel](contactedAgent.pathogenLoad);
           }
@@ -263,7 +263,7 @@ QActions.geoContact = function (agent, step) {
   var numContacts = Math.round(agent.contactAttempts * step);
   if (agentsWithinBuffer.features.length > 1) {
     for (var i = 0; i < numContacts; i++) {
-      var rand = random.integer(0, agentsWithinBuffer.features.length - 1);
+      var rand = Math.floor(random.random() * agentsWithinBuffer.features.length);
       var randContactId = agentsWithinBuffer.features[rand].properties.agentRefID;
       var contactedAgent = environment.getAgentById(randContactId);
       if (contactedAgent.states.illness === 'succeptible') {
@@ -283,7 +283,7 @@ QActions.excrete = function (agent, step, destination) {
   agent.needsBathroom = 0;
   if (destination.status > destination.capacity) {
     if (pathogen.fecalOral) {
-      agent.pathogenLoad += random.real(0, destination.pathConc) * 0.001;
+      agent.pathogenLoad += random.randRange(0, destination.pathConc) * 0.001;
     }
   }
   destination.mesh.material.color.r = Math.min(destination.pathConc * 1000);
@@ -319,7 +319,7 @@ QActions.checkWater = function (agent, step, watersource) {
   if (agent.waterAvailable < agent.dailyWaterRequired * step) {
     QActions.getWater(agent, step, watersource);
   } else {
-    if (random.real(0, 1) > 0.75) {
+    if (random.randRange(0, 1) > 0.75) {
       QActions.drink(agent, step);
     }
   }
@@ -329,7 +329,7 @@ QActions.findWater = function (agent, step, watersources, key) {
     QActions.findClosest(agent, step, watersources, key);
     QActions.getWater(agent, step, agent[key]);
   } else {
-    if (random.real(0, 1) > 0.5) {
+    if (random.randRange(0, 1) > 0.5) {
       QActions.drink(agent, step);
     }
   }
@@ -360,7 +360,7 @@ QActions.infectious = function (agent, step) {
   if (typeof infectious === 'number') {
     infectious++;
   }
-  agent.timeInfectious += jStat.normal.inv(random.real(0, 1), 1 * step, step);
+  agent.timeInfectious += jStat.normal.inv(random.random(), 1 * step, step);
   if (pathogen.personToPerson) {
     if (agent.type === 'geospatial') {
       QActions.geoContact(agent, step);

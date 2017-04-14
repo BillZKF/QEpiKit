@@ -6,6 +6,7 @@ export const SUCCESS: number = 1;
 export const FAILED: number = 2;
 export const RUNNING: number = 3;
 
+
 export function createCSVURI(data: any[]) {
     var dataString;
     var URI;
@@ -32,14 +33,14 @@ export function arrayFromRange(start, end, step) {
 /**
 * shuffle - fisher-yates shuffle
 */
-export function shuffle(array: any[], randomF: () => number) {
+export function shuffle(array: any[], rng:any) {
     var currentIndex = array.length, temporaryValue, randomIndex;
 
     // While there remain elements to shuffle...
     while (0 !== currentIndex) {
 
         // Pick a remaining element...
-        randomIndex = Math.floor(randomF() * currentIndex);
+        randomIndex = Math.floor(rng.random() * currentIndex);
         currentIndex -= 1;
 
         // And swap it with the current element.
@@ -331,7 +332,7 @@ export class Match {
     }
 }
 
-export function generatePop(numAgents:number, options:any, type:any, boundaries:any, currentAgentId:number) {
+export function generatePop(numAgents:number, options:any, type:any, boundaries:any, currentAgentId:number, rng:any) {
     var pop = [];
     var locs = {
         type: 'FeatureCollection',
@@ -345,7 +346,7 @@ export function generatePop(numAgents:number, options:any, type:any, boundaries:
             type: type
         };
         //movement params
-        pop[a].movePerDay = jStat.normal.inv(Math.random(), 2500 * 24, 1000); // m/day
+        pop[a].movePerDay = rng.normal(2500 * 24, 1000); // m/day
         pop[a].prevX = 0;
         pop[a].prevY = 0;
         pop[a].movedTotal = 0;
@@ -360,8 +361,8 @@ export function generatePop(numAgents:number, options:any, type:any, boundaries:
 
             pop[a].position = { x: 0, y: 0, z: 0 };
 
-            pop[a].position.x = randRange(boundaries.left, boundaries.right);
-            pop[a].position.y = randRange(boundaries.bottom, boundaries.top);
+            pop[a].position.x = rng.randRange(boundaries.left, boundaries.right);
+            pop[a].position.y = rng.randRange(boundaries.bottom, boundaries.top);
 
             pop[a].mesh.position.x = pop[a].position.x;
             pop[a].mesh.position.y = pop[a].position.y;
@@ -370,18 +371,19 @@ export function generatePop(numAgents:number, options:any, type:any, boundaries:
         }
 
         if (pop[a].type === 'geospatial') {
-            locs.features[a] = turf.point([randRange(-75.1467, -75.1867), randRange(39.9200, 39.9900)]);
+            locs.features[a] = turf.point([rng.randRange(-75.1467, -75.1867), rng.randRange(39.9200, 39.9900)]);
             pop[a].location = locs.features[a];
             pop[a].location.properties.agentRefID = pop[a].id;
         }
 
-        options.forEach((d) => {
+        for(let key in options){
+            let d = options[key];
             if (typeof d.assign === 'function') {
-                pop[a][d.name] = d.assign(pop[a]);
+                pop[a][key] = d.assign(pop[a]);
             } else {
-                pop[a][d.name] = d.assign;
+                pop[a][key] = d.assign;
             }
-        });
+        };
         currentAgentId++;
     }
     for (var r = 0; r < 3; r++) {

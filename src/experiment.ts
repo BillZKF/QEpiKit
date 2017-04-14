@@ -9,6 +9,7 @@ import {generatePop} from './utils';
 */
 export class Experiment {
     public environment: Environment;
+    public rng: any;
     public setup: any;
     public target: any;
     public experimentLog: any[];
@@ -18,7 +19,7 @@ export class Experiment {
     constructor(environment: Environment, setup?, target?) {
         this.environment = environment;
         this.setup = setup;
-        this.target = setup.target;
+        this.rng = setup.experiment.rng;
         this.experimentLog = [];
     }
 
@@ -38,10 +39,11 @@ export class Experiment {
         let currentAgentId = 0;
         this.environment = new Environment();
         if (typeof cfg.agents !== 'undefined') {
-            cfg.agents.forEach((group) => {
-                groups[group.name] = generatePop(group.count, group.params, cfg.environment.spatialType, group.boundaries, currentAgentId)
-                currentAgentId = groups[group.name][groups[group.name].length - 1].id;
-            });
+            for(let grName in cfg.agents){
+                let group = cfg.agents[grName];
+                groups[grName] = generatePop(group.count, group.params, cfg.environment.spatialType, group.boundaries, currentAgentId, this.rng)
+                currentAgentId = groups[grName][groups[grName].length - 1].id;
+            };
         }
         cfg.components.forEach((cmp) => {
             switch (cmp.type) {
@@ -76,7 +78,7 @@ export class Experiment {
                 if (r == null) {
                     visualize();
                 } else {
-                    //agents = this.environment.agents;
+                    this.environment.rng = this.rng;
                     this.environment.run(cfg.environment.step, cfg.environment.until, 0);
                 }
                 break;

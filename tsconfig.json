@@ -28,6 +28,7 @@
     "src/knn.ts",
     "src/kmean.ts",
     "src/regression.ts",
+    "src/random.ts",
     "src/genetic.ts",
     "src/evolutionary.ts",
     "src/main.ts",

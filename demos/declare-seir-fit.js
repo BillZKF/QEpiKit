@@ -1,68 +1,85 @@
+let seed = 5437;
+let random = new QEpiKit.RNGBurtle(seed);
 let setup = {
     experiment: {
-        iterations: 10,
+        seed: seed,
+        rng: random,
+        iterations: 20,
         type: 'evolution',
-        size: 6
+        size: 5
     },
     environment: {
         step: 0.001,
         until: 1,
         spatialType: 'continuous',
-        bounds: [500, 400]
-    },
-    agents: [{
-        name: 'people',
-        count: 1000,
-        boundaries: {
-            left: 1,
-            right: 500 - 1,
-            top: 400 - 1,
-            bottom: 1
-        },
-        params: [{
-                name: 'movePerDay',
-                assign: () => {
-                    return jStat.normal.sample(3000, 1000)
-                }
-            },
-            {
-                name: 'contactAttempts',
-                assign: 0
-            },
-            {
-                name: 'newAttempt',
-                assign: 0
-            },
-            {
-                name: 'madeAttempts',
-                assign: 0
-            },
-            {
-                name: 'pathogenLoad',
-                assign: 0
-            },
-            {
-                name: 'responseProb',
-                assign: 0
-            },
-            {
-                name: 'timeInfectious',
-                assign: 0
-            },
-            {
-                name: 'timeRecovered',
-                assign: 0
-            },
-            {
-                name: 'states',
-                assign: function() {
-                    return {
-                        'illness': 'succeptible'
-                    };
+        bounds: [500, 400],
+        params: {
+            pathogen: {
+                personToPerson: true,
+                N50: 4200,
+                optParam: 0.000165,
+                bestFitModel: 'exponential',
+                decayRate: 0.1,
+                recoveryTime: 6,
+                shedRate: 700,
+                mutationTime: 12,
+                'beta-Poisson': function(dose) {
+                    let response = 1 - Math.pow((1 + (dose / this.N50) * (Math.pow(2, (1 / this.optParam)) - 1)), (-this.optParam));
+                    return response;
+                },
+                'exponential': function(dose) {
+                    let response = 1 - Math.exp(-this.optParam * dose);
+                    return response;
                 }
             }
-        ]
-    }],
+        }
+    },
+    agents: {
+        'people': {
+            count: 1000,
+            boundaries: {
+                left: 1,
+                right: 500 - 1,
+                top: 400 - 1,
+                bottom: 1
+            },
+            params: {
+                'movePerDay': {
+                    assign: () => {
+                        return jStat.normal.inv(random.random(), 3000, 1000)
+                    }
+                },
+                'contactAttempts': {
+                    assign: 0
+                },
+                'newAttempt': {
+                    assign: 0
+                },
+                'madeAttempts': {
+                    assign: 0
+                },
+                'pathogenLoad': {
+                    assign: 0
+                },
+                'responseProb': {
+                    assign: 0
+                },
+                'timeInfectious': {
+                    assign: 0
+                },
+                'timeRecovered': {
+                    assign: 0
+                },
+                'states': {
+                    assign: function() {
+                        return {
+                            'illness': 'succeptible'
+                        };
+                    }
+                }
+            }
+        }
+    },
     components: [{
         name: 'SEIR',
         type: 'state-machine',
@@ -82,7 +99,7 @@ let setup = {
             'infection': {
                 key: 'responseProb',
                 value: () => {
-                    return Math.random()
+                    return random.random()
                 },
                 check: QEpiKit.gt
             },
@@ -123,13 +140,19 @@ let setup = {
     report: {
         sums: ['pathogenLoad', 'madeAttempts', 'contactAttempts'],
         means: ['pathogenLoad', 'madeAttempts', 'contactAttempts'],
-        freqs: ['succeptible','infectious']
+        freqs: ['succeptible', 'infectious']
     },
     evolution: {
         params: [{
+            level: 'agents',
             group: 'people',
             name: 'contactAttempts',
             range: [1, 100]
+        }, {
+            level: 'environment',
+            group: 'pathogen',
+            name: 'shedRate',
+            range: [100, 1000]
         }],
         target: {
             freqs: {
@@ -139,30 +162,7 @@ let setup = {
     }
 }
 
-let pathogen = {
-    N50: 4200,
-    optParam: 0.000165,
-    bestFitModel: 'exponential',
-    decayRate: 0.1,
-    recoveryTime: 6,
-    shedRate: 700,
-    mutationTime: 12
-};
-
-//setup pathogen
-pathogen['beta-Poisson'] = function(dose) {
-    let response = 1 - Math.pow((1 + (dose / pathogen.N50) * (Math.pow(2, (1 / pathogen.optParam)) - 1)), (-pathogen.optParam));
-    return response;
-};
-
-pathogen['exponential'] = function(dose) {
-    let response = 1 - Math.exp(-pathogen.optParam * dose);
-    return response;
-};
-pathogen.personToPerson = true;
-
-let seed = 5437;
-let random = new Random(Random.engines.mt19937().seedWithArray([seed, 0x90abcdef]));
+let pathogen = setup.environment.params.pathogen;
 let env = new QEpiKit.Environment();
 let agents;
 let exp;

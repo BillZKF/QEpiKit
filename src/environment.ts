@@ -44,11 +44,11 @@ export class Environment {
     /**
     * Randomness function for shuffling
     */
-    public randF: () => number;
+    public rng: any;
 
     private _agentIndex: any;
 
-    constructor(resources = [], facilities = [], eventsQueue: QEvent[] = [], activationType: string = 'random', randF: () => number = Math.random) {
+    constructor(resources = [], facilities = [], eventsQueue: QEvent[] = [], activationType: string = 'random', rng: any = Math) {
         this.time = 0;
         this.timeOfDay = 0;
         this.models = [];
@@ -58,7 +58,7 @@ export class Environment {
         this.facilities = facilities;
         this.eventsQueue = eventsQueue;
         this.activationType = activationType;
-        this.randF = randF;
+        this.rng = rng;
         this._agentIndex = {};
     }
 
@@ -151,7 +151,7 @@ export class Environment {
             index++;
         }
         if (this.activationType === "random") {
-            shuffle(this.agents, this.randF);
+            shuffle(this.agents, this.rng);
             this.agents.forEach((agent, i) => { this._agentIndex[agent.id] = i }); // reassign agent
             this.agents.forEach((agent, i) => {
                 agent.modelIndexes.forEach((modelIndex) => {

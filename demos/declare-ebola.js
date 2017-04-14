@@ -1,15 +1,18 @@
 //compartments should be an object
 //patches should contain an object with the population for each compartment
-
+let seed = 5437;
+let random = new QEpiKit.RNGBurtle(seed);
 let setup = {
     experiment: {
-        iterations: 100,
+        seed: seed,
+        rng: random,
+        iterations: 50,
         type: 'evolution',
         size: 5
     },
     environment: {
         step: 1,
-        until: 150,
+        until: 400,
         saveInterval: 1,
         spatialType: 'compartmental',
         params: {
@@ -35,7 +38,7 @@ let setup = {
         populations: {
             succeptible: 4502992 / 4503000,
             exposed: 8 / 4503000,
-            infectious:  0,
+            infectious: 0,
             hospitalized: 0,
             funeral: 0,
             removed: 0
@@ -142,7 +145,7 @@ let setup = {
             level: 'environment',
             group: 'pathogen',
             name: 'incubationPeriod',
-            range: [0.5, 1 / 21]
+            range: [0.5, 1/21]
         }, {
             level: 'environment',
             group: 'pathogen',
@@ -191,7 +194,7 @@ let setup = {
         }],
         target: {
             model: {
-                succeptible: QEpiKit.normalize(4503000 - 152, 0, 4503000)
+                succeptible: QEpiKit.normalize(4503000 - 30000, 0, 4503000)
             }
         }
     }
