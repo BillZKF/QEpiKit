@@ -1,5 +1,7 @@
-//compartments should be an object
-//patches should contain an object with the population for each compartment
+/** adapted from:
+*Rivers CM, Lofgren ET, Marathe M, Eubank S, Lewis BL. Modeling the Impact of Interventions on an Epidemic of Ebola in Sierra Leone and Liberia. PLOS Currents Outbreaks. 2014 Oct 16 . Edition 1. doi: 10.1371/currents.outbreaks.fd38dd85078565450b0be3fcd78f5ccf.
+*/
+
 let seed = 5437;
 let random = new QEpiKit.RNGBurtle(seed);
 let setup = {

@@ -1,5 +1,5 @@
 ## What is it?
-This library is a collection of tools for dynamic modeling. Although developed with the public health / epidemiology / biomedical domains in mind.
+This library is a collection of tools for dynamic modeling developed with the public health / epidemiology / biomedical domains in mind.
 
 ## Why?
 This library came out of an attempt to develop an dynamic modeling library that could function as a whiteboarding / thought experiment tool.
@@ -24,5 +24,5 @@ For development, you will need:
 - Event queueing
 - Agent based modeling techniques
 - seeded PRNG (with helper functions for popular distributions)
-- Batch running 
+- Batch running
 - Read, write csv files (write via data URIs).
