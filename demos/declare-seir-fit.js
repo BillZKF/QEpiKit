@@ -46,7 +46,7 @@ let setup = {
             params: {
                 'movePerDay': {
                     assign: () => {
-                        return jStat.normal.inv(random.random(), 3000, 1000)
+                        return random.normal(3000, 1000);
                     }
                 },
                 'contactAttempts': {

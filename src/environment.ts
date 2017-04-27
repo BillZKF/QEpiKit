@@ -99,7 +99,6 @@ export class Environment {
                 this.history = this.history.concat(copy);
             }
             this.time += step;
-            this.formatTime();
         }
     }
 

@@ -5,11 +5,13 @@ export class Vector {
     }
 }
 
+
 export class Matrix {
     constructor(mat: number[][]) {
 
     }
 }
+
 
 export class activationMethods {
     static ReLU(x: number) {

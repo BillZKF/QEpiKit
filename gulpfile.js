@@ -24,8 +24,8 @@ gulp.task('tdd', function(done) {
 });
 
 gulp.task('minify', function() {
-    return gulp.src('qepikit.js')
-        .pipe(rename('qepikit.min.js'))
+    return gulp.src('./qepikit.js')
+        .pipe(rename('./qepikit.min.js'))
         .pipe(uglify())
         .pipe(gulp.dest('./'));
 })
@@ -38,7 +38,7 @@ gulp.task('scripts', function() {
         return bundle.write({
             format: 'cjs',
             sourceMap: 'inline',
-            dest: 'qepikit.js'
+            dest: './qepikit.js'
         });
     });
 
@@ -54,5 +54,7 @@ gulp.task('server', function() {
 gulp.task('watch', function() {
     gulp.watch(['dist/*.js', 'tests/*.js', 'demos/*'], ['scripts']);
 });
+
+gulp.task('basic', ['server','watch']);
 
 gulp.task('default', ['server', 'tdd']);

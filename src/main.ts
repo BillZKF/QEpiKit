@@ -13,6 +13,7 @@ export {Evolutionary} from './evolutionary';
 export {HybridAutomata} from './ha';
 export * from './htn';
 export * from './interfaces';
+export * from './mc';
 export {kMean} from './kmean';
 export {KNN} from './knn';
 export * from './math';

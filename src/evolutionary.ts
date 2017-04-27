@@ -62,7 +62,6 @@ export class Evolutionary extends Experiment {
           if (cfgPm.level === 'agents' || typeof cfgPm.level === 'undefined') {
             out[cfgPm.level+"_"+cfgPm.name] = invNorm(chroma.genes[pm].code, cfgPm.range[0], cfgPm.range[1]);
           } else {
-            console.log(chroma.genes[pm].code)
             out[cfgPm.level+"_"+cfgPm.name] = invNorm(chroma.genes[pm].code, cfgPm.range[0], cfgPm.range[1]);
           }
       }
@@ -155,10 +154,10 @@ export class Evolutionary extends Experiment {
     }
 
     mutate(chroma: Chromasome, chance: number) {
+        let best = this.population[0].genes;
         if (this.rng.random() > chance) {
             return;
         }
-        let best = this.population[0].genes;
         for (let j = 0; j < chroma.genes.length; j++) {
             let gene = chroma.genes[j];
             let diff: number;

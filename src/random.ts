@@ -9,9 +9,32 @@ abstract class Random {
 
     abstract random(): number;
 
-
     randRange(min: number, max: number) {
         return (max - min) * this.random() + min;
+    }
+
+    mat(rows: number, cols: number, dist: string = 'random') {
+        let rands = [];
+        if (typeof rows == 'number' && typeof cols == 'number') {
+            for (let r = 0; r < rows; r++) {
+                rands[r] = [];
+                for (let c = 0; c < cols; c++) {
+                    rands[r][c] = this[dist]();
+                }
+            }
+        }
+        return rands;
+    }
+
+    array(n: number, dist: string = 'random') {
+        let i = 0;
+        let rands = [];
+        while (i < n) {
+            rands[i] = this[dist]();
+            i++
+        }
+
+        return rands;
     }
 
     pick(array: any[]) {
@@ -79,7 +102,7 @@ abstract class Random {
 
 
 
-    normal(mean, std) {
+    normal(mean = 0, std = 1) {
         return this.randn() * std + mean;
     }
 
@@ -90,6 +113,10 @@ abstract class Random {
             p *= this.random();
         } while (p > L);
         return k - 1;
+    }
+
+    t(dof) {
+        return this.randn() * Math.sqrt(dof / (2 * this.randg(dof / 2)));
     }
 
     weibull(scale, shape) {
