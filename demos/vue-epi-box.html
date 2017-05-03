@@ -1,0 +1,280 @@
+<head>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+
+<body>
+    <div id="app" class="container-fluid">
+        <h1>Model Test Lab</h1>
+        <div id="display" class="col-lg-12"></div>
+        <div class="btn btn-primary btn-lg" @click="visualize()">Visualize Run</div>
+        <div class="btn btn-success btn-lg" @click="launch()">Launch Full</div>
+        <div class="col-lg-6">
+            <experiment-form :experiment="experiment"></experiment-form>
+            <report-form :report="report"></report-form>
+            <evolution-form :evolution="evolution"></evolution-form>
+            <environment-form :environment="environment"></environment-form>
+            <pathogen-form :pathogen="pathogen"></pathogen-form>
+
+        </div>
+        <div class="col-lg-6">
+            <agents-form :agents="agentGrp" v-for="(agentGrp, grp) in agents"></agents-form>
+            <components-form :comp="component" :params="agents[component.agents].params" :groups="Object.keys(agents)" v-for="component in components"></components-form>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.2.5/vue.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.7.3/d3.js"></script>
+    <script src="./libs/jStat.min.js"></script>
+    <script src="../node_modules/three/build/three.min.js"></script>
+    <script src="actions.js"></script>
+    <script src="../qepikit.js"></script>
+    <script src="./epi-vue-components.js"></script>
+    <script>
+        let pathogen;
+        let agents;
+        let exp;
+        let cfg;
+        let env = new QEpiKit.Environment();
+        let infectedAtStart = 8;
+        let random;
+        let scene;
+        let raycaster = new THREE.Raycaster();
+        let camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 5000);
+        let renderer = new THREE.WebGLRenderer({
+            alpha: true
+        });
+
+        let app = new Vue({
+            el: '#app',
+            data: {
+                experiment: {
+                    seed: 12345,
+                    rng: new QEpiKit.RNGBurtle(this.seed),
+                    iterations: 5,
+                    type: 'evolution',
+                    size: 2
+                },
+                evolution: {
+                    params: [{
+                        level: 'agents',
+                        group: 'people',
+                        name: 'contactAttempts',
+                        range: [1, 100]
+                    }, {
+                        level: 'environment',
+                        group: 'pathogen',
+                        name: 'shedRate',
+                        range: [100, 1000]
+                    }],
+                    target: {
+                        freqs: {
+                            infectious: 66
+                        }
+                    }
+                },
+                environment: {
+                    step: 0.001,
+                    until: 1,
+                    type: 'continuous',
+                    bounds: [500, 400],
+                    params: {}
+                },
+                report: {
+                    sums: ['pathogenLoad', 'madeAttempts', 'contactAttempts'],
+                    means: ['pathogenLoad', 'madeAttempts', 'contactAttempts'],
+                    freqs: ['succeptible', 'infectious']
+                },
+                pathogen: {
+                    name: 'influenza',
+                    personToPerson: true,
+                    N50: 4200,
+                    optParam: 0.000165,
+                    bestFitModel: 'exponential',
+                    decayRate: 0.1,
+                    recoveryTime: 6,
+                    shedRate: 700,
+                    mutationTime: 12,
+                    'beta-Poisson': function(dose) {
+                        let response = 1 - Math.pow((1 + (dose / this.N50) * (Math.pow(2, (1 / this.optParam)) - 1)), (-this.optParam));
+                        return response;
+                    },
+                    'exponential': function(dose) {
+                        let response = 1 - Math.exp(-this.optParam * dose);
+                        return response;
+                    }
+                },
+                agents: {
+                    'people': {
+                        name: 'people',
+                        count: 1000,
+                        boundaries: {
+                            left: 1,
+                            right: 500 - 1,
+                            top: 400 - 1,
+                            bottom: 1
+                        },
+                        params: {
+                            'movePerDay': {
+                                assign: () => {
+                                    return random.normal(3000, 1000);
+                                }
+                            },
+                            'contactAttempts': {
+                                assign: 20
+                            },
+                            'newAttempt': {
+                                assign: 0
+                            },
+                            'madeAttempts': {
+                                assign: 0
+                            },
+                            'pathogenLoad': {
+                                assign: 0
+                            },
+                            'responseProb': {
+                                assign: 0
+                            },
+                            'timeInfectious': {
+                                assign: 0
+                            },
+                            'timeRecovered': {
+                                assign: 0
+                            },
+                            'states': {
+                                assign: function() {
+                                    return {
+                                        'illness': 'succeptible'
+                                    };
+                                }
+                            }
+                        }
+                    }
+                },
+                components: [{
+                    name: 'SEIR',
+                    type: 'state-machine',
+                    agents: 'people',
+                    states: {
+                        'succeptible': 'succeptible',
+                        'exposed': 'exposed',
+                        'infectious': 'infectious',
+                        'removed': 'removed'
+                    },
+                    conditions: {
+                        'exposure': {
+                            key: 'pathogenLoad',
+                            value: 0,
+                            check: 'gt'
+                        },
+                        'infection': {
+                            key: 'responseProb',
+                            value: () => {
+                                return random.random()
+                            },
+                            check: 'gt'
+                        },
+                        'recovery': {
+                            key: 'timeInfectious',
+                            value: 5, //pathogen.recoveryTime,
+                            check: 'gt'
+                        },
+                        'resucceptible': {
+                            key: 'timeRecovered',
+                            value: 4, //pathogen.mutationTime,
+                            check: 'gt'
+                        }
+                    },
+                    transitions: [{
+                        name: 'exposure',
+                        from: 'succeptible',
+                        to: 'exposed'
+                    }, {
+                        name: 'infection',
+                        from: 'exposed',
+                        to: 'infectious'
+                    }, {
+                        name: 'recovery',
+                        from: 'infectious',
+                        to: 'removed'
+                    }, {
+                        name: 'resucceptible',
+                        from: 'removed',
+                        to: 'succeptible'
+                    }]
+                }, {
+                    name: 'Movement',
+                    type: 'every-step',
+                    agents: 'people',
+                    action: QActions.move
+                }]
+            },
+            methods: {
+                compile: function() {
+                    cfg = {};
+                    cfg.experiment = this.experiment;
+                    cfg.environment = this.environment;
+                    cfg.evolution = this.evolution;
+                    cfg.environment.params.pathogen = this.pathogen;
+                    cfg.agents = this.agents;
+                    cfg.report = this.report;
+                    cfg.components = [];
+                    this.components.forEach((comp,i) => {
+                        if (comp.type === 'state-machine') {
+                            let c = JSON.parse(JSON.stringify(comp));
+                            for (let state in comp.states) {
+                                c.states[state] = QActions[comp.states[state]];
+                            }
+                            for (let cond in comp.conditions) {
+                                c.conditions[cond].check = QEpiKit[comp.conditions[cond].check];
+                            }
+                          cfg.components[i] = c;
+                        } else {
+                          cfg.components[i] = Vue.util.extend({}, comp);
+                        }
+                    })
+                    random = cfg.experiment.rng;
+                    pathogen = this.environment.params.pathogen;
+                },
+                launch: function() {
+                    this.compile();
+                    exp = new QEpiKit.Evolutionary(env, cfg);
+                    exp.start(cfg.experiment.iterations, cfg.environment.step, cfg.environment.until);
+                },
+                visualize:function(){
+                  //live update
+                  this.compile();
+                  let bounds = cfg.environment.bounds;
+                  camera.position.z = Math.max(bounds[0], bounds[1]) * 0.5;
+                  camera.position.x = bounds[0] * 0.5;
+                  camera.position.y = bounds[1] * 0.5;
+                  camera.rotation.x = 8 * Math.PI / 180;
+                  document.querySelector('#display').innerHTML = '';
+                  document.querySelector('#display').appendChild(renderer.domElement);
+                  renderer.setSize(1280, 720);
+                  renderer.setClearColor(0xffffff, 0);
+
+                  exp = new QEpiKit.Experiment(env, cfg);
+                  scene = new THREE.Scene();
+                  exp.prep(null, cfg)
+                  env = exp.environment;
+                  env.init();
+                  render();
+                }
+            }
+        });
+
+        function render(){
+          cfg = Vue.util.extend({}, cfg);
+          if (env.time <= cfg.environment.until) {
+              //debugger;
+              requestAnimationFrame(render);
+              env.update(cfg.environment.step);
+              env.time += cfg.environment.step;
+              renderer.render(scene, camera);
+
+          } else {
+              console.log('done', env);
+          }
+        }
+    </script>
+
+</body>

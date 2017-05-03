@@ -23,14 +23,14 @@ export class StateMachine extends QComponent {
             for (var j = 0; j < this.transitions[i].from.length; j++) {
               let trans = this.transitions[i].from[j];
               if (trans === state) {
+                let value, r;
                 let cond = this.conditions[this.transitions[i].name];
-                let value;
                 if(typeof(cond.value) === 'function'){
                   value = cond.value();
                 } else {
                   value = cond.value;
                 }
-                let r = cond.check(agent[cond.key], value);
+                r = cond.check(agent[cond.key], value);
                 if (r === StateMachine.SUCCESS) {
                   agent.states[s] = this.transitions[i].to;
                   agent[this.transitions[i].to] = true;
@@ -40,6 +40,7 @@ export class StateMachine extends QComponent {
             }
           }
         }
+
     }
 
     checkTransitions(transitions): any[] {

@@ -76,7 +76,7 @@ export class Experiment {
         switch (cfg.experiment) {
             default:
                 if (r == null) {
-                    visualize();
+                    return;
                 } else {
                     this.environment.rng = this.rng;
                     this.environment.run(cfg.environment.step, cfg.environment.until, 0);

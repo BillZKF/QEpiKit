@@ -239,6 +239,7 @@ QActions.contactDis = function (agent, step) {
     agent.newAttempt = 0;
     agent.madeAttempts += 1;
     let near = QActions.within(agent, step, exp.environment.agents, step * agent.movePerDay + 1);
+
     if (near.length > 0) {
       for (var j = 0; j < contactAttempts; j++) {
         var rand = Math.floor(random.random() * near.length);

@@ -308,27 +308,27 @@ export function getRange(data: any[], prop: string) {
 export class Match {
     static gt(a: number, b: number) {
         if (a > b) {
-            return true;
+            return SUCCESS;
         }
-        return false
+        return FAILED;
     }
     static ge(a: number, b: number) {
         if (a >= b) {
-            return true;
+            return SUCCESS;
         }
-        return false
+        return FAILED;
     }
     static lt(a: number, b: number) {
         if (a < b) {
-            return true;
+            return SUCCESS;
         }
-        return false
+        return FAILED;
     }
     static le(a: number, b: number) {
         if (a <= b) {
-            return true;
+            return SUCCESS;
         }
-        return false
+        return FAILED;
     }
 }
 
@@ -367,7 +367,9 @@ export function generatePop(numAgents:number, options:any, type:any, boundaries:
             pop[a].mesh.position.x = pop[a].position.x;
             pop[a].mesh.position.y = pop[a].position.y;
 
-            //scene.add(pop[a].mesh);
+            if(typeof scene !== 'undefined'){
+              scene.add(pop[a].mesh);
+            }
         }
 
         if (pop[a].type === 'geospatial') {
