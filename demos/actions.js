@@ -157,8 +157,9 @@ QActions.moveTo = function (agent, step, destination) {
 
 //move randomly within a rectangle
 QActions.moveWithin = function (agent, step, boundary) {
+  boundary = boundary || boundaries[agent.boundaryGroup];
   let d = step * agent.movePerDay;
-  var current = {x:agent.position.x, y: agent.position.y, z:agent.position.z};
+  let current = {x:agent.position.x, y: agent.position.y, z:agent.position.z};
   QActions.move(agent, step);
   if (agent.position.x > boundary.right) {
     agent.position.x = current.x;
@@ -176,6 +177,8 @@ QActions.moveWithin = function (agent, step, boundary) {
     agent.position.y = current.y;
     agent.prevY = 0;
   }
+  agent.mesh.position.x = agent.position.x;
+  agent.mesh.position.y = agent.position.y;
 };
 
 //move randomly using geo solvers
@@ -224,7 +227,6 @@ QActions.contact = function (agent, step) {
  *probably could be fixed
  */
 QActions.contactDis = function (agent, step) {
-
   let contactAttempts = agent.contactAttempts * step;
   //if step size < 1 accumalate until newAttempt > 1
   agent.newAttempt += contactAttempts;
@@ -239,17 +241,16 @@ QActions.contactDis = function (agent, step) {
     agent.newAttempt = 0;
     agent.madeAttempts += 1;
     let near = QActions.within(agent, step, exp.environment.agents, step * agent.movePerDay + 1);
-
     if (near.length > 0) {
       for (var j = 0; j < contactAttempts; j++) {
         var rand = Math.floor(random.random() * near.length);
         var contactedAgent = near[rand];
         if (typeof contactedAgent.states.illness !== 'undefined') {
-          if (contactedAgent.states.illness === 'succeptible' || contactedAgent.states.illness === 'exposed') {
+          //if (contactedAgent.states.illness === 'succeptible' || contactedAgent.states.illness === 'exposed') {
             contactedAgent.pathogenLoad += jStat.normal.inv(random.randRange(0, 1), pathogen.shedRate, pathogen.shedRate * 0.3);
             contactedAgent.lastInfectedContact = agent.id;
             contactedAgent.responseProb = pathogen[pathogen.bestFitModel](contactedAgent.pathogenLoad);
-          }
+          //}
         }
       }
     }
@@ -335,6 +336,13 @@ QActions.findWater = function (agent, step, watersources, key) {
     }
   }
 };
+
+QActions.immune = function(agent, step){
+  if (agent.type === 'continuous') {
+    agent.mesh.material.color.set(0x4455ff);
+  }
+};
+
 QActions.succeptible = function (agent, step) {
   if (agent.type === 'continuous') {
     agent.mesh.material.color.set(0x00ff00);
@@ -348,18 +356,22 @@ QActions.exposed = function (agent, step) {
   }
   if (agent.pathogenLoad > 1) {
     agent.responseProb = pathogen[pathogen.bestFitModel](agent.pathogenLoad);
-    agent.pathogenLoad = agent.pathogenLoad * (1 - pathogen.decayRate * step);
+    agent.infected = agent.responseProb > random.random()? true : false;
+    agent.pathogenReduced = QActions.logReduction(agent, step);
+    agent.pathogenLoad -= agent.pathogenReduced;
   } else {
     agent.responseProb = 0;
     agent.pathogenLoad = 0;
   }
 };
 QActions.infectious = function (agent, step) {
+  agent.infected = true;
   if (agent.type === 'continuous') {
     agent.mesh.material.color.set(0xff0000);
   }
-  if (typeof infectious === 'number') {
-    infectious++;
+  //immune sys
+  if (agent.pathogenLoad <= 0) {
+    agent.pathogenLoad -= QActions.logReduction(agent, step);
   }
   agent.timeInfectious += jStat.normal.inv(random.random(), 1 * step, step);
   if (pathogen.personToPerson) {
@@ -375,10 +387,14 @@ QActions.removed = function (agent, step) {
     agent.mesh.material.color.set(0x0000ff);
   }
   if (agent.pathogenLoad > 1) {
-    agent.pathogenLoad -= agent.pathogenLoad * (1 - pathogen.decayRate * step);
+    agent.pathogenLoad -= QActions.logReduction(agent, step);
   } else {
     agent.pathogenLoad = 0;
     agent.responseProb = 0;
   }
   agent.timeRecovered += 1 * step;
 };
+
+QActions.logReduction = function(agent, step){
+  return agent.pathogenLoad * Math.pow(10, -1 * pathogen.decayRate);
+}

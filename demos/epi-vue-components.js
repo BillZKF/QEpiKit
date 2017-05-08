@@ -11,11 +11,11 @@ Vue.component('experiment-form', {
     template: `<div><h2>Experiment Parameters</h2>
 <div class="form-group">
 <label>Total Iterations</label>
-<input class="form-control" type="number" v-model="experiment.iterations" />
+<input class="form-control" type="number" v-model.number="experiment.iterations" />
 </div>
 <div class="form-group">
 <label>Seed</label>
-<input class="form-control" type="number" v-model="experiment.seed" />
+<input class="form-control" type="number" v-model.number="experiment.seed" />
 </div>
 <div class="form-group">
   <label>Experiment Type</label>
@@ -29,6 +29,25 @@ Vue.component('experiment-form', {
             experimentTypes: ['random-seed', 'param-sweep', 'evolution'],
         }
     }
+});
+
+Vue.component('experiment-log',{
+  props:['log','targets'],
+  template:`<div v-if="log.length > 0" class="panel panel-success">
+    <div class="panel-heading"> Exp Results </div>
+    <table class="table">
+      <tr>
+        <th v-for="(mean, key) in log[0].means">mean_{{key}}</th>
+        <th v-for="(sum, key) in log[0].sums">sum_{{key}}</th>
+        <th v-for="(freq, key) in log[0].freqs">freq_{{key}}</th>
+      </tr>
+      <tr v-for="entry in log">
+        <td v-for="(mean, key) in entry.means">{{mean.toFixed(3)}}</td>
+        <td v-for="(sum, key) in entry.sums">{{sum.toFixed(3)}}</td>
+        <td v-for="(freq, key) in entry.freqs">{{freq.toFixed(3)}}</td>
+      </tr>
+    </table>
+  </div>`
 });
 
 Vue.component('report-form', {
@@ -82,11 +101,11 @@ Vue.component('environment-form', {
     template: `<div><h2>Environment Parameters</h2>
 <div class="form-group">
 <label>Step Size (days)</label>
-  <input class="form-control" type="number" v-model="environment.step" />
+  <input class="form-control" type="number" v-model.number="environment.step" />
 </div>
 <div class="form-group">
   <label>Until (days)</label>
-  <input class="form-control" type="number" v-model="environment.until" />
+  <input class="form-control" type="number" v-model.number="environment.until" />
 </div>
 <div class="form-group">
   <label>Spatial Type</label>
@@ -96,8 +115,8 @@ Vue.component('environment-form', {
 </div>
 <div class="form-group">
 <label>Boundaries</label>
-<label>Bottom-Left</label><input class="form-control" v-model="environment.bounds[0]"/>
-<label>Top-Right</label><input class="form-control" v-model="environment.bounds[1]"/>
+<label>Bottom-Left</label><input class="form-control" v-model.number="environment.bounds[0]"/>
+<label>Top-Right</label><input class="form-control" v-model.number="environment.bounds[1]"/>
 </div>
 </div>`,
     data: function() {
@@ -138,7 +157,7 @@ Vue.component('pathogen-form', {
         <option>beta-Poisson</option>
     </div>
     <div class="form-group">
-      <label>Decay Rate</label>
+      <label>Log-Reduction Rate</label>
       <input class="form-control" v-model.number="pathogen.decayRate"/>
     </div>
     <div class="form-group">
@@ -404,9 +423,40 @@ Vue.component('condition', {
 </div>`,
   data: function(){
     return {
-      matchers: ['eq','lt','lte','gt','gte','neq']
+      matchers: ['equalTo','lt','lte','gt','gte','notEqualTo']
     }
   }
+});
+
+Vue.component('rb-dataset', {
+  props:['dataset'],
+  template:`<div>
+    <label>Show Property</label>
+    <select v-model="showProp">
+      <option v-for="prop in dataset.properties"></option>
+    </select>
+    <label>Values</label>
+    <select v-model="selectedEntry">
+      <option v-for="(entry, index) in dataset.entries" value="{{dataset.entries[index]}}">{{entry[showProp]}}</option>
+    </select>
+    <h4>(From dataset {{dataset.title}})</h4>
+  </div>`,
+  data: function(){
+    return {
+      showProp:'',
+      selectedEntry:{}
+    }
+  }
+});
+
+Vue.component('rb-page', {
+  props:['page'],
+  template:`<div>
+    <div v-for="pp in page.pageProps">
+      <label>{{pp.property.name}}</label> : {{pp.value}}
+    </div>
+    <h4>(From page {{page.title}})</h4>
+  </div>`
 });
 
 Vue.component('transition', {

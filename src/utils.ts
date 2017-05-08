@@ -354,13 +354,14 @@ export function generatePop(numAgents:number, options:any, type:any, boundaries:
         if (pop[a].type === 'continuous') {
 
             pop[a].mesh = new THREE.Mesh(new THREE.TetrahedronGeometry(1, 1), new THREE.MeshBasicMaterial({
-                color: 0x00ff00
+                color: 0x000000
             }));
             pop[a].mesh.qId = pop[a].id;
             pop[a].mesh.type = 'agent';
 
             pop[a].position = { x: 0, y: 0, z: 0 };
 
+            pop[a].boundaryGroup = options.groupName
             pop[a].position.x = rng.randRange(boundaries.left, boundaries.right);
             pop[a].position.y = rng.randRange(boundaries.bottom, boundaries.top);
 
@@ -387,11 +388,6 @@ export function generatePop(numAgents:number, options:any, type:any, boundaries:
             }
         };
         currentAgentId++;
-    }
-    for (var r = 0; r < 3; r++) {
-        pop[r].states.illness = 'infectious';
-        pop[r].infectious = true;
-        pop[r].pathogenLoad = 4e4;
     }
 
     for(let a = 0; a < pop.length; a++){

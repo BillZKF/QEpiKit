@@ -29,7 +29,7 @@ export class Network {
         }
     };
 
-    static deriviteMethods = {
+    static derivativeMethods = {
         ReLU: function(value: number) {
             let der = value <= 0 ? 0 : 1;
             return der;
@@ -59,7 +59,7 @@ export class Network {
         this.hiddenNum = hiddenNum;
         this.learnRate = 0.01;
         this.actFn = Network.activationMethods[activationType];
-        this.derFn = Network.deriviteMethods[activationType];
+        this.derFn = Network.derivativeMethods[activationType];
         this.init(data, labels);
     }
 

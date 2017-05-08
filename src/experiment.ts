@@ -41,6 +41,7 @@ export class Experiment {
         if (typeof cfg.agents !== 'undefined') {
             for(let grName in cfg.agents){
                 let group = cfg.agents[grName];
+                group.params.groupName = grName;
                 groups[grName] = generatePop(group.count, group.params, cfg.environment.spatialType, group.boundaries, currentAgentId, this.rng)
                 currentAgentId = groups[grName][groups[grName].length - 1].id;
             };
