@@ -1,19 +1,23 @@
 var bus = new Vue({
-    data: {
-        config: {
+  data: {
+    config: {
 
-        }
     }
+  }
 });
 
 Vue.component('experiment-form', {
-    props:['experiment'],
-    template: `<div><h2>Experiment Parameters</h2>
+  props: ['experiment'],
+  template: `<div><h2>Experiment Parameters</h2>
 <div class="form-group">
 <label>Total Iterations</label>
 <input class="form-control" type="number" v-model.number="experiment.iterations" />
 </div>
 <div class="form-group">
+<div class="form-group">
+<label>Iteration Size (runs per iteration)</label>
+<input class="form-control" type="number" v-model.number="experiment.size" />
+</div>
 <label>Seed</label>
 <input class="form-control" type="number" v-model.number="experiment.seed" />
 </div>
@@ -24,55 +28,70 @@ Vue.component('experiment-form', {
   </select>
 </div>
 </div>`,
-    data: function() {
-        return {
-            experimentTypes: ['random-seed', 'param-sweep', 'evolution'],
-        }
+  data: function() {
+    return {
+      experimentTypes: ['random-seed', 'param-sweep', 'evolution'],
     }
+  }
 });
 
-Vue.component('experiment-log',{
-  props:['log','targets'],
-  template:`<div v-if="log.length > 0" class="panel panel-success">
-    <div class="panel-heading"> Exp Results </div>
+Vue.component('experiment-log', {
+  props: ['log', 'improvement', 'targets'],
+  template: `<div class="panel panel-success" v-if="log.length > 0" >
+    <div class="panel-heading">Exp Results</div>
+    <div class="panel-body">
+      Overall Improvement : {{improvement}}
+    </div>
     <table class="table">
       <tr>
+        <th>Iteration</th>
         <th v-for="(mean, key) in log[0].means">mean_{{key}}</th>
         <th v-for="(sum, key) in log[0].sums">sum_{{key}}</th>
         <th v-for="(freq, key) in log[0].freqs">freq_{{key}}</th>
+        <th>Score</th>
       </tr>
       <tr v-for="entry in log">
+        <td>{{entry.run}}</td>
         <td v-for="(mean, key) in entry.means">{{mean.toFixed(3)}}</td>
         <td v-for="(sum, key) in entry.sums">{{sum.toFixed(3)}}</td>
         <td v-for="(freq, key) in entry.freqs">{{freq.toFixed(3)}}</td>
+        <td>{{entry.score}}</td>
       </tr>
     </table>
   </div>`
 });
 
 Vue.component('report-form', {
-    props:['report'],
-    template:`<div>
+  props: ['report'],
+  template: `<div>
       <h3>Report</h3>
-      <div>
+      <div class="form">
         <label class="form-label">Sums</label>
         <input class="form-control" v-model="sum" v-for="sum in report.sums" />
+        <button class="btn btn btn-sm btn-default" @click="add('sums')">Add Sum</button>
         <label>Means</label>
         <input class="form-control" v-model="mean" v-for="mean in report.means" />
+        <button class="btn btn-sm btn-default" @click="add('means')">Add Mean</button>
         <label>Frequencies</label>
         <input class="form-control" v-model="freq" v-for="freq in report.freqs" />
+        <button class="btn btn-sm btn-default" @click="add('freqs')">Add Freq</button>
       </div>
-    </div>`
+    </div>`,
+    methods:{
+      add: function(fieldType){
+        this.report[fieldType].splice(this.report[fieldType].length,1,'');
+      }
+    }
 })
 
 Vue.component('evolution-form', {
-    props:['evolution'],
-    template: `<div><h3>Evolution</h3>
+  props: ['evolution'],
+  template: `<div><h3>Evolution</h3>
       <h4>Targets</h4>
-          <div v-for="(statVal, stat) in evolution.target">
+          <div v-for="(statVal, stat) in evolution.target" class="form-inline">
             <label>{{stat}}</label>
-            <div class="row" v-for="(val, param) in statVal">
-            <input class="form-control col-lg-6" v-model="param"/> : <input class="form-control col-lg-6" v-model="val"/>
+            <div v-for="(val, param) in statVal">
+            <input class="form-control" v-model="param"/><label class="form-label"> : </label><input class="form-control" v-model="val"/>
             </div>
           </div>
       <h4>Params</h4>
@@ -83,22 +102,26 @@ Vue.component('evolution-form', {
 })
 
 Vue.component('exp-param-form', {
-    props: ['expParam'],
-    template: `<div class="row">
+  props: ['expParam'],
+  template: `<div>
       <label>Parameter Address</label>
+      <div class="form-inline">
       <input class="form-control" v-model="expParam.level"/>
       <input class="form-control" v-model="expParam.group"/>
       <input class="form-control" v-model="expParam.name"/>
+      </div>
       <label>Range</label>
+      <div class="form-inline">
       <input class="form-control" v-model="expParam.range[0]"/>
       <input class="form-control" v-model="expParam.range[1]"/>
+      </div>
     </div>`
 })
 
 
 Vue.component('environment-form', {
-    props:['environment'],
-    template: `<div><h2>Environment Parameters</h2>
+  props: ['environment'],
+  template: `<div><h2>Environment Parameters</h2>
 <div class="form-group">
 <label>Step Size (days)</label>
   <input class="form-control" type="number" v-model.number="environment.step" />
@@ -113,27 +136,27 @@ Vue.component('environment-form', {
     <option v-for="type in spatialTypes">{{type}}</option>
   </select>
 </div>
-<div class="form-group">
+<div class="form-group" v-if="environment.bounds">
 <label>Boundaries</label>
 <label>Bottom-Left</label><input class="form-control" v-model.number="environment.bounds[0]"/>
 <label>Top-Right</label><input class="form-control" v-model.number="environment.bounds[1]"/>
 </div>
 </div>`,
-    data: function() {
-        return {
-            spatialTypes: ['continuous', 'geospatial']
-        }
-    },
-    methods: {
-        save: function() {
-            bus._data.config.environment = this.environment;
-        }
+  data: function() {
+    return {
+      spatialTypes: ['continuous', 'geospatial','compartmental']
     }
+  },
+  methods: {
+    save: function() {
+      bus._data.config.environment = this.environment;
+    }
+  }
 });
 
 Vue.component('pathogen-form', {
-    props:['pathogen'],
-    template: `<div>
+  props: ['pathogen'],
+  template: `<div>
     <h3>Pathogen</h3>
     <label>Person to Person
       <input class="checkbox" type="checkbox">
@@ -173,16 +196,16 @@ Vue.component('pathogen-form', {
       <input class="form-control" v-model.number="pathogen.mutationTime"/>
     </div>
     </div>`,
-    methods: {
-        save: function() {
-            bus._data.config.environment.params.pathogen = this.pathogen;
-        }
+  methods: {
+    save: function() {
+      bus._data.config.environment.params.pathogen = this.pathogen;
     }
+  }
 });
 
 Vue.component('param-form', {
-    props: ["level", "group", "name", "param"],
-    template: `
+  props: ["level", "group", "name", "param"],
+  template: `
     <div class="row">
         <div class="form-group col-lg-4">
             <label class="control-label">Name</label>
@@ -207,41 +230,41 @@ Vue.component('param-form', {
         </span>
         <label v-else >Param assigned using custom function.</label>
     </div>`,
-    data: function() {
-        return {
-            useDistribution: false,
-            distributions: {
-                uniform: ["min", "max"],
-                normal: ["mean", "sd"],
-                gamma: ["shape", "scale"],
-                lognormal: ["mean", "sd"],
-                poisson: ["k", "lambda"]
-            },
-            distribution: 'normal',
-            dParams: [0, 0],
-            value: 0
-        }
-    },
-    methods: {
-        save: function() {
-            if (useDistribution) {
-                bus._data.config[level][group].params[name] = {
-                    assign: (rng, dist) => {
-                        rng[dist](this.params[0], this.params[1])
-                    }
-                }
-            } else {
-                bus._data.config[level][group].params[name] = {
-                    assign: this.value
-                }
-            }
-        }
+  data: function() {
+    return {
+      useDistribution: false,
+      distributions: {
+        uniform: ["min", "max"],
+        normal: ["mean", "sd"],
+        gamma: ["shape", "scale"],
+        lognormal: ["mean", "sd"],
+        poisson: ["k", "lambda"]
+      },
+      distribution: 'normal',
+      dParams: [0, 0],
+      value: 0
     }
+  },
+  methods: {
+    save: function() {
+      if (useDistribution) {
+        bus._data.config[level][group].params[name] = {
+          assign: (rng, dist) => {
+            rng[dist](this.params[0], this.params[1])
+          }
+        }
+      } else {
+        bus._data.config[level][group].params[name] = {
+          assign: this.value
+        }
+      }
+    }
+  }
 });
 
 Vue.component('agents-form', {
-    props: ['agents'],
-    template: `<div><h2>Agents</h2>
+  props: ['agents'],
+  template: `<div><h2>Agents</h2>
             <div class="form-group">
               <label>Name</label>
               <input @change="save()" class="form-control" v-model="agents.name" />
@@ -259,33 +282,33 @@ Vue.component('agents-form', {
             </div>
             <param-form :level="'agents'" :group.sync="agents.name" :name.sync="name" :param="prm" v-for="(prm, name) in agents.params"></param-form>
             </div>`,
-    data: function() {
-        return {
-            newName: '',
-        }
-    },
-    methods: {
-        save: function() {
-            bus._data.config.agents = bus._data.config.agents || {};
-            bus._data.config.agents[this.agents.name] = this.agents;
-            bus.$emit('update-component');
-        },
-        updateParam: function(name, oldName) {
-            this.agents.params[name] = this.agents.params[oldName];
-            delete this.agents.params[oldName];
-        },
-        addParam: function(name) {
-            this.agents.params[name] = {
-                assign: 0
-            }
-            this.$forceUpdate();
-        }
+  data: function() {
+    return {
+      newName: '',
     }
+  },
+  methods: {
+    save: function() {
+      bus._data.config.agents = bus._data.config.agents || {};
+      bus._data.config.agents[this.agents.name] = this.agents;
+      bus.$emit('update-component');
+    },
+    updateParam: function(name, oldName) {
+      this.agents.params[name] = this.agents.params[oldName];
+      delete this.agents.params[oldName];
+    },
+    addParam: function(name) {
+      this.agents.params[name] = {
+        assign: 0
+      }
+      this.$forceUpdate();
+    }
+  }
 });
 
 Vue.component('components-form', {
-    props:['comp','params','groups'],
-    template: `<div><h3>Component</h3>
+  props: ['comp', 'params', 'groups'],
+  template: `<div><h3>Component</h3>
     <div class="row">
     <div class="form-group col-lg-4">
     <label>Name</label>
@@ -294,10 +317,11 @@ Vue.component('components-form', {
     <div class="form-group col-lg-4">
     <label>Type</label>
     <select class="form-control" v-model="comp.type">
-    <option v-for="type in componentTypes">{{type}}</option>
+      <option v-for="type in componentTypes">{{type}}</option>
     </select>
     </div>
-    <div class="form-group col-lg-4">
+    <compartmental-model v-if="comp.type === 'compartmental'" :component="comp"></compartmental-model>
+    <div class="form-group col-lg-4" v-if="comp.agents">
       <label>Agent Groups</label>
       <select class="form-control" v-model="comp.agents">
         <option v-for="group in groups">{{group}}</option>
@@ -305,20 +329,58 @@ Vue.component('components-form', {
     </div>
     </div>
     <state-machine v-if="comp.type === 'state-machine'" :component="comp" :params="params"></state-machine>
-</div>`,
-    created: function() {
-        bus.$on('update-component', this.update);
-    },
-    data: function() {
-        return {
-            componentTypes: ['every-step', 'state-machine', 'behavior-tree', 'hierarchal-task-network']
-        }
+  </div>`,
+  created: function() {
+    bus.$on('update-component', this.update);
+  },
+  data: function() {
+    return {
+      componentTypes: ['every-step', 'state-machine', 'compartmental', 'behavior-tree', 'hierarchal-task-network']
     }
+  }
+});
+
+Vue.component('compartmental-model',{
+  props:['component'],
+  template:`
+    <div class="panel panel-body panel-default">
+      <h3>{{component.type}}</h3>
+      <div v-for="(compartment, key) in component.compartment">
+        <label>{{key}}</label>
+        <div v-if="typeof compartment.operation == 'function'">
+          This compartment uses a custom function defined in seperate file.
+        </div>
+        <input v-else v-model="compartment.operation" />
+      </div>
+      <div>
+        <label>Patches</label>
+        <div v-for="patch in component.patches">
+          <input v-model="patch" />
+        </div>
+      </div>
+    </div>
+  `
+})
+
+Vue.component('patches-form', {
+  props:['patches'],
+  template: `
+  <div>
+    <h3>Patches</h3>
+    <div v-for="patch in patches">
+      <h4>{{patch.name}}</h4>
+      <div v-for="(pop, key) in patch.populations">
+        <input  v-model="key"/>
+        <input v-model.number="pop" />
+      </div>
+    </div>
+  </div>
+  `
 })
 
 Vue.component('state-machine', {
-    props: ['component', 'params'],
-    template: `
+  props: ['component', 'params'],
+  template: `
 <div class="panel panel-body panel-default">
 <h3>{{component.name}}</h3>
 <div>
@@ -351,54 +413,54 @@ Vue.component('state-machine', {
   </span>
 </div>
 </div>`,
-    data: function() {
-        return {
-            newConditionName: '',
-            newStateName: '',
-            newTransitionName: '',
-        }
-    },
-    methods: {
-
-        addCondition: function() {
-            this.conditions[this.newConditionName] = {
-                key: '',
-                value: 0,
-                check: QEpiKit.gt
-            }
-        },
-        addState: function(){
-          this.states[this.newStateName] = '';
-        },
-        addTransition: function(){
-          this.transitions.push({
-            name:this.newTransitionName,
-            from:'',
-            to:''
-          })
-        }
-
+  data: function() {
+    return {
+      newConditionName: '',
+      newStateName: '',
+      newTransitionName: '',
     }
+  },
+  methods: {
+
+    addCondition: function() {
+      this.conditions[this.newConditionName] = {
+        key: '',
+        value: 0,
+        check: QEpiKit.gt
+      }
+    },
+    addState: function() {
+      this.states[this.newStateName] = '';
+    },
+    addTransition: function() {
+      this.transitions.push({
+        name: this.newTransitionName,
+        from: '',
+        to: ''
+      })
+    }
+
+  }
 })
 
 Vue.component('state', {
-    props: ['state','name'],
-    template: `<div class="form-group">
+  props: ['state', 'name'],
+  template: `<div class="form-group">
     <label class="control-label">{{name}}</label>
     <select class="form-control" v-model="state">
       <option v-for="action in source">{{action}}</option>
     </select>
   </div>`,
-    data: function() {
-        return {
-            source: Object.keys(QActions)
-        }
+  data: function() {
+    return {
+      source: Object.keys(QActions)
     }
+  }
 });
 
 Vue.component('condition', {
-    props: ['name', 'condition', 'params'],
-    template: `<div>
+  props: ['name', 'condition', 'params'],
+  template: `<div>
 <label class="control-label">{{name}}</label>
 <div class="form-inline">
 <label>Parameter</label>
@@ -421,16 +483,16 @@ Vue.component('condition', {
   Condition calls a custom function.
 </span>
 </div>`,
-  data: function(){
+  data: function() {
     return {
-      matchers: ['equalTo','lt','lte','gt','gte','notEqualTo']
+      matchers: ['equalTo', 'lt', 'lte', 'gt', 'gte', 'notEqualTo']
     }
   }
 });
 
 Vue.component('rb-dataset', {
-  props:['dataset'],
-  template:`<div>
+  props: ['dataset'],
+  template: `<div>
     <label>Show Property</label>
     <select v-model="showProp">
       <option v-for="prop in dataset.properties"></option>
@@ -441,17 +503,17 @@ Vue.component('rb-dataset', {
     </select>
     <h4>(From dataset {{dataset.title}})</h4>
   </div>`,
-  data: function(){
+  data: function() {
     return {
-      showProp:'',
-      selectedEntry:{}
+      showProp: '',
+      selectedEntry: {}
     }
   }
 });
 
 Vue.component('rb-page', {
-  props:['page'],
-  template:`<div>
+  props: ['page'],
+  template: `<div>
     <div v-for="pp in page.pageProps">
       <label>{{pp.property.name}}</label> : {{pp.value}}
     </div>
@@ -460,8 +522,8 @@ Vue.component('rb-page', {
 });
 
 Vue.component('transition', {
-    props: ['transition', 'states', 'conditions'],
-    template: `<div class="panel panel-default panel-body">
+  props: ['transition', 'states', 'conditions'],
+  template: `<div class="panel panel-default panel-body">
 <label>{{transition.name}}</label>
 <div class="form-group form-inline">
 <label class="control-label">On</label>

@@ -84,8 +84,8 @@ self.onmessage = function(initEvent) {
     } else {
       person.height = jStat.normal.inv(random.real(0, 1), 1.62, 0.2);
      }
-    personBMI = modelOfAgent.calcBMI(0, person);
-    personBMR = modelOfAgent.mifflinStJeor(0, person);
+    person.BMI = modelOfAgent.calcBMI(0, person);
+    person.BMR = modelOfAgent.mifflinStJeor(0, person);
   }
 
 

@@ -114,11 +114,13 @@ export class Experiment {
         })
 
         return {
+            run: r,
             count: count,
             sums: sums,
             means: means,
             freqs: freqs,
-            model: model
+            model: model,
+            score: 0
         }
     }
 

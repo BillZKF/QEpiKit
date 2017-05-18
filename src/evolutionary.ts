@@ -18,6 +18,7 @@ export class Evolutionary extends Experiment {
     public ranges: any[];
     public target: any;
     public mutateRate: number;
+    public improvement: number;
     public size: number;
 
     constructor(environment: Environment, setup: any, discrete: boolean = false, gradient: boolean = true, mating: boolean = true) {
@@ -48,10 +49,11 @@ export class Evolutionary extends Experiment {
             this.prep(r, this.setup);
             this.population.sort(this.ascSort);
             this.population = this.population.slice(0, this.size);
-            this.experimentLog[this.experimentLog.length - 1].best = this.population[0].score;
-            console.log('best: ', this.experimentLog[this.experimentLog.length - 1].best);
+            this.experimentLog[this.experimentLog.length - 1].best = true;
+            console.log('best: ', this.experimentLog[this.experimentLog.length - 1]);
             r++;
         }
+        this.improvement = this.improvementScore(this.experimentLog);
         return this.experimentLog;
     }
 
@@ -68,7 +70,7 @@ export class Evolutionary extends Experiment {
       return out;
     }
 
-    dscSort(a: Chromasome, b: Chromasome) {
+    dscSort(a: any, b: any) {
         if (a.score > b.score) {
             return -1;
         } else if (a.score < b.score) {
@@ -77,7 +79,7 @@ export class Evolutionary extends Experiment {
         return 0;
     }
 
-    ascSort(a: Chromasome, b: Chromasome) {
+    ascSort(a: any, b: any) {
         if (a.score > b.score) {
             return 1;
         } else if (a.score < b.score) {
@@ -87,7 +89,7 @@ export class Evolutionary extends Experiment {
     }
 
     prep(r: number, cfg: any) {
-
+        let report;
         if (this.mating) {
             let topPercent = Math.round(0.1 * this.size) + 2; //ten percent of original size + 2
             let children = this.mate(topPercent);
@@ -108,9 +110,10 @@ export class Evolutionary extends Experiment {
             }
             super.prep(r, cfg);
             this.environment.time = 0;
-            let predict = this.report(r, cfg);
-            this.population[j].score = this.cost(predict, this.target);
-            this.experimentLog.push(predict);
+            report = this.report(r, cfg);
+            this.population[j].score = this.cost(report, this.target);
+            report.score = this.population[j].score;
+            this.experimentLog.push(report);
         }
     }
 
@@ -118,22 +121,55 @@ export class Evolutionary extends Experiment {
         let dev = 0;
         let dimensions = 0
         for (let key in target.means) {
-            dev += target.means[key] - predict.means[key];
+            dev += Math.abs(target.means[key] - predict.means[key]);
             dimensions++;
         }
         for (let key in target.freqs) {
-            dev += target.freqs[key] - predict.freqs[key];
+            dev += Math.abs(target.freqs[key] - predict.freqs[key]);
             dimensions++;
         }
         for (let key in target.model) {
-            dev += target.model[key] - predict.model[key];
+            dev += Math.abs(target.model[key] - predict.model[key]);
             dimensions++;
         }
-        return Math.pow(dev, 2) / dimensions;
+        return dev / dimensions;
     }
 
     report(r: number, cfg: any) {
-        return super.report(r, cfg);
+        let report = super.report(r, cfg);
+        return report;
+    }
+
+    improvementScore(log: any[], avgGeneration = true){
+      let N = log.length;
+      let sum = 0;
+      let ranked;
+        if(avgGeneration){
+          ranked = this.genAvg(log);
+          N = ranked.length;
+        } else {
+          ranked= log.map((d,i)=>{d.order = i; return d;});
+        }
+        ranked.sort(this.dscSort);
+        ranked.map((d,i)=>{d.rank = i; return d;});
+      for(let i = 0; i < ranked.length; i++){
+        sum += Math.abs( ranked[i].order/ N - ranked[i].rank / N )
+      }
+      return 1 - 2 * sum / N;
+    }
+
+    genAvg(log: any[]){
+      let sums = {};
+      let pops = {};
+      let avgs = [];
+      log.forEach((d)=>{
+        sums[d.run] = sums[d.run] + d.score || d.score;
+        pops[d.run] = pops[d.run] + 1 || 1;
+      })
+      for(let run in sums){
+        avgs[run] = {order: run, score:sums[run] / pops[run]};
+      }
+      return avgs
     }
 
     mate(parents: number): Chromasome[] {
@@ -160,21 +196,15 @@ export class Evolutionary extends Experiment {
         }
         for (let j = 0; j < chroma.genes.length; j++) {
             let gene = chroma.genes[j];
-            let diff: number;
-            if (this.gradient) {
-                diff = best[j].code - gene.code;
-            } else {
-                diff = this.rng.randRange(-1, 1);
-            }
-
-            let upOrDown = diff > 0 ? 1 : -1;
+            let diff = best[j].code - gene.code;
             if (!this.discrete) {
-                if (diff == 0) {
-                    gene.code += this.rng.normal( 0, 0.2) * this.mutateRate;
+                if (diff == 0 || !this.gradient) {
+                    gene.code += this.rng.normal(0, 1) * this.mutateRate;
                 } else {
                     gene.code += diff * this.mutateRate;
                 }
             } else {
+                let upOrDown = diff > 0 ? 1 : -1;
                 gene.code += upOrDown;
             }
             gene.code = Math.min(Math.max(0, gene.code), 1);

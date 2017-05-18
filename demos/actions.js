@@ -398,3 +398,35 @@ QActions.removed = function (agent, step) {
 QActions.logReduction = function(agent, step){
   return agent.pathogenLoad * Math.pow(10, -1 * pathogen.decayRate);
 }
+
+QActions.metabolism = function(agent, step) {
+  QActions.energyIn(agent, step); //eats daily
+  QActions.energyExpended(agent, step);
+  QActions.mifflinStJeor(agent, step); //gets the BMR
+  QActions.energyBalance(agent, step);
+  QActions.changeMass(agent, step);
+};
+
+QActions.mifflinStJeor = function(agent, step) {
+  agent.BMR = (10 * agent.mass) + (6.25 * agent.height) + (5.0 * agent.age);
+};
+
+QActions.calcBMI =function(agent, step) {
+  agent.BMI = agent.mass / (agent.height * agent.height);
+};
+
+QActions.energyBalance = function(agent, step) {
+  agent.calDifference = agent.calIn - (agent.calExUse + agent.BMR * agent.dailyActivitiesPct);
+};
+
+QActions.energyExpended = function(agent, step) {
+  agent.calExUse = (agent.exerciseAmount / 60) * agent.exerciseMETS * agent.mass;
+},
+
+QActions.energyIn = function(agent, step) {
+  agent.calIn = agent.calRawIntake * agent.calAbsorbPct;
+};
+
+QActions.changeMass = function(agent, step) {
+  agent.mass = agent.mass + (0.13 * agent.calDifference * step / 1000);
+};

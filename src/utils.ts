@@ -30,6 +30,41 @@ export function arrayFromRange(start, end, step) {
     }
     return range;
 }
+
+
+/*export function partition(array, left, right) {
+    var cmp = array[right - 1],
+        minEnd = left,
+        maxEnd;
+    for (maxEnd = left; maxEnd < right - 1; maxEnd += 1) {
+        if (array[maxEnd] <= cmp) {
+            swap(array, maxEnd, minEnd);
+            minEnd += 1;
+        }
+    }
+    swap(array, minEnd, right - 1);
+    return minEnd;
+}
+
+export function swap(array, i, j) {
+    var temp = array[i];
+    array[i] = array[j];
+    array[j] = temp;
+    return array;
+}
+
+export function quicksort(array:number[], left: number, right: number) {
+    if (left < right) {
+        var p = partition(array, left, right);
+        quicksort(array, left, p);
+        quicksort(array, p + 1, right);
+    }
+    return array;
+}*/
+
+
+
+
 /**
 * shuffle - fisher-yates shuffle
 */

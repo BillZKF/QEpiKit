@@ -2,38 +2,38 @@
 *Rivers CM, Lofgren ET, Marathe M, Eubank S, Lewis BL. Modeling the Impact of Interventions on an Epidemic of Ebola in Sierra Leone and Liberia. PLOS Currents Outbreaks. 2014 Oct 16 . Edition 1. doi: 10.1371/currents.outbreaks.fd38dd85078565450b0be3fcd78f5ccf.
 */
 
-let seed = 5437;
-let random = new QEpiKit.RNGBurtle(seed);
 let setupEBFit = {
     experiment: {
-        seed: seed,
-        rng: random,
+        seed: 12345,
+        rng: new QEpiKit.RNGBurtle(this.seed),
         iterations: 50,
+        iterations: 5,
         type: 'evolution',
         size: 5
     },
     environment: {
         step: 1,
-        until: 400,
+        until: 150,
         saveInterval: 1,
-        spatialType: 'compartmental',
-        params: {
-            pathogen: {
-                contactRate: 0,
-                hospitalContactRate: 0,
-                funeralContactRate: 0,
-                incubationPeriod: 0,
-                timeUntilHospital: 0,
-                timeFromHospToDeath: 0,
-                durationOfFuneral: 0,
-                durationOfInfection: 0,
-                timeFromInfToDeath: 0,
-                timeFromHospToRecov: 0,
-                probOfHosp: 0,
-                caseFatalityRate: 0,
-                hospitalCaseFatalityRate: 0
-            }
-        }
+        type: 'compartmental',
+        //bounds: [0, 0],
+        params: {}
+    },
+    pathogen: {
+        name:'ebola',
+        contactRate: 0,
+        hospitalContactRate: 0,
+        funeralContactRate: 0,
+        incubationPeriod: 0,
+        timeUntilHospital: 0,
+        timeFromHospToDeath: 0,
+        durationOfFuneral: 0,
+        durationOfInfection: 0,
+        timeFromInfToDeath: 0,
+        timeFromHospToRecov: 0,
+        probOfHosp: 0,
+        caseFatalityRate: 0,
+        hospitalCaseFatalityRate: 0
     },
     patches: [{
         name: 'liberia',
@@ -125,7 +125,7 @@ let setupEBFit = {
         freqs: [],
         model: [],
         history: [],
-        compartments: ['succeptible']
+        compartments: ['succeptible','exposed','infectious','removed','hospitalized','funeral']
     },
     evolution: {
         params: [{
@@ -196,18 +196,8 @@ let setupEBFit = {
         }],
         target: {
             model: {
-                succeptible: QEpiKit.normalize(4503000 - 30000, 0, 4503000)
+                succeptible: QEpiKit.normalize(4503000 - 328, 0, 4503000)
             }
         }
     }
-}
-
-
-let env = new QEpiKit.Environment();
-let pathogen = setup.environment.params.pathogen;
-let exp;
-
-function launch(cfg) {
-    exp = new QEpiKit.Evolutionary(env, cfg);
-    exp.start(cfg.experiment.iterations, cfg.environment.step, cfg.environment.until);
-}
+};

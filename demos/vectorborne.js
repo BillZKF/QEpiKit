@@ -1,14 +1,5 @@
-let options, agents = [], step,
-  actions,
-  states,
-  conditions,
-  transitions,
-  SEIRModel, PeopleMovementModel, mosqMovementModel,
-  mosqModel, S, E, I, R, vitals, environment, mosqPathParams, mainPatch,
-  pathogen = {recoveryTime: 6, mutationTime: 12};
-let r = 100; //radius of cloud
-let seed = 0x12345768;
-let random = new Random(Random.engines.mt19937().seedWithArray([seed, 0x90abcdef]));
+
+let r = 100;
 let bounds = [400, 300]; // for margin
 let boundaries = {
   'people': {top:bounds[1], left:10, bottom:10, right:bounds[0]},
@@ -63,10 +54,14 @@ let setupMosquitos = {
     },
     patches: [{
         name: 'mosquitoes',
+        type: 'patches',
         populations: {
             succeptible: 4502992 / 4503000,
             infectious: 8 / 4503000 ,
             removed: 0
+        }
+        params:{
+          shedOnBite:1e5
         }
     }],
     agents: {
@@ -239,69 +234,3 @@ let setupMosquitos = {
       }
     }]
   }
-
-
-function init(options){
-  let numAgents = options.numberOfAgents;
-  let infectedAtStart = options.infectedAtStart;
-  step = options.step;
-  raycaster.far = options.shedRange;
-  step = options.step;
-
-
-
-
-  mainPatch = new QEpiKit.Patch('main-patch', [S, E, I, R]);
-  mainPatch.id = 500000;
-  mainPatch.mesh = new THREE.Mesh(new THREE.CylinderGeometry( r, r, 2, 16), new THREE.MeshBasicMaterial({
-    color: 0xcc00cc,
-    transparent: true,
-    opacity: 0.4
-  }))
-  mainPatch.mesh.rotation.x = Math.PI / 180 * 90;
-  mainPatch.movePerDay = 10000;
-  mainPatch.shedOnBite = pathogen.shedRate;
-  mainPatch.prevX = 0;
-  mainPatch.prevY = 0;
-  scene.add(mainPatch.mesh);
-  mainPatch.mesh.position.x = random.real(boundaries.mosquitoes.left,boundaries.mosquitoes.right);
-  mainPatch.mesh.position.y = random.real(boundaries.mosquitoes.bottom,boundaries.mosquitoes.top);
-  mosqModel = new QEpiKit.CompartmentModel("infected-mosquitoes", [mainPatch]);
-  mosqMovementModel = {
-    name: 'mosqMovementModel',
-    data : [mainPatch],
-    update: function(agent, step){
-      agent.mesh.material.color.g = patch.succeptible;
-      agent.mesh.material.color.r = patch.infectious;
-      agent.mesh.material.color.b = patch.removed;
-      QActions.moveWithin(step, agent, boundaries.mosquitoes);
-    }
-  }
-  SEIRModel = new QEpiKit.StateMachine('sir-model', states, transitions, conditions, agents);
-
-  PeopleMovementModel = {
-    name:'personMovement',
-    data: agents,
-    update: function(agent, step){
-      QActions.moveWithin(step, agent, boundaries.people);
-      if(pathogen.vectorBorne){
-        let dist = agent.mesh.position.distanceTo(mainPatch.mesh.position) + 1e-16;
-        if(dist < r){
-          if(random.real(0, 1) < patch.infectious / dist){
-            agent.pathogenLoad += mainPatch.shedOnBite * step;
-          }
-        }
-      }
-    }
-  };
-  environment = new QEpiKit.Environment([], [], [], 'random', function() {
-    return random.real(0, 1);
-  });
-  environment.add(mosqModel);
-  environment.add(mosqMovementModel);
-
-  environment.add(SEIRModel);
-  environment.add(PeopleMovementModel);
-  environment.init();
-  render();
-}
