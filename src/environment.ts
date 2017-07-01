@@ -26,13 +26,17 @@ export class Environment {
     */
     public history: any;
     /**
+    * spatial boundaries
+    **/
+    public boundaries: any = {};
+    /**
     * The finite resources of the environment
     */
     public resources: any;
     /**
-    * Assets (like bathrooms, garbage cans, water tanks) that can be in or out of operation, that can be filled or depleted to and from capacity.
+    * key indexed, methods.
     */
-    public facilities: any;
+    public entities: any;
     /**
     * The agents in the simulation
     */
@@ -48,14 +52,14 @@ export class Environment {
 
     private _agentIndex: any;
 
-    constructor(resources = [], facilities = [], eventsQueue: QEvent[] = [], activationType: string = 'random', rng: any = Math) {
+    constructor(resources = [], entities = {}, eventsQueue: QEvent[] = [], activationType: string = 'random', rng: any = Math) {
         this.time = 0;
         this.timeOfDay = 0;
         this.models = [];
         this.history = [];
         this.agents = [];
         this.resources = resources;
-        this.facilities = facilities;
+        this.entities = entities;
         this.eventsQueue = eventsQueue;
         this.activationType = activationType;
         this.rng = rng;
@@ -74,7 +78,11 @@ export class Environment {
     */
     remove(id) {
         var deleteIndex, L = this.agents.length;
-        this.models.forEach(function(c, index) { if (c.id === id) { deleteIndex = index; } });
+        this.models.forEach(function(c, index) {
+          if (c.id === id) {
+            deleteIndex = index;
+          }
+        });
         while (L > 0 && this.agents.length >= 0) {
             L--;
             if (this.agents[L].modelIndex === deleteIndex) {

@@ -10,6 +10,7 @@ export * from './events';
 export {Experiment} from './experiment';
 export * from './genetic';
 export {Evolutionary} from './evolutionary';
+export {Evolve} from './evolve';
 export {HybridAutomata} from './ha';
 export * from './htn';
 export * from './interfaces';
@@ -23,5 +24,6 @@ export * from './regression';
 export {StateMachine} from './stateMachine';
 export * from './USys';
 export * from './random';
+export * from './resource';
 
 export var version = '0.0.5';

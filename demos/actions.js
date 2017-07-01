@@ -1,4 +1,39 @@
-QActions = {};
+function globalAssignment(){
+  random = exp.rng;
+  environment = exp.environment;
+  pathogen = environment.entities.pathogen;
+  boundaries = environment.boundaries;
+  if('vectorPatch' in pathogen){
+    let res = environment.agents.filter((a) => {
+      if(a.name === pathogen.vectorPatch){
+        return true;
+      }
+      return false;
+    })
+    vectorPatch = res[0];
+    vectorPatch.mesh = new THREE.Mesh(new THREE.CylinderGeometry( vectorPatch.r,vectorPatch.r, 2, 16), new THREE.MeshBasicMaterial({
+      color: 0xcc00cc,
+      transparent: true,
+      opacity: 0.4
+    }));
+    vectorPatch.mesh.rotation.x = Math.PI / 180 * 90;
+    scene.add(vectorPatch.mesh);
+  }
+}
+
+let QActions = {};
+
+QActions.mosquitoCheck = function(agent, step){
+  if(pathogen.vectorBorne){
+    let dist = QActions.distance(agent.position, vectorPatch.position) + 1e-16;
+    if(dist < vectorPatch.r){
+      if(random.random() < vectorPatch.populations.infectious / dist){
+        agent.pathogenLoad += vectorPatch.shedOnBite * step;
+      }
+    }
+  }
+}
+
 //check if the agent has exceeded the duration amount for an action
 QActions.timeout = function (agent, step, key, duration) {
   if (agent[key] >= duration) {
@@ -157,7 +192,7 @@ QActions.moveTo = function (agent, step, destination) {
 
 //move randomly within a rectangle
 QActions.moveWithin = function (agent, step, boundary) {
-  boundary = boundary || boundaries[agent.boundaryGroup];
+  boundary = boundary || environment.boundaries[agent.boundaryGroup];
   let d = step * agent.movePerDay;
   let current = {x:agent.position.x, y: agent.position.y, z:agent.position.z};
   QActions.move(agent, step);
@@ -214,7 +249,7 @@ QActions.contact = function (agent, step) {
         if (contactedAgent.states.illness === 'succeptible' || contactedAgent.states.illness === 'exposed') {
           contactedAgent.pathogenLoad += jStat.normal.inv(random.randRange(0, 1), pathogen.shedRate, pathogen.shedRate * 0.3);
           contactedAgent.lastInfectedContact = agent.id;
-          contactedAgent.responseProb = step * pathogen[pathogen.bestFitModel](contactedAgent.pathogenLoad);
+          contactedAgent.responseProb = step * pathogen.methods[pathogen.bestFitModel](contactedAgent.pathogenLoad);
         }
       }
     }
@@ -249,7 +284,7 @@ QActions.contactDis = function (agent, step) {
           //if (contactedAgent.states.illness === 'succeptible' || contactedAgent.states.illness === 'exposed') {
             contactedAgent.pathogenLoad += jStat.normal.inv(random.randRange(0, 1), pathogen.shedRate, pathogen.shedRate * 0.3);
             contactedAgent.lastInfectedContact = agent.id;
-            contactedAgent.responseProb = pathogen[pathogen.bestFitModel](contactedAgent.pathogenLoad);
+            contactedAgent.responseProb = pathogen.methods[pathogen.bestFitModel](contactedAgent.pathogenLoad);
           //}
         }
       }
@@ -271,7 +306,7 @@ QActions.geoContact = function (agent, step) {
       if (contactedAgent.states.illness === 'succeptible') {
         contactedAgent.pathogenLoad += pathogen.shedRate * step;
         contactedAgent.lastInfectedContact = agent.id;
-        contactedAgent.responseProb = pathogen[pathogen.bestFitModel](contactedAgent.pathogenLoad);
+        contactedAgent.responseProb = pathogen.methods[pathogen.bestFitModel](contactedAgent.pathogenLoad);
       }
     }
   }
@@ -355,8 +390,8 @@ QActions.exposed = function (agent, step) {
     agent.mesh.material.color.set(0xff00ff);
   }
   if (agent.pathogenLoad > 1) {
-    agent.responseProb = pathogen[pathogen.bestFitModel](agent.pathogenLoad);
-    agent.infected = agent.responseProb > random.random()? true : false;
+    agent.responseProb = pathogen.methods[pathogen.bestFitModel](agent.pathogenLoad);
+    agent.infected = agent.responseProb > random.random() ? true : false;
     agent.pathogenReduced = QActions.logReduction(agent, step);
     agent.pathogenLoad -= agent.pathogenReduced;
   } else {
@@ -430,3 +465,90 @@ QActions.energyIn = function(agent, step) {
 QActions.changeMass = function(agent, step) {
   agent.mass = agent.mass + (0.13 * agent.calDifference * step / 1000);
 };
+
+
+QActions['beta-Poisson'] = function(dose) {
+    let response = 1 - Math.pow((1 + (dose / pathogen.N50) * (Math.pow(2, (1 / pathogen.optParam)) - 1)), (-pathogen.optParam));
+    return response;
+};
+
+QActions.exponential = function(dose) {
+    let response = 1 - Math.exp(-pathogen.optParam * dose);
+    return response;
+};
+
+QActions.cSucceptible = function(patch, step) {
+    let S = patch.succeptible;
+    let E = patch.exposed;
+    let I = patch.infectious;
+    let H = patch.hospitalized;
+    let F = patch.funeral;
+    let R = patch.removed;
+    return -((pathogen.contactRate * S * I * step) + (pathogen.hospitalContactRate * S * H * step) + (pathogen.funeralContactRate * S * F * step));
+}
+
+QActions.cExposed = function(patch, step){
+    let S = patch.succeptible;
+    let E = patch.exposed;
+    let I = patch.infectious;
+    let H = patch.hospitalized;
+    let F = patch.funeral;
+    let R = patch.removed;
+    return (pathogen.contactRate * S * I * step) + (pathogen.hospitalContactRate * S * H * step) + (pathogen.funeralContactRate * S * F * step) - (E * pathogen.incubationPeriod * step);
+}
+
+QActions.cInfectious = function(patch, step){
+    let S = patch.succeptible;
+    let E = patch.exposed;
+    let I = patch.infectious;
+    let H = patch.hospitalized;
+    let F = patch.funeral;
+    let R = patch.removed;
+    return (E * pathogen.incubationPeriod * step) - ((I * pathogen.timeUntilHospital * step) + (pathogen.durationOfInfection * (1 - pathogen.caseFatalityRate) * I * step) + (I * pathogen.caseFatalityRate * pathogen.timeFromInfToDeath * step));
+}
+
+QActions.cHospitalized = function(patch, step){
+    let S = patch.succeptible;
+    let E = patch.exposed;
+    let I = patch.infectious;
+    let H = patch.hospitalized;
+    let F = patch.funeral;
+    let R = patch.removed;
+    return (I * pathogen.timeUntilHospital * step) - ((pathogen.timeFromHospToDeath * pathogen.hospitalCaseFatalityRate * H * step) + (pathogen.timeFromHospToRecov * (1 - pathogen.hospitalCaseFatalityRate) * H * step));
+}
+
+QActions.cFuneral = function(patch, step){
+    let S = patch.succeptible;
+    let E = patch.exposed;
+    let I = patch.infectious;
+    let H = patch.hospitalized;
+    let F = patch.funeral;
+    let R = patch.removed;
+    return (I * pathogen.caseFatalityRate * pathogen.timeFromInfToDeath * step) + (pathogen.timeFromHospToDeath * pathogen.hospitalCaseFatalityRate * H * step) - (F * pathogen.durationOfFuneral * step);
+}
+
+QActions.cRemoved = function(patch, step){
+    let S = patch.succeptible;
+    let E = patch.exposed;
+    let I = patch.infectious;
+    let H = patch.hospitalized;
+    let F = patch.funeral;
+    let R = patch.removed;
+    return (I * pathogen.durationOfInfection * (1 - pathogen.caseFatalityRate) * step) + (pathogen.timeFromHospToRecov * (1 - pathogen.hospitalCaseFatalityRate) * H * step) + (F * pathogen.durationOfFuneral * step);
+}
+
+QActions.mSucceptible = function(patch, step) {
+  return (patch.removed * pathogen.mosqResuccept * step) - (pathogen.mosqTransRate * patch.succeptible * (patch.infectious + patch.exposed) * step);
+}
+
+QActions.mExposed = function(patch, step) {
+  return (pathogen.mosqTransRate * patch.succeptible * (patch.infectious + patch.exposed) * step) - (patch.exposed * pathogen.mosqIncubation * step);
+}
+
+QActions.mInfectious = function(patch, step) {
+  return (patch.exposed * pathogen.mosqIncubation * step) - (patch.infectious * pathogen.mosqDuration * step);
+}
+
+QActions.mRemoved = function(patch, step) {
+  return (patch.infectious * pathogen.mosqDuration * step) - (patch.removed * pathogen.mosqResuccept * step);
+}

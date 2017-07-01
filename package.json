@@ -19,6 +19,10 @@
     "turf": "^3.0.14"
   },
   "devDependencies": {
+    "eslint": "^3.19.0",
+    "eslint-config-airbnb-base": "^11.2.0",
+    "eslint-plugin-html": "^2.0.3",
+    "eslint-plugin-import": "^2.3.0",
     "gulp": "^3.9.1",
     "gulp-concat": "^2.6.0",
     "gulp-connect": "^5.0.0",

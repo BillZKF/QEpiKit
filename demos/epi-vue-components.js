@@ -8,29 +8,57 @@ var bus = new Vue({
 
 Vue.component('experiment-form', {
   props: ['experiment'],
-  template: `<div><h2>Experiment Parameters</h2>
+  template: `<div class="form-horizontal"><h2>Experiment Parameters</h2>
+  <div class="form-group">
+    <label class="control-label col-sm-4">Experiment Type</label>
+    <div class="col-sm-8">
+    <select class="form-control" v-model="experiment.type">
+      <option v-for="type in experimentTypes">{{type}}</option>
+    </select>
+    </div>
+  </div>
 <div class="form-group">
-<label>Total Iterations</label>
+<label class="control-label col-sm-4">Number of Runs</label>
+<div class="col-sm-8">
 <input class="form-control" type="number" v-model.number="experiment.iterations" />
 </div>
+</div>
 <div class="form-group">
-<div class="form-group">
-<label>Iteration Size (runs per iteration)</label>
+<label class="control-label col-sm-4">Iterations per Run</label>
+<div class="col-sm-8">
 <input class="form-control" type="number" v-model.number="experiment.size" />
 </div>
-<label>Seed</label>
-<input class="form-control" type="number" v-model.number="experiment.seed" />
 </div>
 <div class="form-group">
-  <label>Experiment Type</label>
-  <select class="form-control" v-model="experiment.type">
-    <option v-for="type in experimentTypes">{{type}}</option>
-  </select>
+<label class="control-label col-sm-4">Seed</label>
+<div class="col-sm-8">
+<input class="form-control" type="number" v-model.number="experiment.seed" />
+</div>
+</div>
+<div>
+<h3>Experiment Parameters</h3>
+<div class="input-group">
+  <input class="form-control" placeholder="enter parameter level" v-model="newLevel" />
+  <input class="form-control" placeholder="enter parameter group" v-model="newGroup" />
+  <input class="form-control" placeholder="enter parameter name" v-model="newName" />
+  <span class="input-group-btn">
+  <div class="btn btn-primary" @click="addParam()">Add Parameter</div>
+  </span>
+</div>
+<param-form v-for="param in experiment.params" :param="param" :level="param.level" :group="param.group" :name="param.name"></param-form>
 </div>
 </div>`,
   data: function() {
     return {
-      experimentTypes: ['random-seed', 'param-sweep', 'evolution'],
+      experimentTypes: ['param-sweep', 'evolution'],
+      newLevel: '',
+      newGroup: '',
+      newName: ''
+    }
+  },
+  methods:{
+    addParam: function(level, group, name){
+      this.experiment.params.push({level:this.newLevel, group:this.newGroup, name:this.newName, type:'distribution', distribution: {name: 'normal', params:[0 , 1]}});
     }
   }
 });
@@ -66,22 +94,40 @@ Vue.component('report-form', {
   template: `<div>
       <h3>Report</h3>
       <div class="form">
+        <div class="row">
+        <div class="col-sm-6">
         <label class="form-label">Sums</label>
         <input class="form-control" v-model="sum" v-for="sum in report.sums" />
+        </div>
+        <div class="col-sm-6 bottom-align-text">
         <button class="btn btn btn-sm btn-default" @click="add('sums')">Add Sum</button>
+        </div>
+        </div>
+        <div class="row">
+        <div class="col-sm-6">
         <label>Means</label>
         <input class="form-control" v-model="mean" v-for="mean in report.means" />
+        </div>
+        <div class="col-sm-6 center-block">
         <button class="btn btn-sm btn-default" @click="add('means')">Add Mean</button>
+        </div>
+        </div>
+        <div class="row">
+        <div class="col-sm-6">
         <label>Frequencies</label>
         <input class="form-control" v-model="freq" v-for="freq in report.freqs" />
+        </div>
+        <div class="col-sm-6 center-block">
         <button class="btn btn-sm btn-default" @click="add('freqs')">Add Freq</button>
+        </div>
+        </div>
       </div>
     </div>`,
-    methods:{
-      add: function(fieldType){
-        this.report[fieldType].splice(this.report[fieldType].length,1,'');
-      }
+  methods: {
+    add: function(fieldType) {
+      this.report[fieldType].splice(this.report[fieldType].length, 1, '');
     }
+  }
 })
 
 Vue.component('evolution-form', {
@@ -94,57 +140,48 @@ Vue.component('evolution-form', {
             <input class="form-control" v-model="param"/><label class="form-label"> : </label><input class="form-control" v-model="val"/>
             </div>
           </div>
-      <h4>Params</h4>
-      <div v-for="param in evolution.params">
-        <exp-param-form :exp-param="param"></exp-param-form>
-      </div>
-    </div>`
-})
-
-Vue.component('exp-param-form', {
-  props: ['expParam'],
-  template: `<div>
-      <label>Parameter Address</label>
-      <div class="form-inline">
-      <input class="form-control" v-model="expParam.level"/>
-      <input class="form-control" v-model="expParam.group"/>
-      <input class="form-control" v-model="expParam.name"/>
-      </div>
-      <label>Range</label>
-      <div class="form-inline">
-      <input class="form-control" v-model="expParam.range[0]"/>
-      <input class="form-control" v-model="expParam.range[1]"/>
-      </div>
+      <h4>Method</h4>
+       <select class="form-control" v-model="evolution.method">
+        <option>normal</option>
+        <option>uniform</option>
+       </select>
     </div>`
 })
 
 
 Vue.component('environment-form', {
   props: ['environment'],
-  template: `<div><h2>Environment Parameters</h2>
+  template: `<div class="form-horizontal"><h2>Environment Parameters</h2>
 <div class="form-group">
-<label>Step Size (days)</label>
+<label class="control-label col-sm-4">Step Size (days)</label>
+  <div class="col-sm-8">
   <input class="form-control" type="number" v-model.number="environment.step" />
+  </div>
 </div>
 <div class="form-group">
-  <label>Until (days)</label>
+  <label class="control-label col-sm-4">Until (days)</label>
+  <div class="col-sm-8">
   <input class="form-control" type="number" v-model.number="environment.until" />
+  </div>
 </div>
 <div class="form-group">
-  <label>Spatial Type</label>
+  <label class="control-label col-sm-4">Spatial Type</label>
+  <div class="col-sm-8">
   <select class="form-control" v-model="environment.type">
     <option v-for="type in spatialTypes">{{type}}</option>
   </select>
+  </div>
 </div>
-<div class="form-group" v-if="environment.bounds">
-<label>Boundaries</label>
-<label>Bottom-Left</label><input class="form-control" v-model.number="environment.bounds[0]"/>
-<label>Top-Right</label><input class="form-control" v-model.number="environment.bounds[1]"/>
-</div>
+  <div class="form-group" v-if="environment.type !== 'compartmental'">
+    <label class="control-label col-sm-3">Bottom-Left-Bound</label>
+    <div class="col-sm-3"><input class="form-control" v-model.number="environment.boundaries[0]"/></div>
+    <label class="control-label col-sm-3">Top-Right-Bound</label>
+    <div class="col-sm-3"><input class="form-control" v-model.number="environment.boundaries[1]"/></div>
+  </div>
 </div>`,
   data: function() {
     return {
-      spatialTypes: ['continuous', 'geospatial','compartmental']
+      spatialTypes: ['continuous', 'geospatial', 'compartmental']
     }
   },
   methods: {
@@ -158,43 +195,65 @@ Vue.component('pathogen-form', {
   props: ['pathogen'],
   template: `<div>
     <h3>Pathogen</h3>
-    <label>Person to Person
+    <form class="form-horizontal ">
+    <div class="form-group">
+      <label class="control-label col-sm-4">Person to Person</label>
+      <div class="col-sm-8">
       <input class="checkbox" type="checkbox">
-    </label>
+      </div>
+    </div>
     <div class="form-group">
-      <label>Name</label>
+      <label class="control-label col-sm-4">Name</label>
+      <div class="col-sm-8">
       <input class="form-control" v-model="pathogen.name"/>
+      </div>
     </div>
     <div class="form-group">
-      <label>N50</label>
+      <label class="control-label col-sm-4">N50</label>
+      <div class="col-sm-8">
       <input class="form-control" v-model.number="pathogen.N50"/>
+      </div>
     </div>
     <div class="form-group">
-      <label>Optimizied Parameter</label>
+      <label class="control-label col-sm-4">Optimizied Parameter</label>
+      <div class="col-sm-8">
       <input class="form-control" v-model.number="pathogen.optParam"/>
+      </div>
     </div>
     <div class="form-group">
-      <label>Best Fit Model</label>
+      <label class="control-label col-sm-4">Best Fit Model</label>
+      <div class="col-sm-8">
       <select class="form-control" v-model="pathogen.bestFitModel">
         <option>exponential</option>
         <option>beta-Poisson</option>
+      </select>
+      </div>
     </div>
     <div class="form-group">
-      <label>Log-Reduction Rate</label>
+      <label class="control-label col-sm-4">Log-Reduction Rate</label>
+      <div class="col-sm-8">
       <input class="form-control" v-model.number="pathogen.decayRate"/>
+      </div>
     </div>
     <div class="form-group">
-      <label>Recovery Time</label>
+      <label class="control-label col-sm-4">Recovery Time</label>
+      <div class="col-sm-8">
       <input class="form-control" v-model.number="pathogen.recoveryTime"/>
+      </div>
     </div>
     <div class="form-group">
-      <label>Shed Rate</label>
+      <label class="control-label col-sm-4">Shed Rate</label>
+      <div class="col-sm-8">
       <input class="form-control" v-model.number="pathogen.shedRate"/>
+      </div>
     </div>
     <div class="form-group">
-      <label>Mutation Time</label>
+      <label class="control-label col-sm-4">Mutation Time</label>
+      <div class="col-sm-8">
       <input class="form-control" v-model.number="pathogen.mutationTime"/>
+      </div>
     </div>
+    </form>
     </div>`,
   methods: {
     save: function() {
@@ -203,61 +262,115 @@ Vue.component('pathogen-form', {
   }
 });
 
+
 Vue.component('param-form', {
   props: ["level", "group", "name", "param"],
-  template: `
+  template: `<div>
+    <div v-if="level !== 'agents' && group !== 'params'" class="row">
+      <div class="form-group col-lg-6">
+          <input class="form-control" v-model="level" />
+      </div>
+      <div class="form-group col-lg-6">
+          <input class="form-control" v-model="group" />
+      </div>
+    </div>
     <div class="row">
-        <div class="form-group col-lg-4">
-            <label class="control-label">Name</label>
-            <input class="form-control" v-model="name" />
+      <div class="form-group col-lg-4">
+          <input class="form-control" v-model="name" />
+      </div>
+      <div class="col-lg-4">
+        <select @change="toggle" v-model="type">
+          <option v-for="t in types">{{t}}</option>
+        </select>
+      </div>
+      <div v-if="type === 'assign'" class="form-group col-lg-4">
+          <input class="form-control" v-model.number="param.assign" />
+      </div>
+      <div v-if="type === 'distribution'" class="form-group col-lg-4">
+        <select class="form-control" v-model="param.distribution.name">
+          <option v-for="(dist,key) in distributions">{{key}}</option>
+        </select>
+        <div v-for="(dpm,idx) in distributions[param.distribution.name]">
+          <label class="control-label">{{dpm}}</label>
+          <input v-if="param.distribution.name === 'pick'" v-model="paramStrings[idx]" class="form-control" @change="checkParams" />
+          <input v-else v-model.number="param.distribution.params[idx]" class="form-control" type="number" @change="save" />
         </div>
-        <span v-if="typeof(param.assign) !== 'function'">
-            <label>Use Distribution<input class="checkbox" type="checkbox" v-model="useDistribution" /></label>
-            <div v-if="!useDistribution" class="form-group col-lg-4">
-                <label class="control-label">Value</label>
-                <input class="form-control" v-model="param.assign" />
-            </div>
-            <div v-if="useDistribution" class="form-group col-lg-4">
-              <label class="control-label">Distribution</label>
-              <select class="form-control" v-model="distribution">
-                <option v-for="(dist,key) in distributions">{{key}}</option>
-              </select>
-              <div v-for="(dpm,idx) in distributions[distribution]">
-                <label class="control-label">{{dpm}}</label>
-                <input v-model.number="dParams[idx]" class="form-control" type="number" />
-              </div>
-            </div>
-        </span>
-        <label v-else >Param assigned using custom function.</label>
+      </div>
+      <div v-if="type === 'states'" class="form-group col-lg-4">
+        <div v-for="(dpm,idx) in distributions.pick">
+        <input v-model="paramStrings[idx]" class="form-control" @change="checkParams(paramStrings[idx], idx)" />
+      </div>
+      </div>
     </div>`,
+  created: function() {
+    if ('assign' in this.param) {
+      this.type = 'assign';
+    } else if ('distribution' in this.param) {
+      this.type = 'distribution';
+      if (this.param.distribution.name === 'pick') {
+        this.paramStrings = [this.param.distribution.params[0].join(','), this.param.distribution.params[1].join(',')];
+      }
+    } else if ('action' in this.param) {
+      this.type = 'action';
+    } else if ('states' in this.param) {
+      this.type = 'states';
+      this.paramStrings = [this.param.states.params[0].join(','), this.param.states.params[1].join(',')];
+    }
+  },
   data: function() {
     return {
-      useDistribution: false,
+      type: 'assign',
+      types: ['action', 'assign', 'distribution', 'states'],
       distributions: {
         uniform: ["min", "max"],
         normal: ["mean", "sd"],
         gamma: ["shape", "scale"],
         lognormal: ["mean", "sd"],
-        poisson: ["k", "lambda"]
+        poisson: ["k", "lambda"],
+        pick: ['list', 'probabilities']
       },
+      paramStrings: ['', ''],
       distribution: 'normal',
-      dParams: [0, 0],
       value: 0
     }
   },
   methods: {
-    save: function() {
-      if (useDistribution) {
-        bus._data.config[level][group].params[name] = {
-          assign: (rng, dist) => {
-            rng[dist](this.params[0], this.params[1])
-          }
+    toggle: function() {
+      this.param = {};
+      switch(this.type){
+        case 'action': this.param = Object.assign(this.param, {action : 'move'}); break;
+        case 'distribution': this.param = Object.assign(this.param, {distribution:{
+            name: 'normal',
+            params: [0, 1]
+          }}); break;
+        case 'states' : this.param = Object.assign(this.param, {states: {
+            params: [
+              ['yes', 'no'],
+              [0.5, 0.5]
+            ]
+        }}); break;
+        default:this.param = Object.assign(this.param, {assign : 0}); break;
+      }
+      this.save();
+    },
+    checkParams: function(value, idx) {
+      let type = 'distribution';
+      if (value.match(',') !== null) {
+        if('states' in this.param){
+          type = 'states';
         }
-      } else {
-        bus._data.config[level][group].params[name] = {
-          assign: this.value
+        this.param[type].params[idx] = value.split(',');
+        if (idx === 1) {
+          this.param[type].params[idx] = this.param[type].params[idx].map((d) => {
+            return parseFloat(d);
+          });
         }
       }
+      this.save();
+    },
+    save: function() {
+      bus.$emit('updateParam', this.level, this.group, this.name, this.param);
+      this.$forceUpdate();
     }
   }
 });
@@ -273,14 +386,19 @@ Vue.component('agents-form', {
               <label># Agents</label>
               <input @change="save()" class="form-control" type="number" v-model="agents.count" />
             </div>
+            <div>
             <h3>Parameters</h3>
             <div class="input-group">
-            <input class="form-control" placeholder="enter parameter name" v-model="newName" />
-            <span class="input-group-btn">
-            <div class="btn btn-primary" @click="addParam(newName)">Add Parameter</div>
-            </span>
+              <input class="form-control" placeholder="enter parameter name" v-model="newName" />
+              <span class="input-group-btn">
+              <div class="btn btn-primary" @click="addParam(newName)">Add Parameter</div>
+              </span>
             </div>
-            <param-form :level="'agents'" :group.sync="agents.name" :name.sync="name" :param="prm" v-for="(prm, name) in agents.params"></param-form>
+            <br/>
+            <div>
+            <param-form :level="'agents'" :group="agents.name" :name="name" :param="prm" v-for="(prm, name) in agents.params"></param-form>
+            </div>
+            </div>
             </div>`,
   data: function() {
     return {
@@ -310,24 +428,26 @@ Vue.component('components-form', {
   props: ['comp', 'params', 'groups'],
   template: `<div><h3>Component</h3>
     <div class="row">
-    <div class="form-group col-lg-4">
-    <label>Name</label>
-    <input class="form-control" v-model="comp.name" />
+      <label class="col-sm-4">Name</label>
+      <label class="col-sm-4">Type</label>
+      <label class="col-sm-4">Agent Groups</label>
     </div>
-    <div class="form-group col-lg-4">
-    <label>Type</label>
-    <select class="form-control" v-model="comp.type">
-      <option v-for="type in componentTypes">{{type}}</option>
-    </select>
+    <div class="row">
+      <div class="col-sm-4">
+        <input class="form-control" v-model="comp.name" />
+      </div>
+      <div class="col-sm-4">
+        <select class="form-control" v-model="comp.type">
+          <option v-for="type in componentTypes">{{type}}</option>
+        </select>
+      </div>
+      <div class="col-sm-4">
+        <select class="form-control" v-model="comp.agents">
+          <option v-for="group in groups">{{group}}</option>
+        </select>
+      </div>
     </div>
     <compartmental-model v-if="comp.type === 'compartmental'" :component="comp"></compartmental-model>
-    <div class="form-group col-lg-4" v-if="comp.agents">
-      <label>Agent Groups</label>
-      <select class="form-control" v-model="comp.agents">
-        <option v-for="group in groups">{{group}}</option>
-      </select>
-    </div>
-    </div>
     <state-machine v-if="comp.type === 'state-machine'" :component="comp" :params="params"></state-machine>
   </div>`,
   created: function() {
@@ -340,9 +460,9 @@ Vue.component('components-form', {
   }
 });
 
-Vue.component('compartmental-model',{
-  props:['component'],
-  template:`
+Vue.component('compartmental-model', {
+  props: ['component'],
+  template: `
     <div class="panel panel-body panel-default">
       <h3>{{component.type}}</h3>
       <div v-for="(compartment, key) in component.compartment">
@@ -363,7 +483,7 @@ Vue.component('compartmental-model',{
 })
 
 Vue.component('patches-form', {
-  props:['patches'],
+  props: ['patches'],
   template: `
   <div>
     <h3>Patches</h3>
@@ -523,7 +643,7 @@ Vue.component('rb-page', {
 
 Vue.component('transition', {
   props: ['transition', 'states', 'conditions'],
-  template: `<div class="panel panel-default panel-body">
+  template: `<div>
 <label>{{transition.name}}</label>
 <div class="form-group form-inline">
 <label class="control-label">On</label>

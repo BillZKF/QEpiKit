@@ -1,4 +1,16 @@
 export class KNN {
+  public nearestN:number;
+  public name: string;
+  public trainedData: any[];
+  public kParams:string[];
+  public classifier:string;
+  constructor(name:string, trainedData:any[], kParams:string[], classifier:string, nearestN:number){
+    this.name = name;
+    this.trainedData = trainedData;
+    this.kParams = kParams;
+    this.classifier = classifier;
+    this.nearestN = nearestN;
+  }
 
   setNeighbors(point:any, data:any[], param:any, classifier:string) {
     data.forEach((d) => {
@@ -78,22 +90,18 @@ export class KNN {
   classify(data:any[], trainedData:any[], kParams:string[], classifier:string, nearestN:number) {
     let kParamsObj:any = this.getRange([].concat(data, trainedData), kParams);
     data = this.setDistances(data, trainedData, kParamsObj, classifier);
-    let ordered : any = [];
-
     for (let d = 0; d < data.length; d++) {
       let results = {};
-      ordered = this.sort(data[d].neighbors, 'distance');
-
       let n = 0;
+      let max = 0;
+      let likeliest = '';
+      let ordered = this.sort(data[d].neighbors, 'distance');
       while (n < nearestN) {
         let current = ordered[n][classifier];
         results[current] = results[current] || 0;
         results[current] += 1;
         n++;
       }
-
-      var max = 0,
-        likeliest = '';
       for (let param in results) {
         if (results[param] > max) {
           max = results[param];

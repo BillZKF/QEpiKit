@@ -33,6 +33,7 @@
     "src/genetic.ts",
     "src/evolutionary.ts",
     "src/main.ts",
+    "src/evolve.ts",
     "src/qepikit.ts"
   ]
 }

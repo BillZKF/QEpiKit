@@ -1,3 +1,4 @@
+declare var jStat: any;
 
 abstract class Random {
     seed: number;
@@ -12,6 +13,8 @@ abstract class Random {
     randRange(min: number, max: number) {
         return (max - min) * this.random() + min;
     }
+
+    uniform = this.randRange;
 
     mat(rows: number, cols: number, dist: string = 'random') {
         let rands = [];
@@ -37,8 +40,23 @@ abstract class Random {
         return rands;
     }
 
-    pick(array: any[]) {
+    pick(array: any[], probabilities?: number[]) {
+      if(typeof probabilities === 'undefined'){
         return array[Math.floor(this.random() * array.length)];
+      } else {
+        if(jStat.sum(probabilities) == 1.0){
+          while(array.length > 0){
+            let idx = Math.floor(this.random() * array.length);
+            if(this.random() < probabilities[idx]){
+              return array[idx];
+            }
+            //array.splice(idx, 1);
+            //probabilities.splice(idx, 1);
+          }
+        } else {
+          throw new RangeError('sum of probabilities array did not equal 1')
+        }
+      }
     }
 
     /**

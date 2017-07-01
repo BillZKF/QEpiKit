@@ -1,24 +1,31 @@
 <head>
   <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" />
 </head>
-
+<style>
+  .form-horizontal .control-label{
+    text-align: left;
+  }
+</style>
 <body>
   <div id="app" class="container-fluid">
     <h1>Model Test Lab</h1>
+    <select class="form-control" v-model="modelFile" @change="loadFile()">
+      <option>SEIR agents</option>
+      <option>Ebola Compartmental</option>
+      <option>Vectorborne</option>
+    </select>
     <div class="row">
-    <div id="timeplot" style="height:640px; margin:0px; padding:0px;" class="col-lg-4"></div>
-    <div id="display" style="height:640px; margin:0px; padding:0px;" class="col-lg-8"></div>
+      <div id="timeplot" style="height:640px; margin:0px; padding:0px;" class="col-lg-4"></div>
+      <div id="display" style="height:640px; margin:0px; padding:0px;" class="col-lg-8"></div>
     </div>
     <experiment-log :log="log" :improvement="improvement"></experiment-log>
+    <div class="row">
     <div class="col-lg-6">
-      <div class="btn btn-success btn-lg" @click="launch()">Launch Full</div>
-      <select class="form-control" @change="loadFile()">
-        <option>SEIR agents</option>
-        <option>Ebola Compartmental</option>
-      </select>
+      <div class="btn btn-success btn-lg" @click="launchWorker()">Launch Full</div>
       <experiment-form :experiment="experiment"></experiment-form>
+      <evolution-form v-if="experiment.type === 'evolution'" :evolution="evolution"></evolution-form>
       <report-form :report="report"></report-form>
-      <evolution-form :evolution="evolution"></evolution-form>
+
       <pathogen-form :pathogen="pathogen"></pathogen-form>
     </div>
     <div class="col-lg-6">
@@ -27,11 +34,12 @@
       <agents-form :agents="agentGrp" v-for="(agentGrp, grp) in agents"></agents-form>
       <patches-form v-if="patches.length > 0" :patches="patches"></patches>
     </div>
-    <div>
-      <components-form :comp="component" :params="typeof component.agents !== 'undefined' ? agents[component.agents].params : {}" :groups="Object.keys(agents)" v-for="component in components"></components-form>
+  </div>
+    <div class="row">
+      <components-form :comp="component" :params="typeof agents[component.agents] !== 'undefined' ? agents[component.agents].params : {}" :groups="[].concat(Object.keys(agents), patches.map((d) => {return d.name}))" v-for="component in components"></components-form>
     </div>
   </div>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.2.5/vue.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.2.5/vue.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.7.3/d3.js"></script>
   <script src="../node_modules/plotly.js/dist/plotly-basic.min.js"></script>
   <script src="./libs/jStat.min.js"></script>
@@ -40,20 +48,13 @@
   <script src="../qepikit.js"></script>
   <script src="./epi-vue-components.js"></script>
   <script>
+    "use strict";
     let pathogen;
-    let boundaries = {
-      people: {
-        left: 1,
-        right: 600 - 1,
-        top: 600 - 1,
-        bottom: 1
-      }
-    };
+    let boundaries;
     let agents;
     let exp;
     let cfg;
-    let env = new QEpiKit.Environment();
-    let infectedAtStart = 8;
+    let environment;
     let random;
     let scene;
     let raycaster = new THREE.Raycaster();
@@ -65,28 +66,36 @@
     let app = new Vue({
       el: '#app',
       data: {
-        log:[],
-        improvement:-1,
+        modelFile: "SEIR agents",
+        log: [],
+        improvement: -1,
         experiment: {
           seed: 12345,
-          rng: new QEpiKit.RNGBurtle(this.seed),
-          iterations: 5,
-          type: 'evolution',
-          size: 10
-        },
-        patches:[],
-        evolution: {
-          params: [{
+          rng: 'burtle',
+          iterations: 4,
+          type: 'param-sweep',
+          size: 4,
+          params:[{
             level: 'agents',
             group: 'people',
             name: 'contactAttempts',
-            range: [1, 100]
-          }, {
-            level: 'environment',
+            distribution:{
+              name:'normal',
+              params:[50, 10]
+            }
+          },{
+            level: 'entities',
             group: 'pathogen',
             name: 'shedRate',
-            range: [100, 1000]
-          }],
+            distribution:{
+              name:'normal',
+              params:[1500, 500]
+            }
+          }]
+        },
+        patches: [],
+        evolution: {
+          method: "appx-grad",
           target: {
             freqs: {
               infectious: 44
@@ -97,7 +106,7 @@
           step: 0.001,
           until: 1,
           type: 'continuous',
-          bounds: [500, 400],
+          boundaries: [500, 500],
           params: {}
         },
         report: {
@@ -105,6 +114,7 @@
           means: ['pathogenLoad', 'contactAttempts'],
           freqs: ['immune', 'succeptible', 'exposed', 'infectious']
         },
+        entities:{},
         pathogen: {
           name: 'influenza',
           personToPerson: true,
@@ -115,13 +125,9 @@
           recoveryTime: 6,
           shedRate: 700,
           mutationTime: 36,
-          'beta-Poisson': function(dose) {
-            let response = 1 - Math.pow((1 + (dose / this.N50) * (Math.pow(2, (1 / this.optParam)) - 1)), (-this.optParam));
-            return response;
-          },
-          'exponential': function(dose) {
-            let response = 1 - Math.exp(-this.optParam * dose);
-            return response;
+          methods:{
+            'beta-Poisson': 'beta-Poisson',
+            'exponential': 'exponential'
           }
         },
         agents: {
@@ -136,8 +142,9 @@
             },
             params: {
               'movePerDay': {
-                assign: () => {
-                  return random.normal(3000, 1000);
+                distribution:{
+                  name:'normal',
+                  params:[3000, 1000]
                 }
               },
               'contactAttempts': {
@@ -162,27 +169,11 @@
                 assign: 0
               },
               'infected': {
-                assign:false
+                assign: false
               },
-              'percentImmune': {
-                assign: 0.4
-              },
-              'percentInfected': {
-                assign: 0.1
-              },
-              'states': {
-                assign: function() {
-                  let r = random.random();
-                  let state = 'succeptible'
-                  if (r < 0.2) {
-                    state = 'immune';
-                  }
-                  if (r >= 0.2 && r < 0.22) {
-                    state = 'infectious';
-                  }
-                  return {
-                    'illness': state
-                  };
+              'illness': {
+                states: {
+                  params:[['immune','succeptible','exposed','infectious'],[0.3,0.69,0.005,0.005]]
                 }
               }
             }
@@ -242,68 +233,90 @@
           name: 'Movement',
           type: 'every-step',
           agents: 'people',
-          action: QActions.moveWithin
+          action: 'moveWithin'
         }]
       },
-      created:function(){
+      created: function() {
         /*window.fetch(new Request('http://localhost:3000/api/dataset/590f9ff53d5354319484d864'))
           .then(response => {
             console.log(response.json());
           })*/
+          bus.$on('updateParam', this.update);
       },
       methods: {
-        loadFile:function(){
-          loaded = setupEBFit;
-          this.experiment = loaded.experiment;
-          this.environment = loaded.environment;
-          this.evolution = loaded.evolution;
-          this.components = loaded.components;
-          this.evolution = loaded.evolution || {};
-          this.pathogen = loaded.pathogen || {};
-          this.agents = loaded.agents || {};
-          this.patches = loaded.patches || []
-          this.report = loaded.report;
-          this.$forceUpdate();
+        loadFile: function() {
+          let available = {
+            "SEIR agents":null,
+            "Ebola Compartmental":setupEBFit,
+            "Vectorborne": setupVectorborne
+          }
+          let loaded = available[this.modelFile];
+          if(loaded !== null && typeof loaded !== 'undefined'){
+            this.experiment = loaded.experiment;
+            this.environment = loaded.environment;
+            this.components = loaded.components;
+            this.evolution = loaded.evolution || {};
+            this.pathogen = loaded.pathogen || {};
+            this.agents = loaded.agents || {};
+            this.patches = loaded.patches || [];
+            this.report = loaded.report;
+
+            this.$forceUpdate();
+          }
         },
         compile: function() {
+          this.$forceUpdate();
           cfg = {};
+          cfg.entities = {};
           cfg.experiment = this.experiment;
           cfg.environment = this.environment;
           cfg.evolution = this.evolution;
-          cfg.environment.params.pathogen = this.pathogen;
+          cfg.entities.pathogen = this.pathogen;
           cfg.agents = this.agents;
           cfg.patches = this.patches;
           cfg.report = this.report;
-          cfg.components = [];
-          this.components.forEach((comp, i) => {
-            if (comp.type === 'state-machine') {
-              let c = JSON.parse(JSON.stringify(comp));
-              for (let state in comp.states) {
-                c.states[state] = QActions[comp.states[state]];
-              }
-              for (let cond in comp.conditions) {
-                c.conditions[cond].check = QEpiKit[comp.conditions[cond].check];
-              }
-              cfg.components[i] = c;
-            } else {
-              cfg.components[i] = Vue.util.extend({}, comp);
-            }
-          })
-          random = cfg.experiment.rng;
-          pathogen = this.environment.params.pathogen;
+          cfg.components = this.components;
+          //cfg = JSON.parse(JSON.stringify(cfg));
+        },
+        update(level, group, name, param, index){
+          if(level === 'agents'){
+            this[level][group].params[name] = param;
+          } else {
+            this.experiment.params[index] = param;
+          }
+
         },
         launch: function() {
           this.compile();
-          exp = new QEpiKit.Evolutionary(env, cfg);
+          exp = new QEpiKit.Evolutionary(environment, cfg);
           exp.start(cfg.experiment.iterations, cfg.environment.step, cfg.environment.until);
           this.improvement = exp.improvement;
           this.log = exp.experimentLog;
         },
+        launchWorker: function() {
+          if (typeof Worker !== 'undefined') {
+            let maxWorkers = navigator.hardwareConcurrency / 2;
+            let scores = [];
+            for (var i = 0; i < maxWorkers; i++) {
+              let worker = new Worker('vue-worker.js');
+              this.compile();
+              cfg.experiment.seed += 1;
+              worker.postMessage([cfg]);
+              worker.onmessage = (event) => {
+                this.log = this.log.concat(event.data[1]);
+                scores.push(event.data[0]);
+                if(scores.length === maxWorkers){
+                  this.improvement = jStat.mean(scores);
+                }
+              }
+            }
+          }
+        },
         visualize: function() {
           //live update
           this.compile();
-          if(cfg.environment.type === 'continuous'){
-            let bounds = cfg.environment.bounds;
+          if (cfg.environment.type === 'continuous') {
+            let bounds = cfg.environment.boundaries;
             camera.position.z = Math.max(bounds[0], bounds[1]) * 0.5;
             camera.position.x = bounds[0] * 0.5;
             camera.position.y = bounds[1] * 0.5;
@@ -312,12 +325,12 @@
             document.querySelector('#display').appendChild(renderer.domElement);
             renderer.setSize(1280, 640);
             renderer.setClearColor(0xffffff, 0);
-          scene = new THREE.Scene();
+            scene = new THREE.Scene();
           }
-          exp = new QEpiKit.Experiment(env, cfg);
-          exp.prep(null, cfg)
-          env = exp.environment;
-          env.init();
+          exp = new QEpiKit.Experiment(environment, cfg);
+          exp.parseCFG(cfg);
+          exp.environment.init();
+          globalAssignment();
           render();
         }
       }
@@ -325,7 +338,7 @@
 
     function freqs() {
       let freqs = {};
-      env.agents.forEach((d) => {
+      environment.agents.forEach((d) => {
         exp.setup.report.freqs.forEach((f) => {
           if (!isNaN(d[f]) && typeof d[f] != 'undefined') {
             freqs[f] = freqs[f] == undefined ? d[f] : d[f] + freqs[f];
@@ -335,14 +348,14 @@
       return freqs;
     }
 
-    function compartments(){
-          let model = {};
-          env.agents.forEach((d) => {
-            exp.setup.report.compartments.forEach((cm) => {
-              model[cm] = model[cm] == undefined ? d.populations[cm]  * 4503000 : d.populations[cm] + model[cm];
-          });
+    function compartments() {
+      let model = {};
+      environment.agents.forEach((d) => {
+        exp.setup.report.compartments.forEach((cm) => {
+          model[cm] = model[cm] == undefined ? d.populations[cm] * 4503000 : d.populations[cm] + model[cm];
         });
-        return model;
+      });
+      return model;
     }
 
     function format(history, freq, time) {
@@ -360,10 +373,11 @@
             case 'immune':
               color = '#4455ff';
               break;
-              case 'exposed':
-                color = '#ff00ff';
-                break;
-            default: break;
+            case 'exposed':
+              color = '#ff00ff';
+              break;
+            default:
+              break;
           }
           history[f] = {
             x: [],
@@ -371,7 +385,9 @@
             name: f,
             mode: 'lines',
             type: 'scatter',
-            line: {color:color}
+            line: {
+              color: color
+            }
           };
         }
         history[f].y.push(freq[f])
@@ -383,50 +399,52 @@
 
 
     let plotset = {};
+
     function render() {
-      cfg = Vue.util.extend({}, cfg);
-      if (env.time <= cfg.environment.until) {
+      //cfg = Vue.util.extend({}, cfg);
+      if (environment.time <= cfg.environment.until) {
         //debugger;
         requestAnimationFrame(render);
-        env.update(cfg.environment.step);
-        env.time += cfg.environment.step;
-        if(cfg.environment.type === 'continuous'){
+        environment.update(cfg.environment.step);
+        environment.time += cfg.environment.step;
+        if (cfg.environment.type === 'continuous') {
           continuousRender();
-        } else if (cfg.environment.type === 'compartmental'){
-          if(env.time % 10=== 0){
-          compartmentalRender();
+        } else if (cfg.environment.type === 'compartmental') {
+          if (environment.time % 10 === 0) {
+            compartmentalRender();
           }
         }
       } else {
-        if(cfg.environment.type === 'continuous'){
+        if (cfg.environment.type === 'continuous') {
           continuousRender();
-        } else if (cfg.environment.type === 'compartmental'){
+        } else if (cfg.environment.type === 'compartmental') {
           compartmentalRender();
         }
         plotset = {};
-        console.log('done', env);
+        console.log('done', environment);
         let rep = exp.report(0, cfg);
         app._data.log = [rep];
       }
     }
 
-    function continuousRender(){
-      if(env.time.toFixed(3) % 0.05 === 0){
+    function continuousRender() {
+      if (environment.time.toFixed(3) % 0.05 === 0) {
         let freq = freqs();
-        let plottable = format(plotset, freq, env.time);
+        let plottable = format(plotset, freq, environment.time);
         Plotly.newPlot('timeplot', plottable);
       }
       renderer.render(scene, camera);
     }
 
-    function compartmentalRender(){
-      for( let c in env.agents[0].compartments){
+    function compartmentalRender() {
+      for (let c in environment.agents[0].compartments) {
         let freq = compartments();
-        let plottable = format(plotset, freq, env.time);
+        let plottable = format(plotset, freq, environment.time);
         Plotly.newPlot('timeplot', plottable);
       }
 
     }
   </script>
-  <script src="./ebola-fit.js"></script>
+  <script src="./ebola-fit.js"></script>;
+  <script src="./vectorborne.js"></script>;
 </body>

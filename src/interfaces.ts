@@ -1,4 +1,3 @@
-
   /**Action to be performed by a QComponent by calling operate
   */
   export interface Action {
@@ -26,12 +25,4 @@
     error: number;
     units: string;
     current: number;
-  }
-
-  /**Quantitative resource used by Environment
-  */
-  export interface Resource{
-    label: string;
-    amount: number;
-    unit: string;
   }

@@ -1,34 +1,54 @@
-
-let r = 100;
-let bounds = [400, 300]; // for margin
-let boundaries = {
-  'people': {top:bounds[1], left:10, bottom:10, right:bounds[0]},
-  'mosquitoes': {top:bounds[1] - 100, left:10, bottom:10, right:bounds[0] - 100},
-}
-
-let setupMosquitos = {
+'use strict';
+let setupVectorborne = {
     experiment: {
-        seed: 12345,
-        rng: new QEpiKit.RNGBurtle(this.seed),
-        iterations: 50,
-        iterations: 5,
-        type: 'evolution',
-        size: 5
+      seed: 12345,
+      rng: 'burtle',
+      iterations: 8,
+      type: 'evolution',
+      size: 8
     },
     environment: {
-        step: 1,
-        until: 150,
+        step: 0.001,
+        until: 1,
         saveInterval: 1,
-        type: 'compartmental',
-        //bounds: [0, 0],
+        type: 'continuous',
+        boundaries:[500,500],
         params: {}
+    },
+    evolution: {
+      method: "constrained",
+      params: [{
+        level: 'agents',
+        group: 'people',
+        name: 'contactAttempts',
+        range: [10,100]
+      }, {
+        level: 'entities',
+        group: 'pathogen',
+        name: 'shedRate',
+        range: [500, 2000]
+      }],
+      target: {
+        freqs: {
+          infectious: 100
+        }
+      }
+    },
+    report: {
+        sums: [],
+        means: [],
+        freqs: [],
+        model: [],
+        history: [],
+        compartments: ['succeptible','exposed','infectious','removed']
     },
     pathogen: {
         name:'malaria',
         contactRate: 25,
         mosqTransRate: 0.16,
         mosqIncubation: 1 / 3,
-        mosqDuration: 1 / this.durationOfInfection,
+        mosqDuration: 1 / 3,
+        mosqResuccept: 2,
         incubationPeriod: 0,
         durationOfInfection: 0,
         timeFromInfToDeath: 0,
@@ -43,25 +63,39 @@ let setupMosquitos = {
         recoveryTime: 6,
         shedRate: 700,
         mutationTime: 36,
-        'beta-Poisson': function(dose) {
-          let response = 1 - Math.pow((1 + (dose / this.N50) * (Math.pow(2, (1 / this.optParam)) - 1)), (-this.optParam));
-          return response;
-        },
-        'exponential': function(dose) {
-          let response = 1 - Math.exp(-this.optParam * dose);
-          return response;
+        vectorPatch: 'mosquitoes',
+        methods:{
+          'beta-Poisson': 'beta-Poisson',
+          'exponential': 'exponential'
         }
     },
     patches: [{
         name: 'mosquitoes',
         type: 'patches',
         populations: {
-            succeptible: 4502992 / 4503000,
-            infectious: 8 / 4503000 ,
+            succeptible: 4999999 / 5000000,
+            infectious: 1 / 5000000 ,
             removed: 0
-        }
+        },
         params:{
-          shedOnBite:1e5
+          'movePerDay': {
+            distribution:{
+              name:'normal',
+              params:[3000, 1000]
+            }
+          },
+          shedOnBite:{
+            assign:1e5
+          },
+          r: {
+            assign : 100
+          }
+        },
+        boundaries: {
+          left: 1,
+          right: 500 - 1,
+          top: 500 - 1,
+          bottom: 1
         }
     }],
     agents: {
@@ -76,8 +110,9 @@ let setupMosquitos = {
         },
         params: {
           'movePerDay': {
-            assign: () => {
-              return random.normal(3000, 1000);
+            distribution:{
+              name:'normal',
+              params:[3000, 1000]
             }
           },
           'contactAttempts': {
@@ -104,67 +139,43 @@ let setupMosquitos = {
           'infected': {
             assign:false
           },
-          'percentImmune': {
-            assign: 0.4
-          },
-          'percentInfected': {
-            assign: 0.1
-          },
-          'states': {
-            assign: function() {
-              let r = random.random();
-              let state = 'succeptible'
-              if (r < 0.2) {
-                state = 'immune';
-              }
-              if (r >= 0.2 && r < 0.22) {
-                state = 'infectious';
-              }
-              return {
-                'illness': state
-              };
+          'illness': {
+            states: {
+              params:[['immune','succeptible','exposed','infectious'],[0.3,0.69,0.005,0.005]]
             }
           }
         }
       }
     },
     components: [{
-      name: 'mosquitoes-comp',
+      name: 'mosquito-comp',
       type: 'compartmental',
       patches: ['mosquitoes'],
       compartments: {
         'succeptible': {
-          operation: function(patch, step) {
-            return (patch.removed * mosqPathParams.resuccept * step) - (mosqPathParams.transmissionRate * patch.succeptible * (patch.infectious + patch.exposed) * step);
-          }
+          operation: 'mSucceptible'
         },
         'exposed': {
-          operation = function(patch, step) {
-            return (mosqPathParams.transmissionRate * patch.succeptible * (patch.infectious + patch.exposed) * step) - (patch.exposed * mosqPathParams.latentTime * step);
-          }
+          operation :'mExposed'
         },
         'infectious': {
-          operation: function(patch, step) {
-            return (patch.exposed * mosqPathParams.latentTime * step) - (patch.infectious * mosqPathParams.recoveryRate * step);
-          }
+          operation: 'mInfectious'
         },
         'removed': {
-          operation: function(patch.step) {
-            return (patch.infectious * mosqPathParams.recoveryRate * step) - (patch.removed * mosqPathParams.resuccept * step);
-          }
+          operation: 'mRemoved'
         }
-
       }
     },{
-      name: 'mosqMovementModel',
+      name: 'mosquito-movement',
       type : 'every-step',
-      patches: ['mosquitoes']
-      update: function(agent, step){
-        agent.mesh.material.color.g = patch.succeptible;
-        agent.mesh.material.color.r = patch.infectious;
-        agent.mesh.material.color.b = patch.removed;
-        QActions.moveWithin(step, agent, boundaries.mosquitoes);
-      }
+      agents: 'mosquitoes',
+      action: 'moveWithin'
+    },
+    {
+      name:'mosquito-check',
+      type:'every-step',
+      agents:'people',
+      action: 'mosquitoCheck'
     },
     {
       name: 'SEIR',
@@ -221,16 +232,6 @@ let setupMosquitos = {
       name: 'Movement',
       type: 'every-step',
       agents: 'people',
-      action: function(agent, step){
-        QActions.moveWithin(step, agent, boundaries.people);
-        if(pathogen.vectorBorne){
-          let dist = distance(agent.position, mainPatch.position) + 1e-16;
-          if(dist < r){
-            if(random.random() < patch.infectious / dist){
-              agent.pathogenLoad += mainPatch.shedOnBite * step;
-            }
-          }
-        }
-      }
+      action: 'moveWithin'
     }]
-  }
+  };

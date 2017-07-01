@@ -1,17 +1,17 @@
-import {normalize} from './utils';
+declare var jStat: any;
 
 export class Gene {
+    type: string;
     score: number;
     code: number;
-    constructor(range: number[], discrete: boolean, rng: any) {
-        let val = rng.randRange(range[0], range[1]);
-        if (!discrete) {
-            this.code = normalize(val, range[0], range[1]);
-        } else {
-            this.code = Math.floor(val);
-        }
+    constructor(params: number[], type: string, rng: any) {
+      switch(type){
+        case 'normal': this.code = rng.normal(params[0], params[1]); break;
+        default : this.code = rng.random(); break;
+      }
     }
 }
+
 
 export class Chromasome {
     score: number;

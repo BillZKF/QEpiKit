@@ -34,7 +34,7 @@ export class StateMachine extends QComponent {
                 if (r === StateMachine.SUCCESS) {
                   agent.states[s] = this.transitions[i].to;
                   agent[this.transitions[i].to] = true;
-                  agent[this.transitions[i].from] = false; //for easier reporting
+                  agent[this.transitions[i].from[j]] = false; //for easier reporting
                 }
               }
             }
