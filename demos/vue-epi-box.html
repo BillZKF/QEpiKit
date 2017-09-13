@@ -26,7 +26,7 @@
       <evolution-form v-if="experiment.type === 'evolution'" :evolution="evolution"></evolution-form>
       <report-form :report="report"></report-form>
 
-      <pathogen-form :pathogen="pathogen"></pathogen-form>
+      <entity-form :entity="pathogen" :entity-name="'pathogen'"></entity-form>
     </div>
     <div class="col-lg-6">
       <div class="btn btn-primary btn-lg" @click="visualize()">Visualize Run</div>
@@ -116,15 +116,17 @@
         },
         entities:{},
         pathogen: {
-          name: 'influenza',
-          personToPerson: true,
-          N50: 9.45e5,
-          optParam: 5.81e-1,
-          bestFitModel: 'beta-Poisson',
-          decayRate: 4.5,
-          recoveryTime: 6,
-          shedRate: 700,
-          mutationTime: 36,
+          params:{
+            name: { assign:'influenza'},
+            personToPerson: { assign:true},
+            N50: { assign:9.45e5},
+            optParam: { assign:5.81e-1},
+            bestFitModel: { assign:'beta-Poisson'},
+            decayRate: { assign:4.5},
+            recoveryTime: { assign:6},
+            shedRate: { assign:700},
+            mutationTime: { assign:36}
+          },
           methods:{
             'beta-Poisson': 'beta-Poisson',
             'exponential': 'exponential'

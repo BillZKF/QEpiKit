@@ -78,7 +78,7 @@ export class Experiment {
     if ('patches' in cfg) {
       cfg.patches.forEach((patch) => {
         this.environment.boundaries[patch.name] = patch.boundaries;
-        patch.params.groupName = patch.name;
+        patch.params = {groupName : patch.name};
         groups[patch.name] = generatePop(1, patch.params, cfg.environment.spatialType, patch.boundaries, currentAgentId, this.rng);
       })
     }
@@ -93,6 +93,10 @@ export class Experiment {
     if ('entities' in cfg) {
       for (let entity in cfg.entities) {
         for (let method in cfg.entities[entity].methods) {
+          for(let p in cfg.entities[entity].params){
+            //copy to outside for external references
+            cfg.entities[entity][p] = cfg.entities[entity].params[p].assign;
+          }
           cfg.entities[entity].methods[method] = QActions[method];
         }
         this.environment.entities[entity] = cfg.entities[entity];
@@ -144,7 +148,7 @@ export class Experiment {
     let sums = {};
     let means = {};
     let freqs = {};
-    let model = {};
+    let model = {}selu;
     let count = this.environment.agents.length;
     //cfg.report.sum = cfg.report.sum.concat(cfg.report.mean);
     for (let i = 0; i < this.environment.agents.length; i++) {
@@ -235,6 +239,7 @@ export class Experiment {
           }
           break;
         case 'entities':
+          cfg.entities[param.group].params[param.name].assign = val;
           cfg.entities[param.group][param.name] = val;
           break;
         default:

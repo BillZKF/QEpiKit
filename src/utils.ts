@@ -259,6 +259,27 @@ export function dataToMatrix(items: any[], stdized = false) {
   return data;
 }
 
+export function categoriesToVector(data:any[]){
+  let values = [];
+  let keys = {};
+  let matrix;
+  let idx = 0;
+  data.forEach((x) => {
+    let key = x + '';
+    if(!(key in keys)){
+        values.push(key);
+        keys[key] = values.length - 1;
+    }
+  });
+  matrix = data.map((y) => {
+    let z = values.map((v) => {return 0});
+    let idx = keys[y + ''];
+    z[idx] = 1;
+    return z;
+  })
+  return {labels:keys, data: matrix};
+}
+
 export function scale(vals: any, center?: number, scale?: number) {
   if (typeof vals === 'number') {
     return (vals - center) / scale;

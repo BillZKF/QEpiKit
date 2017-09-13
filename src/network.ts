@@ -20,6 +20,12 @@ export class Network {
         ReLU: function(x: number) {
             return Math.max(x, 0);
         },
+        SeLU:function(x:number){
+          let alpha = 1.6732632423543772848170429916717;
+          let scale = 1.0507009873554804934193349852946;
+          let step = x >= 0 ? x : (alpha * Math.exp(x) - 1);
+          return scale * x;
+        },
         sigmoid: function(x: number) {
             return 1 / (1 + Math.exp(-x));
         },
@@ -33,6 +39,11 @@ export class Network {
         ReLU: function(value: number) {
             let der = value <= 0 ? 0 : 1;
             return der;
+        },
+        SeLU:function(value:number){
+          let alpha = 1.6732632423543772848170429916717;
+          let scale = 1.0507009873554804934193349852946;
+          return value >= 0 ? value : Network.activationMethods.SeLU(value) + alpha;
         },
         sigmoid: function(value: number) {
             let sig = Network.activationMethods.sigmoid;
@@ -52,8 +63,7 @@ export class Network {
         }
     }
 
-    constructor(data: number[][], labels: number[][], hiddenNum: number[], el: string, activationType: string = "tanh") {
-        this.el = el;
+    constructor(data: number[][], labels: number[][], hiddenNum: number[], activationType: string = "tanh") {
         this.iter = 0;
         this.correct = 0;
         this.hiddenNum = hiddenNum;
@@ -63,7 +73,9 @@ export class Network {
         this.init(data, labels);
     }
 
-    learn(iterations: number, data: number[][], labels: number[][], render: number = 100) {
+    learn(iterations: number, data: number[][], labels: number[][]) {
+        data = data || this.data;
+        labels = labels || this.labels;
         this.correct = 0;
         for (let i = 0; i < iterations; i++) {
             let randIdx = Math.floor(Math.random() * data.length);
@@ -169,6 +181,10 @@ export class Network {
                 return this.actFn(total + this.biases[wg][idx]);
             })
         }
+    }
+
+    update(input:any, step:number){
+      this.forward(input);
     }
 
     backward(labels: number[]) {

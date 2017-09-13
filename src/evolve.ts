@@ -2,13 +2,14 @@ import {Experiment} from './experiment';
 import {Environment} from './environment';
 import {Chromasome, Gene} from './genetic';
 import {RNGBurtle} from './random';
-import {assignParam} from './utils';
+import {assignParam, scale, scaleInv} from './utils';
 
 declare var jStat: any;
 export class Evolve extends Experiment {
   public environment: Environment;
   public type: string = 'evolve';
   public rng: any;
+  public ranges: number;
   public setup: any;
   public currentCFG: any;
   public experimentLog: any[];
@@ -23,7 +24,7 @@ export class Evolve extends Experiment {
     super(environment, setup);
     this.target = setup.evolution.target;
     for (let i = 0; i < this.setup.experiment.size; i++) {
-      this.population[i] = { score: 1e6, params: [] };
+      this.population[i] = { score: 1e16, params: [] };
       for (let p = 0; p < this.setup.experiment.params.length; p++) {
         let setParam = this.setup.experiment.params[p];
         this.population[i].params.push({
@@ -34,6 +35,7 @@ export class Evolve extends Experiment {
         });
       }
     }
+    this.ranges = this.setup.experiment.params.map((d) => {return d.distribution.params});
   }
 
   start(runs: number, step: number, until: number, prepCB?: Function) {
@@ -73,15 +75,18 @@ export class Evolve extends Experiment {
   }
 
   endGen(run, cfg) {
+    let children;
     let prevStart = Math.min(0, run - cfg.experiment.size);
     this.population.sort(this.ascSort);
     this.population = this.population.slice(0, cfg.experiment.size);
+    children = this.mate(Math.min(5, Math.max(2, Math.floor(this.population.length * 0.333))));
     this.mutate(this.population, 1);
-    this.genLog.push(this.genAvg(this.experimentLog.slice(prevStart, run), cfg))
+    this.genLog.push(this.genAvg(this.experimentLog.slice(prevStart, run), cfg));
     this.genLog[this.genLog.length - 1].order = this.genLog.length - 1;
     this.genLog[this.genLog.length - 1].score = this.scoreMean(this.population);
     this.genLog[this.genLog.length - 1].scoreSD = this.scoreSD(this.population);
-    this.population = this.population.concat(this.mate(Math.min(4, this.population.length)));
+    this.population.splice(this.population.length - children.length - 1, children.length);
+    this.population = this.population.concat(children);
   }
 
   vectorScores(pop) {
@@ -128,36 +133,42 @@ export class Evolve extends Experiment {
   }
 
   mutate(population: any[], chance: number) {
-    for (let i = 0; i < population.length; i++) {
+    for (let i = 1; i < population.length; i++) {
       if (this.rng.random() > chance) {
         continue;
       }
       let best = population[0].params;
       let current = population[i].params;
       for (let p = 0; p < current.length; p++) {
-        let diff = best[p].assign - current[p].assign;
-        if (diff < 1e-15) {
-          current[p].assign += this.rng.normal(0, 1) * this.mutateRate;
+        let scaledB = scale(best[p].assign, this.ranges[p][0], this.ranges[p][1] - this.ranges[p][0]);
+        let scaledC = scale(current[p].assign, this.ranges[p][0], this.ranges[p][1] - this.ranges[p][0]);
+        let diff = scaledB - scaledC;
+        if (diff === 0) {
+          scaledC += this.rng.normal(0, 1e-8) * this.mutateRate;
         } else {
-          current[p].assign += diff * this.mutateRate;
+          scaledC += diff * this.mutateRate;
         }
+          //clamp to uniform min and max.
+          current[p].assign = scaleInv(Math.max(this.ranges[p][0], Math.min(scaledC, this.ranges[p][1])), this.ranges[p][0], this.ranges[p][1] - this.ranges[p][0]);
       }
     }
   }
 
   mate(parents: number) {
-    let numChildren = Math.min(2, Math.max(10, this.population.length));
     let numParams = this.population[0].params.length;
+    let numChildren = Math.max(Math.min(10, Math.max(2, Math.floor(this.population.length * 0.333))));
     let children = [];
     for (let i = 0; i < numChildren; i++) {
       let child = { params: [], score: 0 };
       let p1 = Math.floor(this.rng.random() * parents);
       let p2 = Math.floor(this.rng.random() * parents);
+      if(p1 === p2){
+        p2 = p2 === 0 ? parents - 1 : p2 - 1;
+      }
       let split = Math.floor(this.rng.random() * numParams);
       child.params = [].concat(this.population[p1].params.slice(0, split), this.population[p2].params.slice(split, numParams));
       children.push(child);
     }
-    console.log(children);
     return children;
   }
 
