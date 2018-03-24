@@ -148,7 +148,7 @@ export class Experiment {
     let sums = {};
     let means = {};
     let freqs = {};
-    let model = {}selu;
+    let model = {};
     let count = this.environment.agents.length;
     //cfg.report.sum = cfg.report.sum.concat(cfg.report.mean);
     for (let i = 0; i < this.environment.agents.length; i++) {

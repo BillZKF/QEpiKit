@@ -1,4 +1,4 @@
-declare const cytoscape: any;
+declare var jStat;
 export class Network {
     learnRate: number;
     iter: number;
@@ -14,6 +14,7 @@ export class Network {
     weights: any[];
     actFn: Function;
     derFn: Function;
+    costFn: Function;
     weightChanges: any[]
 
     static activationMethods = {
@@ -55,45 +56,37 @@ export class Network {
     }
 
     static costMethods = {
-        sqErr: function(target: number, guess: number) {
-            return guess - target;
+        mse: function(target: number, guess: number) {
+            return target - guess;
         },
-        absErr: function() {
+        abs: function() {
 
+        },
+        crossEntropy: function(target:number, guess: number){
+            if(target === 1){
+                return -Math.log(guess);
+            } else {
+                return -Math.log(1 - guess);
+            }
         }
     }
 
-    constructor(data: number[][], labels: number[][], hiddenNum: number[], activationType: string = "tanh") {
+    constructor(data: number[][], labels: number[][], hiddenNum: number[], activationType: string = 'tanh', costType = 'mse') {
         this.iter = 0;
         this.correct = 0;
         this.hiddenNum = hiddenNum;
         this.learnRate = 0.01;
         this.actFn = Network.activationMethods[activationType];
         this.derFn = Network.derivativeMethods[activationType];
+        this.costFn = Network.costMethods[costType];
         this.init(data, labels);
     }
 
     learn(iterations: number, data: number[][], labels: number[][]) {
-        data = data || this.data;
-        labels = labels || this.labels;
-        this.correct = 0;
         for (let i = 0; i < iterations; i++) {
             let randIdx = Math.floor(Math.random() * data.length);
             this.iter++;
             this.forward(data[randIdx]);
-            let max = -1;
-            let maxIdx = Math.floor(Math.random() * this.values.length);
-            this.values[this.values.length - 1].forEach((x: number, idx: number) => {
-                if (x > max) {
-                    maxIdx = idx;
-                    max = x;
-                }
-            });
-            let guessed = this.values[this.values.length - 1][maxIdx] >= 0.5 ? 1 : 0;
-            if (guessed === labels[randIdx][maxIdx]) {
-                this.correct++;
-            }
-            this.accuracy = this.correct / (i + 1);
             this.backward(labels[randIdx]);
             this.updateWeights();
             this.resetTotals();
@@ -104,6 +97,47 @@ export class Network {
         this.resetTotals();
         this.forward(data);
         return this.values[this.values.length - 1];
+    }
+
+    evaluate(data: number[][], labels: number[][]){
+        let correct = 0;
+        let loss = 0;
+        let accuracy = 0;
+        for(let i = 0; i < data.length; i++){
+            let y = this.classify(data[i]);
+            let correctIdx = -1;
+            let maxGuessIdx = -1;
+            let maxGuess = -100;
+            let guess;
+            labels[i].forEach((x: number, idx: number) => {
+                if (x > 0) {
+                    correctIdx = idx;
+                }
+
+                if(y[idx] >= maxGuess){
+                    maxGuessIdx = idx;
+                    maxGuess = y[idx];
+                }
+            });
+            
+            if (correctIdx === maxGuessIdx) {
+                correct++;
+            }
+            guess = y[correctIdx]//isNaN(y[correctIdx]) ? Math.random() : y[correctIdx];
+            loss += Math.abs(this.costFn(labels[i][correctIdx], guess)); // how far off?  
+        }
+        accuracy = correct / data.length;
+        return {loss: loss, correct: correct, examples: data.length, accuracy: accuracy};
+    }
+
+    copyNetwork(other: Network){
+        this.der = JSON.parse(JSON.stringify(other.der));
+        this.values = JSON.parse(JSON.stringify(other.values));
+        this.weights = JSON.parse(JSON.stringify(other.weights));
+        this.weightChanges = JSON.parse(JSON.stringify(other.weightChanges));
+        this.totals = JSON.parse(JSON.stringify(other.totals));
+        this.derTotals = JSON.parse(JSON.stringify(other.derTotals));
+        this.biases = JSON.parse(JSON.stringify(other.biases));
     }
 
     init(data: number[][], labels: any[][]) {
@@ -195,7 +229,7 @@ export class Network {
                 let err = 0;
                 for (let dst = 0; dst < this.weights[wg][src].length; dst++) {
                     if (wg === this.weights.length - 1) {
-                        err += labels[dst] - this.values[dstVals][dst];
+                        err += this.costFn(labels[dst], this.values[dstVals][dst]);
                         this.der[dstVals][dst] = err;
                     } else {
                         err += this.der[dstVals][dst] * this.weights[wg][src][dst];

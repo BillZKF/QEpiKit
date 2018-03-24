@@ -1,6 +1,8 @@
 declare var jStat: any;
 declare var THREE: any;
 declare var turf: any;
+declare var scene: any;
+declare var QActions: any;
 
 import {Resource} from './resource';
 
@@ -313,6 +315,7 @@ export function standardized(arr: number[]) {
   })
   return standardized;
 }
+
 
 /*
 * between 0 and 1 when min and max are known

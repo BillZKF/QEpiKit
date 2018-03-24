@@ -1,0 +1,335 @@
+<html>
+
+<body>
+  <div id="goal">
+  </div>
+  <div id="state">
+  </div>
+  <form id="tasks">
+  </form>
+  <div id="inputs">
+  </div>
+  <div id="map">
+  </div>
+  <div id="suggest">
+  </div>
+  <div id="train">
+    <input type='button' onclick='startTraining()' value='Train' />
+    <input type='button' onclick='clearHistory()' value='Clear History' />
+    <input type='button' onclick='getSuggestion()' value='Get Suggestion' />
+  </div>
+  <script src="./libs/jStat.min.js"></script>
+  <script src="../qepikit.js"></script>
+  <script>
+    let graphMap = {
+      'att': ['oregon'],
+      'oregon': ['snyder', 'att'],
+      'snyder': ['city_hall', 'oregon'],
+      'city_hall': ['snyder', 'alleghany', '30th', 'old_city'],
+      'alleghany': ['olney', 'city_hall'],
+      '30th': ['upper_darby', 'city_hall'],
+      'upper_darby': ['30th'],
+      'olney': ['alleghany'],
+      'old_city': ['frankford', 'city_hall'],
+      'frankford': ['old_city']
+    }
+
+    let coordMap = {
+      'att': [0, -5],
+      'oregon': [0, -4],
+      'snyder': [0, -3],
+      'city_hall': [0, 0],
+      'alleghany': [0, 4],
+      '30th': [-1, 0],
+      'upper_darby': [-3, 0],
+      'olney': [0, 5],
+      'old_city': [2, 0],
+      'frankford': [2, 2]
+    };
+
+    let stations = Object.keys(graphMap);
+
+    let state = {
+      step: 0,
+      goal: '',
+      positionX: 1,
+      positionY: 1,
+      station: 'none',
+      lastTask: 'start',
+      task: 'start',
+      nextStation: ''
+    };
+
+    let stateTypes = {
+      step: 'number',
+      goal: 'string',
+      positionX: 'number',
+      positionY: 'number',
+      station: 'string',
+      lastTask: 'string',
+      task: 'string',
+      nextStation: 'string'
+    };
+
+    let history = JSON.parse(localStorage.getItem('history')) || [];
+    let tests = {
+      'check_closest': function(position, stations) {
+        let min = 1e6;
+        let closest;
+        let distances = [];
+        for (station in stations) {
+          distances[station] = Math.sqrt(Math.pow(coordMap[station][0] - position[0], 2) + Math.pow(coordMap[station][1] - position[1], 2));
+          if (distances[station] <= min) {
+            min = distances[station];
+            closest = station;
+          }
+        }
+        return [closest];
+      },
+      'is_open': function(){
+
+      },
+      'check_destinations': function(trainFrom) {
+        return graphMap[trainFrom];
+      }
+    };
+
+    let taskInputs = {
+      'check_closest': [{
+          'label': 'positionX',
+          'type': 'number',
+          'value': () => {
+            return state.positionX
+          }
+        },
+        {
+          'label': 'positionY',
+          'type': 'number',
+          'value': () => {
+            return state.positionY
+          }
+        },
+        {
+          'label': 'station',
+          'type': 'stations',
+          'value': () => {
+            return tests.check_closest([state.positionX, state.positionY], coordMap)
+          }
+        }
+      ],
+      'walk_to_station':[{
+        'label': 'arrived',
+        'type': 'boolean',
+        'value': () => {return ['enter_station']}
+      }],
+      'pick_train': [{
+        'label': 'station',
+        'type': 'stations',
+        'value': () => {
+          return graphMap[state.station]
+        }
+      }],
+      'exit_subway': [{
+        'label': 'arrived',
+        'type': 'boolean',
+        'value': () => {return ['arrived_at_goal?']}
+      }]
+    }
+
+
+    function getRandomStation() {
+      return stations[Math.floor(Math.random() * stations.length)];
+    }
+
+    function createInputs(inputArray) {
+      let typeMap = {
+        'number': (label, value) => {
+          return '<label>' + label + '</label><input value="' + value + '"/>'
+        },
+        'stations': (label, list) => {
+          return showMap(list, coordMap, graphMap);
+        },
+        'boolean': (label, list) => {
+          let str = '';
+          for (let j = 0; j < list.length; j++) {
+            str += `<input type="button" name="${label}" onclick="pickOption('${label}', true)" value="'${list[j]}'" />`;
+          }
+          return str;
+        },
+
+        'list': (label, list) => {
+          let str = '';
+          for (let j = 0; j < list.length; j++) {
+            str += `<input type="button" name="${label}" onclick="pickOption('${label}','${list[j]}')" value="'${list[j]}'" />`;
+          }
+          return str;
+        }
+      }
+      let inputs = '<div>'
+
+      for (let i = 0; i < inputArray.length; i++) {
+        let result = typeMap[inputArray[i].type](inputArray[i].label, inputArray[i].value());
+        //console.log(inputArray[i].label);
+        inputs += result
+      }
+      inputs += '</div>'
+      return inputs;
+    }
+
+    function setTask(task) {
+      state.lastTask = state.task;
+      state.task = task;
+      next();
+      document.querySelector('#inputs').innerHTML = '';
+      document.querySelector('#inputs').innerHTML = createInputs(taskInputs[task]);
+    }
+
+    function reset() {
+      state.goal = getRandomStation();
+      document.querySelector('#goal').innerHTML = state.goal;
+      state.step = 0;
+      state.positionX = Math.random() * 3 - Math.random() * 5;
+      state.positionY = Math.random() * 5 - Math.random() * 5;
+      document.querySelector('#inputs').innerHTML = '';
+    }
+
+    function pickOption(label, value) {
+      state[label] = value;
+    }
+
+    function createTasks(el, tasks) {
+      document.querySelector(el).innerHTML = '';
+      for (let task in tasks) {
+        let inputEl = `<input name="tasks" value="${task}" type="button" onclick="setTask('${task}')" />`;
+        document.querySelector(el).innerHTML += inputEl;
+      }
+    }
+
+    function next() {
+      history.push(state)
+      localStorage.setItem('history', JSON.stringify(history));
+      state = JSON.parse(JSON.stringify(state));
+      state.station = state.nextStation;
+      if (state.arrived & state.station === state.goal) {
+        reset();
+      } else {
+        if(state.station !== ''){
+          state.positionX = coordMap[state.station][0];
+          state.positionY = coordMap[state.station][1];
+        }
+        state.step += 1;
+      }
+      showState(state);
+    }
+
+    let tDecomp;
+    function startTraining() {
+      
+      let cleaned = preprocessHistory(history, stateTypes, 'task')
+      tDecomp = tDecomp || new QEpiKit.TaskDecomposer(cleaned.examples, cleaned.labels, tests, {hidden:[[20,36],[8,16]], actFn:'ReLU'});
+      tDecomp.train();
+      console.log(tDecomp);
+    }
+
+    function getSuggestion(){
+      let all = history.concat(state);
+      let cleaned = preprocessHistory(all, stateTypes, 'task');
+      tDecomp.liveTrain(cleaned.examples[cleaned.examples.length - 1], cleaned.labelNames, (result)=> {document.querySelector('#suggest').innerHTML = result});
+    }
+
+    function clearHistory(){
+      localStorage.clear('history');
+    }
+
+    function preprocessHistory(history, stateTypes, labelField) {
+      let outputs = {};
+      let resultMat = [];
+      let labelData = [];
+      let preprocessMap = {
+        'string': (key, history) => {
+          let stringVec = history.map((s) => {
+            return s[key];
+          })
+          return categoriesToVector(stringVec);
+        },
+        'number': (key, history) => {
+          let min = 1e8;
+          let max = -1e8;
+          let numVec = history.map((s) => {
+            if (s[key] < min) {
+              min = s[key];
+            }
+            if (s[key] > max) {
+              max = s[key];
+            }
+            return s[key];
+          })
+          return numVec.map((n) => {
+            return normalize(n, min, max)
+          });
+        }
+      };
+
+      for (let key in stateTypes) {
+        outputs[key] = preprocessMap[stateTypes[key]](key, history)
+        if(key === labelField){
+          labelNames = outputs[key].labels;
+        }
+      }
+
+      for (let i = 0; i < history.length; i++) {
+        resultMat[i] = [];
+        for (let key in stateTypes) {
+          if (key === labelField) {
+            labelData[i] = outputs[key].data[i];
+          } else {
+            if (stateTypes[key] === 'string') {
+              //console.log(outputs[key]);
+              resultMat[i] = resultMat[i].concat(outputs[key].data[i]);
+            } else {
+              resultMat[i] = resultMat[i].concat(outputs[key][i]);
+            }
+          }
+        }
+      }
+      return {
+        examples: resultMat,
+        labels: labelData,
+        labelNames: labelNames
+      };
+    }
+
+    function showState(state) {
+      let template = '<ul>'
+      for (let key in state) {
+        template += `<li>${key} : ${state[key]}</li>`
+      }
+      document.querySelector('#state').innerHTML = template + '</ul>';
+    }
+
+    function showMap(current, locations, connections) {
+      let mult = 50;
+      let centerX = window.innerWidth * 0.5;
+      let centerY = window.innerHeight * 0.5;
+      let template = `<span style="position:absolute; top:${-state.positionY * mult + centerY}px; left:${state.positionX * mult + centerX}">X</span>`;
+      for (let loc in locations) {
+        let posX = locations[loc][0] * mult + centerX;
+        let posY = -locations[loc][1] * mult + centerY;
+        if (current.indexOf(loc) === -1) {
+          template += `<div style="position:absolute; top:${posY}px; left:${posX}" ><input type="button" value="${loc}" onclick="pickOption('nextStation','${loc}')" disabled></div>`
+        } else {
+          template += `<div style="position:absolute; top:${posY}px; left:${posX}" ><input type="button" value="${loc}" onclick="pickOption('nextStation','${loc}')"></div>`
+        }
+      }
+      return template;
+    }
+
+    reset();
+    document.querySelector('#goal').innerHTML = state.goal;
+
+    showState(state);
+    createTasks('#tasks', taskInputs);
+  </script>
+</body>
+
+</html>

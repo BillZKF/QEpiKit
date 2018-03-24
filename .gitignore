@@ -7,5 +7,6 @@ node_modules/
 bower_components/
 *.csproj
 *.csproj.user
+.vscode/
 *.config
 .settings/

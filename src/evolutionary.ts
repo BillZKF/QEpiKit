@@ -4,7 +4,7 @@ import {Chromasome, Gene} from './genetic';
 import {RNGBurtle} from './random';
 import {assignParam, scaleInv, scale} from './utils';
 
-declare var jStat: any;
+declare var jStat: any;/*
 export class Evolutionary extends Experiment {
   public rng: any;
   public environment: Environment;
@@ -257,3 +257,4 @@ export class Evolutionary extends Experiment {
         }
     }
 }
+*/
